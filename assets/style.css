@@ -1,0 +1,24 @@
+/* 整个页面黑色，无间隙 */
+html, body {
+    background-color: #0e1117 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Dash 容器也设为黑色 */
+#_dash-app-content {
+    background-color: #0e1117 !important;
+}
+
+/* Graph 外层不留白 */
+.dash-graph {
+    background-color: #0e1117 !important;
+}
+
+/* 去除默认 padding */
+* {
+    box-sizing: border-box;
+}
