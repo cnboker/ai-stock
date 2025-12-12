@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import torch
 from chronos import ChronosPipeline
-from sina import download_15m,download_5m
+from quote import download_15m,download_5m
 
 PREDICTION_LENGTH = 10         # 预测未来几根 15m K 线
 UPDATE_INTERVAL_SEC = 60  * 15     # 刷新间隔（秒），可改小（注意 API 限制）

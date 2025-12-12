@@ -1,24 +1,28 @@
+import gc
 import os
-import time
-from datetime import datetime, time, timedelta
+# ================ 文件最顶部直接覆盖这几行 ================
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+os.environ["TORCHDYNAMO_DISABLE"] = "1"
+
+import torch
+from chronos import ChronosPipeline
+from datetime import datetime, time
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import torch
 from chronos import ChronosPipeline
+import pickle
+from quote import download_15m, download_5m
 
-from sina import download_15m, download_5m
-
-# 你的 sina 下载函数（假设已定义好
-# from sina import download_15m, download_5m
 
 PREDICTION_LENGTH = 10
 UPDATE_INTERVAL_SEC = 60 * 15
 CACHE_60D = {"5": {}, "15": {}}
 PREDICTION_HISTORY = {}  # {ticker: pd.DataFrame()}
+HISTORY_FILE = "prediction_history.pkl"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DTYPE = torch.bfloat16 if torch.cuda.is_available() else torch.float32
 
@@ -26,19 +30,27 @@ DTYPE = torch.bfloat16 if torch.cuda.is_available() else torch.float32
 print("Loading Chronos model...")
 os.environ["HF_HOME"] = "./hf_cache"
 
+# pipeline = ChronosPipeline.from_pretrained(
+#     "amazon/chronos-t5-small",
+#     device_map=DEVICE,
+#     dtype=DTYPE,
+#     cache_dir="./hf_cache",
+# )
+
+# ========== 加载模型（这套组合显存永远 < 7.3GB）==========
+print("正在加载 chronos-t5-large（V100终极保命版）...")
+
 pipeline = ChronosPipeline.from_pretrained(
-    "amazon/chronos-t5-small",
-    device_map=DEVICE,
-    dtype=DTYPE,
-    cache_dir="./hf_cache",
+    "./chronos-t5-large",
+    device_map="auto",
+    dtype=torch.float16,           # 必须fp16
 )
-print(pipeline.__class__.__name__)
+
+
 # ---------------------- Dash App ----------------------
 app = dash.Dash(__name__, title="Chronos 实时预测")
 
 app.layout = html.Div([
-    html.H2("多股票 Chronos 实时预测", style={"textAlign": "center", "color": "white", "background": "#1e1e1e", "padding": "20px"}),
-
     html.Div([
         dcc.Dropdown(
             id="ticker-select",
@@ -58,11 +70,11 @@ app.layout = html.Div([
             value="5",
             style={"width": "120px", "color": "#000"}
         ),
-    ], style={"display": "flex", "justifyContent": "center", "gap": "20px", "margin": "20px"}),
+    ], style={"display": "flex", "justifyContent": "center", }),
 
     html.Div(id="last-update", style={"textAlign": "center", "color": "#888", "marginBottom": "10px"}),
 
-    dcc.Graph(id="live-graph", style={"height": "800px"}),
+    dcc.Graph(id="live-graph", style={"height": "900px"}),
 
     dcc.Interval(id="interval-component", interval=UPDATE_INTERVAL_SEC*1000, n_intervals=0),
 ], style={"backgroundColor": "#1e1e1e"})
@@ -98,6 +110,8 @@ def append_prediction(ticker: str, new_forecast_df: pd.DataFrame):
         df = df.drop_duplicates(subset="datetime", keep="last")
         df = df.sort_values("datetime").reset_index(drop=True)
         PREDICTION_HISTORY[ticker] = df
+    # ⭐ 自动保存
+    save_prediction_history()
     return PREDICTION_HISTORY[ticker]
 
 # ---------------------- 主回调 ----------------------
@@ -114,10 +128,10 @@ def update_graph(n_intervals, ticker, time_select):
     now_time = now.time()
 
     # 非交易时间
-    if not ((time(9,30) <= now_time <= time(11,30)) or (time(13,0) <= now_time <= time(15,0))):
-        fig = go.Figure()
-        fig.update_layout(template="plotly_dark", title="非交易时间，暂停更新")
-        return fig, f"非交易时间：{now.strftime('%H:%M:%S')}"
+    # if not ((time(9,30) <= now_time <= time(11,30)) or (time(13,0) <= now_time <= time(15,0))):
+    #     fig = go.Figure()
+    #     fig.update_layout(template="plotly_dark", title="非交易时间，暂停更新")
+    #     return fig, f"非交易时间：{now.strftime('%H:%M:%S')}"
 
     df = get_60d_df(ticker, time_select)
     df = df.sort_index()
@@ -166,14 +180,15 @@ def update_graph(n_intervals, ticker, time_select):
         "hs300": recent_hs300.values,
     })
 
-   
     forecast = pipeline.predict_df(
         df_input,
         prediction_length=PREDICTION_LENGTH,
-        num_samples=1000,
-        temperature=1.3,
+        num_samples=500,
+        temperature=1.0,
+        top_k=50,
         quantile_levels=[0.05, 0.5, 0.95],
     )
+
     # 正确列名！
     low    = forecast["0.05"].values
     median = forecast["0.5"].values
@@ -235,15 +250,20 @@ def update_graph(n_intervals, ticker, time_select):
             line=dict(color="#00FF41", width=3),
             name=f"{ticker} 实时价格"
         ))
-
-    # 最新预测中位数（高亮）
     fig.add_trace(go.Scatter(
         x=future_index,
-        y=median,
-        mode='lines+markers',
-        line=dict(color="#FFD700", width=5),
-        marker=dict(size=8),
-        name="最新预测中位数"
+        y=df_history_pred["low"],
+        mode="lines",
+        line=dict(color="gray", width=1),
+        name="预测下界"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=future_index,
+        y=df_history_pred["high"],
+        mode="lines",
+        line=dict(color="gray", width=1),
+        name="预测上界"
     ))
 
     # ==================== 坐标轴范围（关键修复！）===================
@@ -260,11 +280,7 @@ def update_graph(n_intervals, ticker, time_select):
 
     fig.update_layout(
         template="plotly_dark",
-        title=dict(
-            text=f"Chronos 实时预测 · {ticker} · {time_select}分钟线 · 未来{PREDICTION_LENGTH}根K线",
-            x=0.5,
-            font=dict(size=20, color="#FFD700")
-        ),
+  
         xaxis=dict(
             range=[x_start, x_end],
             showgrid=True,
@@ -291,7 +307,30 @@ def update_graph(n_intervals, ticker, time_select):
 
     return fig, f"更新时间：{now.strftime('%H:%M:%S')} | {ticker} | Chronos-2 多变量预测"
 
+def load_prediction_history():
+    global PREDICTION_HISTORY
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "rb") as f:
+                PREDICTION_HISTORY = pickle.load(f)
+            print("历史预测已从磁盘恢复。")
+        except Exception as e:
+            print("读取历史预测失败：", e)
+            PREDICTION_HISTORY = {}
+    else:
+        print("没有历史记录文件，使用空历史。")
+
+def save_prediction_history():
+    try:
+        with open(HISTORY_FILE, "wb") as f:
+            pickle.dump(PREDICTION_HISTORY, f)
+    except Exception as e:
+        print("保存历史预测失败：", e)
+
+
+
 # ---------------------- 启动 ----------------------
 if __name__ == "__main__":
+    load_prediction_history()
     # 注意：在生产环境请把 debug=False
     app.run(debug=True, port=8050)
