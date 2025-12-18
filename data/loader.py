@@ -1,31 +1,28 @@
+import time
+import datetime
 import json
 import re
 import pandas as pd
 import requests
-import time
-import datetime
 
-def fetch_sina_quote(symbols):
+def load_index_df(period: str) -> pd.DataFrame:
     """
-    symbols: ["sz300697", "sh600000"]
+    加载沪深300指数数据，用于条件化预测
     """
-    ts = int(time.time() * 1000)  # 毫秒时间戳强制避免缓存
-    
-    url = f"https://hq.sinajs.cn/etag.php?_={ts}&list={','.join(symbols)}"
-    
-    headers = {
-        "Referer": "https://finance.sina.com.cn",
-        "User-Agent": "Mozilla/5.0"
-    }
-    
-    try:
-        r = requests.get(url, headers=headers, timeout=5)
-        r.encoding = "gbk"  # 新浪编码
-        return r.text
-    except Exception as e:
-        print("请求失败：", e)
-        return None
+    df = download_5m("sh000300") if period == "5" else download_15m("sh000300")
+    df.index = pd.to_datetime(df.index).tz_localize(None)
+    return df.sort_index()
 
+
+def load_stock_df(ticker: str, period: str) -> pd.DataFrame:
+    """
+    加载个股 K 线
+    """
+    df = download_5m(ticker) if period == "5" else download_15m(ticker)
+    if df is None or df.empty:
+        raise ValueError(f"{ticker} 行情为空")
+    df.index = pd.to_datetime(df.index).tz_localize(None)
+    return df.sort_index()
 
 
 def fetch_sina_quote(symbol,minites):
@@ -33,7 +30,7 @@ def fetch_sina_quote(symbol,minites):
     symbols: ["sz300697", "sh600000"]
     """
     ts = int(time.time() * 1000)  # 毫秒时间戳强制避免缓存
-    url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=1023"
+    url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=1880"
     #print('url->',url)
     headers = {
         "Referer": "https://finance.sina.com.cn",
@@ -73,7 +70,7 @@ def convert_to_df(raw):
 
     # 替换单引号为双引号才能 json.loads
     array_str = array_str.replace("'", '"')
-
+   
     try:
         arr = json.loads(array_str)
     except:
@@ -91,3 +88,25 @@ def convert_to_df(raw):
         df[c] = pd.to_numeric(df[c], errors="coerce")
 
     return df
+
+
+def fetch_sina_quote_live(symbols):
+    """
+    symbols: ["sz300697", "sh600000"]
+    """
+    ts = int(time.time() * 1000)  # 毫秒时间戳强制避免缓存
+    
+    url = f"https://hq.sinajs.cn/etag.php?_={ts}&list={','.join(symbols)}"
+    
+    headers = {
+        "Referer": "https://finance.sina.com.cn",
+        "User-Agent": "Mozilla/5.0"
+    }
+    
+    try:
+        r = requests.get(url, headers=headers, timeout=5)
+        r.encoding = "gbk"  # 新浪编码
+        return r.text
+    except Exception as e:
+        print("请求失败：", e)
+        return None

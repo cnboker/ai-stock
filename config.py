@@ -1,0 +1,25 @@
+# config.py
+import os
+import torch
+
+# ================= 环境变量（必须最早） =================
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+os.environ["TORCHDYNAMO_DISABLE"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# ================= 全局参数 =================
+PREDICTION_LENGTH = 10
+UPDATE_INTERVAL_SEC = 60 * 5
+ALL_TICKERS = [
+    {"code": "sh600446", "name": "金证股份"},
+    {"code": "sz300142", "name": "沃生生物"},
+    {"code": "sh600771", "name": "广誉远"},
+    {"code": "sz002137", "name": "实益达"},
+]
+COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc"]
+HISTORY_FILE = "data/prediction_history.pkl"
+
+# ================= CUDA 优化 =================
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.benchmark = True

@@ -1,0 +1,76 @@
+import pandas as pd
+from chronos import ChronosPipeline
+import torch
+
+from predict.chronos_model import load_chronos_model
+
+
+@torch.inference_mode()
+def run_prediction(
+    df: pd.DataFrame,
+    hs300_df: pd.DataFrame | None,
+    ticker: str,
+    period: str = "5",
+    prediction_length: int = 10,
+):
+    """
+    Chronos 多变量预测封装
+    返回：low, median, high (np.ndarray)
+    """
+
+    if df is None or df.empty:
+        raise ValueError("行情 df 为空")
+
+    history_len = min(1024, len(df))
+    recent_df = df.iloc[-history_len:].copy()
+    recent_df.index = recent_df.index.tz_localize(None)
+
+    # ========== HS300 对齐 ==========
+    if hs300_df is not None and not hs300_df.empty:
+        hs300_series = (
+            hs300_df["close"]
+            .reindex(recent_df.index, method="nearest")
+            .interpolate("linear")
+            .ffill()
+            .values
+        )
+    else:
+        hs300_series = recent_df["close"].values
+
+    # ========== Chronos 要求的“完美时间索引” ==========
+    freq = "5min" if period == "5" else "15min"
+    perfect_index = pd.date_range(
+        start=recent_df.index[0],
+        periods=history_len,
+        freq=freq,
+    )
+
+    df_input = pd.DataFrame(
+        {
+            "item_id": [ticker] * history_len,
+            "timestamp": perfect_index,
+            "target": recent_df["close"].values.astype(float),
+            "volume": recent_df["volume"].values.astype(float),
+            "hs300": hs300_series.astype(float),
+        }
+    )
+    pipeline = load_chronos_model()
+    # ========== Chronos 推理 ==========
+    pred = pipeline.predict_df(
+        df_input,
+        prediction_length=prediction_length,
+        num_samples=200,
+        temperature=1.0,
+        top_k=50,
+        quantile_levels=[0.05, 0.5, 0.95],
+    )
+
+    low = pred["0.05"].values
+    median = pred["0.5"].values
+    high = pred["0.95"].values
+
+    # 显存回收
+    del pred, df_input
+    torch.cuda.empty_cache()
+
+    return low, median, high
