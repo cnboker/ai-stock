@@ -2,18 +2,18 @@ import pandas as pd
 from data.loader import load_stock_df
 from main_live import on_bar
 from plot.annotation import generate_tail_label
-from plot.draw import draw_current_prediction, draw_prediction_band, draw_realtime_price, update_yaxes
+from plot.draw import draw_current_prediction, draw_prediction_band, draw_realtime_price, update_xaxes, update_yaxes
 from predict.chronos_predict import run_prediction
 from predict.prediction_store import update_prediction_history
-from time_utils import build_future_index
+from predict.time_utils import build_future_index
 from datetime import datetime
+from config.settings import ticker_name_map
 
-def process_single_stock(fig, stock, index, period, hs300_df):
+def process_single_stock(fig, ticker, index, period, hs300_df):
     """
     单只股票：行情 → 预测 → 历史 → 绘图 → 标签
     """
-    ticker = stock["code"]
-    name = stock["name"]
+    name = ticker_name_map.get(ticker,ticker)
 
     df = load_stock_df(ticker, period)
 
@@ -37,6 +37,7 @@ def process_single_stock(fig, stock, index, period, hs300_df):
     draw_realtime_price(fig, df, index, name)
     draw_current_prediction(fig, future_index, low, median, high, index, name)
     update_yaxes(fig, last_price, index)
+    update_xaxes(fig)
     return generate_tail_label(future_index, median, high, index, name)
 
 

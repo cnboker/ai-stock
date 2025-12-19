@@ -15,7 +15,7 @@ class PositionManager:
     def __init__(self):
         # ticker -> Position
         self.positions: Dict[str, Position] = {}
-
+        self.account = ""
     # ===================== 手动注入仓位 =====================
     def load_manual_positions(self, positions: Dict[str, dict]):
         """
@@ -150,5 +150,12 @@ class PositionManager:
                     take_profit=p["take_profit"],
                     
                 )
-            print('positions', self.positions)
-            return data.get("account", {})
+            #print('positions', self.positions)
+            self.account = data.get("account", {})
+    
+
+
+
+position_mgr = PositionManager()
+# 1️ 启动时加载真实仓位
+account = position_mgr.load_from_yaml("config/live_positions.yaml")

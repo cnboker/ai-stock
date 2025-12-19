@@ -10,14 +10,14 @@ positions:
     stop_loss: 16.5
     take_profit: 17.2
 #实益达
-  sh002137:
+  sz002137:
     direction: LONG
     size: 25
     entry_price: 9.06
     stop_loss: 8.2
     take_profit: 9.8
 #中油资本
-  sh000617:
+  sz000617:
     direction: LONG
     size: 5
     entry_price: 10.16

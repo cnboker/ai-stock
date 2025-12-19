@@ -138,3 +138,13 @@ def update_yaxes(fig, latest_price, index):
         row=row,
         col=col,
     )
+    
+def update_xaxes(fig):
+    fig.update_xaxes(
+        type="date",
+        tickformatstops=[
+            dict(dtickrange=[None, 1000 * 60 * 60 * 6], value="%H:%M"),
+            dict(dtickrange=[1000 * 60 * 60 * 6, 1000 * 60 * 60 * 24], value="%m-%d %H:%M"),
+            dict(dtickrange=[1000 * 60 * 60 * 24, None], value="%Y-%m-%d"),
+        ]
+    )

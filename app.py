@@ -2,6 +2,7 @@
 import os
 import traceback
 
+from position.position_manager import position_mgr
 from predict.prediction_store import load_history
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
@@ -14,7 +15,7 @@ from dash import Dash, dcc, html, Input, Output, callback, no_update
 
 # ========================== 项目内模块 ==========================
 from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC, ALL_TICKERS
-from time_utils import is_market_break
+from predict.time_utils import is_market_break
 from data.loader import load_index_df
 from plot.base import create_base_figure, finalize_figure
 from update_graph import process_single_stock, build_update_text
@@ -81,11 +82,11 @@ def update_graph(n_intervals):
     prediction_tails = []
 
     # === 核心循环：每只股票 ===
-    for index, stock in enumerate(ALL_TICKERS):
+    for index, (ticker,p) in enumerate(position_mgr.positions.copy().items()):
         try:
             tail = process_single_stock(
                 fig=fig,
-                stock=stock,
+                ticker=ticker,
                 index=index,
                 period=period,
                 hs300_df=hs300_df,
@@ -94,9 +95,10 @@ def update_graph(n_intervals):
                 prediction_tails.append(tail)
 
         except Exception as e:
-            print(f"[WARN] {stock['code']} 处理失败: {e}")
-            traceback.print_stack()
+            print(f"[WARN] {ticker} 处理失败: {e}")
+            #traceback.print_stack()
     # 统一收尾（annotation / layout）
+   # print('prediction_tails',prediction_tails)
     finalize_figure(fig, prediction_tails)
 
     return fig, build_update_text()

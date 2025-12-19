@@ -16,7 +16,9 @@ ALL_TICKERS = [
     {"code": "sz300142", "name": "沃生生物"},
     {"code": "sh600771", "name": "广誉远"},
     {"code": "sz002137", "name": "实益达"},
+    {"code": "sz000617", "name": "中油资本"},
 ]
+ticker_name_map = {t["code"]:t["name"] for t in ALL_TICKERS}
 COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc"]
 HISTORY_FILE = "data/prediction_history.pkl"
 

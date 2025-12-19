@@ -114,3 +114,14 @@ class RiskManager:
         raw_size = risk_amount / per_share_risk
         size = int(raw_size // self.lot_size) * self.lot_size
         return max(size, 0)
+
+risk_mgr = RiskManager(
+    risk_per_trade=0.01,   # 单笔最多亏 1%
+    min_rr=1.5,            # 最低风险回报比
+    min_stop_pct=0.01,     # 最小止损 1%
+    max_stop_pct=0.03,     # 最大止损 3%
+    min_take_pct=0.01,     # 最小止盈 1%
+    atr_stop_mult=1.2,     # ATR 止损
+    atr_take_mult=2.0,     # ATR 止盈
+    lot_size=100,          # A 股
+)
