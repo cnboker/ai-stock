@@ -59,7 +59,7 @@ def run_prediction(
     pred = pipeline.predict_df(
         df_input,
         prediction_length=prediction_length,
-        num_samples=200,
+        num_samples=100,
         temperature=1.0,
         top_k=50,
         quantile_levels=[0.05, 0.5, 0.95],

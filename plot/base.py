@@ -34,7 +34,7 @@ def finalize_figure(
         fixedrange=False,
         constrain="domain",
         showgrid=True,
-        gridcolor="#333333",
+        gridcolor="#030303",
         title="",
         tickformat="%H:%M",
         showspikes=True,

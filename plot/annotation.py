@@ -1,5 +1,6 @@
-from config import COLORS
+from config.settings import COLORS
 
+# 记录用于后面打标签
 def generate_tail_label(future_index, median, high, index, name):
     return {
         "x": future_index[-1],

@@ -9,7 +9,7 @@ def load_index_df(period: str) -> pd.DataFrame:
     """
     加载沪深300指数数据，用于条件化预测
     """
-    df = download_5m("sh000300") if period == "5" else download_15m("sh000300")
+    df = download("sh000300",period) 
     df.index = pd.to_datetime(df.index).tz_localize(None)
     return df.sort_index()
 
@@ -18,7 +18,7 @@ def load_stock_df(ticker: str, period: str) -> pd.DataFrame:
     """
     加载个股 K 线
     """
-    df = download_5m(ticker) if period == "5" else download_15m(ticker)
+    df = download(ticker, period=period) 
     if df is None or df.empty:
         raise ValueError(f"{ticker} 行情为空")
     df.index = pd.to_datetime(df.index).tz_localize(None)
@@ -26,11 +26,9 @@ def load_stock_df(ticker: str, period: str) -> pd.DataFrame:
 
 
 def fetch_sina_quote(symbol,minites):
-    """
-    symbols: ["sz300697", "sh600000"]
-    """
+
     ts = int(time.time() * 1000)  # 毫秒时间戳强制避免缓存
-    url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=1880"
+    url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=1024"
     #print('url->',url)
     headers = {
         "Referer": "https://finance.sina.com.cn",
@@ -46,19 +44,13 @@ def fetch_sina_quote(symbol,minites):
         return None
     
 
-def download_15m(symbol):
-    raw = fetch_sina_quote(symbol,15)
+def download(symbol, period):
+    raw = fetch_sina_quote(symbol,period)
  
     if not raw:
         return    
     return convert_to_df(raw=raw)
 
-def download_5m(symbol):
-    raw = fetch_sina_quote(symbol,5)
- 
-    if not raw:
-        return    
-    return convert_to_df(raw=raw)
 
 def convert_to_df(raw):
     # 去掉 var xxx = 和最后的 );

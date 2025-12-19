@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 import pandas as pd
-from config import COLORS
+from config.settings import COLORS
 from datetime import datetime
 import numpy as np
 
@@ -10,7 +10,8 @@ def subplot_position(index: int):
     col = 1 if index % 2 == 0 else 2
     return row, col
 
-#history draw
+
+# history draw
 def draw_prediction_band(fig, history_pred, index, name):
     if len(history_pred) < 5:
         return
@@ -32,7 +33,7 @@ def draw_prediction_band(fig, history_pred, index, name):
         col=col,
     )
 
- # 中位数线（带 hover）
+    # 中位数线（带 hover）
     fig.add_trace(
         go.Scatter(
             x=history_pred["datetime"],
@@ -49,14 +50,12 @@ def draw_prediction_band(fig, history_pred, index, name):
                 "95% 区间: [%{customdata[0]:.2f}, %{customdata[1]:.2f}] 元"
                 "<extra></extra>"
             ),
-            customdata=np.stack(
-                (history_pred["low"], history_pred["high"]), axis=1
-            ),
+            customdata=np.stack((history_pred["low"], history_pred["high"]), axis=1),
         ),
         row=row,
         col=col,
     )
-    
+
 
 def hex_to_rgba(hex_color, alpha=0.25):
     hex_color = hex_color.lstrip("#")
@@ -108,22 +107,22 @@ def draw_current_prediction(fig, future_index, low, median, high, index, name):
         col=col,
     )
 
-
     fig.add_trace(
-                go.Scatter(
-                    x=list(future_index) + list(future_index)[::-1],
-                    y=list(high) + list(low)[::-1],
-                    fill="toself",
-                    fillcolor=hex_to_rgba(color, 0.25),
-                    line=dict(width=0),
-                    legendgroup=name,
-                    hoverinfo="skip",
-                ),
-                row=row,
-                col=col,
-            )
-    
-def update_yaxes(fig,latest_price,index ):
+        go.Scatter(
+            x=list(future_index) + list(future_index)[::-1],
+            y=list(high) + list(low)[::-1],
+            fill="toself",
+            fillcolor=hex_to_rgba(color, 0.25),
+            line=dict(width=0),
+            legendgroup=name,
+            hoverinfo="skip",
+        ),
+        row=row,
+        col=col,
+    )
+
+
+def update_yaxes(fig, latest_price, index):
     row, col = subplot_position(index)
     y_padding = 0.05
     y_min = latest_price * (1 - y_padding)
@@ -139,4 +138,3 @@ def update_yaxes(fig,latest_price,index ):
         row=row,
         col=col,
     )
-    

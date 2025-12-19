@@ -1,5 +1,8 @@
 # ========================== 必须最前面（CUDA / Torch 配置） ==========================
 import os
+import traceback
+
+from predict.prediction_store import load_history
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
@@ -10,7 +13,7 @@ from datetime import datetime
 from dash import Dash, dcc, html, Input, Output, callback, no_update
 
 # ========================== 项目内模块 ==========================
-from config import UPDATE_INTERVAL_SEC, ALL_TICKERS
+from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC, ALL_TICKERS
 from time_utils import is_market_break
 from data.loader import load_index_df
 from plot.base import create_base_figure, finalize_figure
@@ -67,7 +70,7 @@ def update_graph(n_intervals):
     if is_market_break():
         return no_update, no_update
 
-    period = "5"
+    period = TICKER_PERIOD
 
     # 加载指数（一次）
     hs300_df = load_index_df(period)
@@ -92,7 +95,7 @@ def update_graph(n_intervals):
 
         except Exception as e:
             print(f"[WARN] {stock['code']} 处理失败: {e}")
-
+            traceback.print_stack()
     # 统一收尾（annotation / layout）
     finalize_figure(fig, prediction_tails)
 
@@ -134,4 +137,5 @@ app.clientside_callback(
 # ========================== 启动 ==========================
 if __name__ == "__main__":
     print("🚀 Chronos Dash 启动中...")
+    load_history()
     app.run(debug=True, port=8050)

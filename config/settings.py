@@ -9,7 +9,8 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # ================= 全局参数 =================
 PREDICTION_LENGTH = 10
-UPDATE_INTERVAL_SEC = 60 * 5
+TICKER_PERIOD = 3
+UPDATE_INTERVAL_SEC = 60 * TICKER_PERIOD
 ALL_TICKERS = [
     {"code": "sh600446", "name": "金证股份"},
     {"code": "sz300142", "name": "沃生生物"},

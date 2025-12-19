@@ -2,7 +2,7 @@
 import pickle
 import os
 import pandas as pd
-from config import HISTORY_FILE
+from config.settings import HISTORY_FILE
 
 PREDICTION_HISTORY = {}
 

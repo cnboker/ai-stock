@@ -2,7 +2,7 @@
 import pandas_market_calendars as mcal
 import pandas as pd
 from datetime import datetime, time
-from config import PREDICTION_LENGTH
+from config.settings import PREDICTION_LENGTH
 
 def is_market_break():
     now = datetime.now().time()
@@ -43,13 +43,20 @@ def get_next_trading_times(start_dt, n, freq):
 
 
 
-def build_future_index(df, freq: str):
+def build_future_index(df, period: str):
     """
     构建未来交易时间轴（解决午休 / 周末）
     """
     last_dt = df.index[-1].tz_localize(None)
-    freq = "5min" if freq == "5" else "15min"
+    freq = "5min" if period == "5" else "15min"
 
+    # future_index = pd.date_range(
+    #             start=last_dt + pd.Timedelta(minutes=int(period)),
+    #             periods=PREDICTION_LENGTH,
+    #             freq=freq,
+    #             tz=None,
+    #         )
+    # return future_index
     return get_next_trading_times(
         start_dt=last_dt,
         n=PREDICTION_LENGTH,
