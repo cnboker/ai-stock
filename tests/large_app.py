@@ -151,7 +151,7 @@ def update_graph(n_intervals):
             )
 
             # 真实最新价格（收盘价）
-            latest_price = df["close"].iloc[-1]
+            latest_price = float(df["close"].iloc[-1])
             latest_time = df.index[-1]
             print("latest_time", latest_time)
 

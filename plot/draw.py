@@ -128,7 +128,7 @@ def update_yaxes(fig, latest_price, index):
     y_min = latest_price * (1 - y_padding)
     y_max = latest_price * (1 + y_padding)
     fig.update_yaxes(
-        title_text="相对价格 (%)" if col == 1 else "",  # 只在左侧显示标题
+       # title_text="相对价格 (%)" if col == 1 else "",  # 只在左侧显示标题
         range=[y_min, y_max],  # 每个子图独立范围（可自定义）
         tickformat=".1f",
         side="left",
@@ -138,7 +138,9 @@ def update_yaxes(fig, latest_price, index):
         row=row,
         col=col,
     )
-    
+    fig.update_yaxes(title_standoff=2)
+
+#跨天加日期   
 def update_xaxes(fig):
     fig.update_xaxes(
         type="date",

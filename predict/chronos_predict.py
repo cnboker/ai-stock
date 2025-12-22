@@ -57,17 +57,13 @@ def run_prediction(
     pipeline = load_chronos_model()
     # ========== Chronos 推理 ==========
     pred = pipeline.predict_df(
-        df_input,
-        prediction_length=prediction_length,
-        num_samples=100,
-        temperature=1.0,
-        top_k=50,
-        quantile_levels=[0.05, 0.5, 0.95],
+        df=df_input,
+        prediction_length=prediction_length,             
     )
 
-    low = pred["0.05"].values
+    low = pred["0.1"].values
     median = pred["0.5"].values
-    high = pred["0.95"].values
+    high = pred["0.9"].values
 
     # 显存回收
     del pred, df_input

@@ -9,12 +9,21 @@ def create_base_figure():
     """
     创建 2×2 基础子图结构
     """
-    return make_subplots(
+    fig = make_subplots(
         rows=2,
         cols=2,
         shared_xaxes=True,
-        vertical_spacing=0.05,
+        vertical_spacing=0.02,
+        horizontal_spacing=0.03,
     )
+
+    fig.update_layout(
+        margin=dict(l=50, r=40, t=20, b=30),
+        height=1100,
+    )
+
+    fig.update_yaxes(title_standoff=4)
+    return fig
 
 
 def finalize_figure(
@@ -76,8 +85,7 @@ def finalize_figure(
         hovermode="closest",  # 你已经改成 closest，很好
         spikedistance=1000,
         hoverdistance=1000,
-        height=1200,
-        margin=dict(l=60, r=100, t=20, b=30),
+        height=1200,        
         plot_bgcolor="#0e0e0e",
         paper_bgcolor="#1e1e1e",
         dragmode="pan",
