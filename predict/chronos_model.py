@@ -6,5 +6,5 @@ from chronos import Chronos2Pipeline
 
 
 def load_chronos_model(model_path="./chronos-2"):
-   pipeline = Chronos2Pipeline.from_pretrained(model_path, device_map="cuda")
+   pipeline = Chronos2Pipeline.from_pretrained(model_path, device_map="cpu")
    return pipeline
