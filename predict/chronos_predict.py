@@ -3,6 +3,7 @@ from chronos import ChronosPipeline
 import torch
 
 from predict.chronos_model import load_chronos_model
+from predict.price_alpha import chronos2_to_large_style
 
 
 @torch.inference_mode()
@@ -58,12 +59,19 @@ def run_prediction(
     # ========== Chronos 推理 ==========
     pred = pipeline.predict_df(
         df=df_input,
-        prediction_length=prediction_length,             
+        prediction_length=prediction_length,
     )
 
-    low = pred["0.1"].values
-    median = pred["0.5"].values
-    high = pred["0.9"].values
+    q10 = pred["0.1"].values
+    q50 = pred["0.5"].values
+    q90 = pred["0.9"].values
+
+    low, median, high = chronos2_to_large_style(
+        q10=q10,
+        q50=q50,
+        q90=q90,
+        context=recent_df["close"].values,
+    )
 
     # 显存回收
     del pred, df_input

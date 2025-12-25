@@ -55,7 +55,7 @@ app.layout = html.Div(
 )
 
 # ========================== 主回调（极薄） ==========================
-@callback(
+@app.callback(
     Output("live-graph", "figure"),
     Output("last-update", "children"),
     Input("interval", "n_intervals"),
@@ -68,8 +68,8 @@ def update_graph(n_intervals):
     """
 
     # 午休不更新（避免空预测 & 闪图）
-    if is_market_break():
-        return no_update, no_update
+    # if is_market_break():
+    #     return no_update, no_update
 
     period = TICKER_PERIOD
 
