@@ -1,13 +1,14 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
 class PositionAction:
-    action: str                 # HOLD / REDUCE / EXIT
-    ratio: float = 0.0
+    action: str                 # OPEN / REDUCE / EXIT / HOLD
+    size: int                   # 本次变动的手数
     contract_size: int = 100
-
-
+    plan: Optional[object] = None 
+    ratio: float = 0.3 #减仓比例
 class PositionPolicy:
     def __init__(
         self,
@@ -39,7 +40,7 @@ class PositionPolicy:
 
         # 达到清仓阈值
         if position.gate_reject_count >= self.max_reject_before_exit:
-            return PositionAction("EXIT")
+            return PositionAction("CLOSE")
 
         # 否则：渐进减仓
         return PositionAction(

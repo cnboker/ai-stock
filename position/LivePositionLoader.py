@@ -45,7 +45,7 @@ def on_positions_reload(data: dict):
 
 
 live_loader = LivePositionLoader(
-    "config/live_positions.yaml",
+    "state/live_positions.yaml",
     on_reload=on_positions_reload
 )
 

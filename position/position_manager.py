@@ -2,11 +2,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, Optional
 
+from infra.notify.order import OrderEvent, notify_order
 from position.PositionPolicy import PositionAction
 from position.position import Position
 from log import order_log, risk_log
 
-'''
+"""
 PositionManager：只做三件事
 
 持仓状态
@@ -14,7 +15,10 @@ PositionManager：只做三件事
 资金状态
 
 执行 Action
-'''
+"""
+
+
+# 算钱、改仓位、记账
 class PositionManager:
     def __init__(self, init_cash: float = 0.0):
         # ===== 账户资金 =====
@@ -38,10 +42,9 @@ class PositionManager:
     @property
     def available_cash(self) -> float:
         return self.cash
-    
+
     def update_price(self, symbol: str, price: float):
         self.price_cache[symbol] = price
-
 
     def position_value(self) -> float:
         total = 0.0
@@ -64,6 +67,40 @@ class PositionManager:
 
         order_log(msg)
 
+    # ======================================================
+    # 主交易入口（唯一产生 OPEN / ADD / REVERSE 的地方）
+    # ======================================================
+    def on_signal(
+        self,
+        symbol: str,
+        signal: str,  # LONG / SHORT / HOLD
+        last_price: float,
+        trade_plan=None,  # 来自 RiskManager
+    ) -> Optional[PositionAction]:
+
+        pos = self.positions.get(symbol)
+
+        # ================= 无仓位 =================
+        if not pos or pos.size <= 0:
+            if signal == "LONG" and trade_plan and trade_plan.allow_open:
+                return PositionAction(action="OPEN", plan=trade_plan)
+            return None
+
+        # ================= 有仓位 =================
+        # ---- 反向信号：清仓 ----
+        if signal == "SHORT":
+            return PositionAction(action="CLOSE")
+
+        # ---- 加仓 ----
+        if signal == "LONG" and trade_plan and trade_plan.allow_add:
+            add_budget = self.get_add_budget(symbol, trade_plan)
+            size = int(add_budget / last_price // 100 * 100)
+
+            if size > 0:
+                return PositionAction(action="ADD", size=size, plan=trade_plan)
+
+        return None
+
     def apply_action(self, symbol: str, action: PositionAction):
         self._log_action(symbol, action)
         self.last_action_ts[symbol] = datetime.now().timestamp()
@@ -73,13 +110,13 @@ class PositionManager:
         match action.action:
             case "HOLD":
                 self._on_hold(symbol, action)
-
             case "OPEN":
                 if pos and pos.size > 0:
                     order_log(f"{symbol} OPEN ignored (position exists)")
                     return
                 self._open(symbol, action)
-
+            case "ADD":
+                self._add(symbol, action)
             case "REDUCE":
                 if not pos or pos.size <= 0:
                     raise RuntimeError(f"{symbol} REDUCE but no position")
@@ -99,13 +136,14 @@ class PositionManager:
             case _:
                 raise ValueError(f"Unknown action {action.action}")
 
-    def _on_hold(self, symbol: str, action: PositionAction):        
+    def _on_hold(self, symbol: str, action: PositionAction):
         risk_log(f"{symbol} HOLD")
 
+    # 开仓
     def _open(self, symbol: str, action: PositionAction):
         price = self.price_cache.get(symbol)
-        if price is None:
-            raise RuntimeError(f"No price for {symbol}")
+        price = self._require_price(symbol)
+        plan = self._require_plan(action)
 
         size = action.size
         cost = size * price * action.contract_size
@@ -118,56 +156,77 @@ class PositionManager:
 
         self.positions[symbol] = Position(
             ticker=symbol,
-            direction=action.side,
-            size=size,
+            direction="LONG",
+            size=action.size,
             entry_price=price,
-            stop_loss=action.stop_loss,
-            take_profit=action.take_profit,
+            stop_loss=plan.stop_loss,
+            take_profit=plan.take_profit,
             open_time=datetime.now(),
             contract_size=action.contract_size,
         )
+        value = size * price * action.contract_size
+        # order_log(f"{symbol} OPEN {action.side} size={size} price={price}")
+        notify_order(
+            OrderEvent(
+                ts=datetime.now(),
+                symbol=symbol,
+                action="OPEN",
+                side="LONG",
+                size=size,
+                price=price,
+                value=value,
+                reason="Signal LONG + allow_open",
+                extra={
+                    "stop_loss": plan.stop_loss,
+                    "take_profit": plan.take_profit,
+                },
+            ),
+            self,
+        )
 
-        order_log(f"{symbol} OPEN {action.side} size={size} price={price}")
-
-  # ======================================================
-    # 主交易入口（唯一产生 OPEN / ADD / REVERSE 的地方）
-    # ======================================================
-    def on_signal(
-        self,
-        symbol: str,
-        signal: str,           # LONG / SHORT / HOLD
-        last_price: float,
-        trade_plan=None,       # 来自 RiskManager
-    ) -> Optional[PositionAction]:
-
+    # =========================
+    # ADD：加仓
+    # =========================
+    def _add(self, symbol: str, action: PositionAction):
         pos = self.positions.get(symbol)
+        if not pos:
+            raise RuntimeError(f"{symbol} ADD but no position")
 
-        # ================= 无仓位 =================
-        if pos is None or pos.size <= 0:
-            if signal == "LONG" and trade_plan:
-                return PositionAction(
-                    action="OPEN",
-                    ratio=1.0,          # 对 OPEN 可忽略
-                )
-            return None
+        price = self._require_price(symbol)
 
-        # ================= 有仓位 =================
-        # ---- 反向信号：清仓（是否反手，由你以后决定）----
-        if signal == "SHORT":
-            return PositionAction("CLOSE")
+        size = action.size
+        cost = size * price * pos.contract_size
+        if cost > self.cash:
+            order_log(f"{symbol} ADD rejected (cash insufficient)")
+            return
 
-        # ---- 可选：加仓逻辑 ----
-        if signal == "LONG" and trade_plan and trade_plan.allow_add:
-            return PositionAction(
-                action="OPEN",          # 复用 OPEN 表示加仓
-                ratio=trade_plan.add_ratio,
-            )
+        # 加权成本
+        total_size = pos.size + size
+        pos.entry_price = (pos.entry_price * pos.size + price * size) / total_size
 
-        return None
-    
+        pos.size = total_size
+        self.cash -= cost
+        value = size * price * action.contract_size
+        # order_log(f"{symbol} ADD size={size} price={price}")
+        notify_order(
+            OrderEvent(
+                ts=datetime.now(),
+                symbol=symbol,
+                action="ADD",
+                side="LONG",
+                size=size,
+                price=price,
+                value=value,
+                reason="Pyramid add",
+            ),
+            self,
+        )
+
     def _reduce(self, symbol: str, ratio: float):
         pos = self.positions[symbol]
-        price = self.price_cache.get(symbol, pos.entry_price)
+        if not pos:
+            return
+        price = self._require_price(symbol)
 
         reduce_size = pos.size * ratio
         if reduce_size <= 0:
@@ -177,13 +236,26 @@ class PositionManager:
         cash_back = reduce_size * price * pos.contract_size
         self.cash += cash_back
 
-        order_log(
-            f"{symbol} REDUCE {ratio:.2f} size={reduce_size} price={price}"
+        # order_log(
+        #     f"{symbol} REDUCE {ratio:.2f} size={reduce_size} price={price}"
+        # )
+        value = reduce_size * price * pos.contract_size
+        notify_order(
+            OrderEvent(
+                ts=datetime.now(),
+                symbol=symbol,
+                action="REDUCE",
+                side="LONG",
+                size=pos.size,
+                price=price,
+                value=value,
+                reason="REDUCE hit",
+            ),
+            self,
         )
 
         if pos.size <= 0:
             del self.positions[symbol]
-
 
     def _close(self, symbol: str):
         pos = self.positions.pop(symbol)
@@ -192,12 +264,64 @@ class PositionManager:
         value = pos.size * price * pos.contract_size
         self.cash += value
 
-        order_log(
-            f"{symbol} CLOSE size={pos.size} price={price}"
+        # order_log(
+        #     f"{symbol} CLOSE size={pos.size} price={price}"
+        # )
+
+        notify_order(
+            OrderEvent(
+                ts=datetime.now(),
+                symbol=symbol,
+                action="CLOSE",
+                side="LONG",
+                size=pos.size,
+                price=price,
+                value=value,
+                reason="StopLoss hit",
+            ),
+            self,
         )
 
+    def _require_price(self, symbol: str) -> float:
+        price = self.price_cache.get(symbol)
+        if price is None:
+            raise RuntimeError(f"No price for {symbol}")
+        return price
 
-    def load_from_yaml(self, data):    
+    def _require_plan(self, action: PositionAction):
+        if not action.plan:
+            raise RuntimeError("OPEN/ADD requires trade_plan")
+        return action.plan
+
+    def get_add_budget(
+        self,
+        ticker: str,
+        trade_plan,
+    ) -> float:
+        position = self.positions.get(ticker)
+        if not position:
+            return 0.0
+
+        # 当前仓位市值
+        current_value = position.market_value
+
+        # 单票最大允许市值
+        max_value = self.equity * trade_plan.single_position_limit
+
+        # 还能加多少
+        remaining_capacity = max(max_value - current_value, 0)
+
+        # 策略希望加多少（比例）
+        desired_add = current_value * trade_plan.max_signal_pct
+
+        # 最终取最小
+        return min(
+            remaining_capacity,
+            desired_add,
+            self.available_cash,
+        )
+
+    def load_from_yaml(self, data):
         self.positions.clear()
         self.cash = data.get("init_cash", 100000)
         self.account_name = data.get("account", "")
@@ -213,5 +337,6 @@ class PositionManager:
                 stop_loss=p["stop_loss"],
                 take_profit=p["take_profit"],
             )
+
 
 position_mgr = PositionManager()

@@ -11,9 +11,10 @@ class BudgetManager:
 
     def __init__(
         self,
-        max_signal_pct: float = 0.3,  # gate_score=1 最大动用占总现金比例
+        max_signal_pct: float = 0.3,  # 加仓比例
         max_drawdown_pct: float = 0.2,  # 账户最大可回撤
         single_position_limit: float = 0.1,  # 单票最大占比
+        
     ):
         self.max_signal_pct = max_signal_pct
         self.max_drawdown_pct = max_drawdown_pct

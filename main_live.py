@@ -86,18 +86,18 @@ def on_bar(
     )
 
     plan = risk_mgr.evaluate(
-    last_price=price,
-    chronos_low=low_v,
-    chronos_high=high_v,
-    atr=atr,
-    capital=signal_capital,
-)
+        last_price=price,
+        chronos_low=low_v,
+        chronos_high=high_v,
+        atr=atr,
+        capital=signal_capital,
+    )
 
     if plan is None:
         risk_log(f"{ticker} no risk plan")
         return
 
-    # ===== 5. Signal → Trade Action（唯一 OPEN 来源）=====
+    # ===== 5. Signal → Trade Action（开仓信号）=====
     action = position_mgr.on_signal(
         symbol=ticker,
         signal=final_signal,
@@ -105,7 +105,7 @@ def on_bar(
         trade_plan=plan,
     )
 
-    # ===== 6. Gate Reject → Policy 干预 =====
+    # ===== 6. Gate Reject → Policy 干预(平仓或建仓) =====
     if action is None and not gate_result.allow:
         position = position_mgr.positions.get(ticker)
         action = position_policy.decide(position, gate_result)

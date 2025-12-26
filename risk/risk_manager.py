@@ -13,7 +13,7 @@ class TradePlan:
 
     expected_rr: float = 0.0
 
-
+#允许什么（allow_open / allow_add / stop / take）
 class RiskManager:
     def __init__(
         self,

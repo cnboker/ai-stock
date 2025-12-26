@@ -22,6 +22,7 @@ ticker_name_map = {t["code"]:t["name"] for t in ALL_TICKERS}
 COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc"]
 HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
+ENABLE_LIVE_PERSIST = True
 # ================= CUDA 优化 =================
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
