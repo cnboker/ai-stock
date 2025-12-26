@@ -24,7 +24,7 @@ def process_single_stock(fig, ticker, index, period, hs300_df):
         period=period,
     )
     last_price = df["close"].iloc[-1]
-    #print('last_price',type(last_price), last_price)
+    print('last_price',type(last_price), last_price)
     atr = calc_atr(df)
     on_bar(ticker,name, df["close"],low, median, high, atr)
 

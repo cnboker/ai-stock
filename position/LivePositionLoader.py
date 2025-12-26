@@ -1,7 +1,7 @@
 import os
 import time
 import yaml
-from position.position_manager import position_mgr
+from position.position_manager2 import position_mgr
 from typing import Callable, Optional
 
 

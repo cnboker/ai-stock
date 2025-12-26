@@ -5,7 +5,7 @@ import threading
 import traceback
 
 from position.LivePositionLoader import live_positions_hot_load
-from position.position_manager import position_mgr
+from position.position_manager2 import position_mgr
 from predict.prediction_store import load_history
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"

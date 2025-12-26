@@ -2,12 +2,13 @@ from venv import logger
 
 from pandas import DataFrame
 from log import order_log, risk_log, signal_log
-from position.position_manager import position_mgr
+from position.position_manager2 import position_mgr
 from risk.risk_manager import risk_mgr
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
 from strategy.signal_engine import make_signal, print_signal
 from risk.BudgetManager import budget_mgr
+from position.PositionPolicy import position_policy
 
 '''
 Chronos 区间
@@ -29,15 +30,26 @@ PositionManager 决定“钱够不够”
 '''
 
 # 2️ 实盘主循环,每次行情 / 预测更新
-def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
-    price = context.iloc[-1]
+def on_bar(
+    ticker: str,
+    name: str,
+    context: DataFrame,
+    low,
+    median,
+    high,
+    atr: float,
+):
+    print('test')
+    # ===== 1. 最新价格 =====
+    price = float(context.iloc[-1])
+    position_mgr.update_price(ticker, price)
     
+    # ===== 2. Gate =====
     gate_result = gater.evaluate(
         lower=low,
         mid=median,
         upper=high,
         context=context.values,
-        # y_proxy=y_proxy,  # 回测用真实，实盘可不传
     )
 
     if not gate_result.allow:
@@ -50,20 +62,16 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
             last_price=price,
         )
 
+    # ===== 3. Debounce =====
     final_signal = debouncer_manager.update(ticker, raw_signal)
-    signal_log(f"{name}/{ticker}:{final_signal}")
+    signal_log(f"{name}/{ticker}: {final_signal}")
 
-    plan = None
-
+    # ===== 4. Risk + Budget =====
     low_v = float(low[-1])
     high_v = float(high[-1])
-    # print('price,low, high,atr', price, low_v,high_v,atr)
 
-    #投资最大仓位,不是“直接下单的钱”，而是「这一次信号允许你冒险的资金预算」
-    # 计算预算
+    position_value = position_mgr.position_value()
 
-    position_value = position_mgr.market_value(ticker=ticker,latest_price=price)
-    
     signal_capital = budget_mgr.get_budget(
         ticker=ticker,
         gate_score=gate_result.score,
@@ -71,22 +79,37 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
         equity=position_mgr.equity,
         positions_value=position_value,
     )
-    print("允许你冒险的资金预算", signal_capital)
-    
-    plan = risk_mgr.evaluate(
-        last_price=price,
-        chronos_low=low_v,
-        chronos_high=high_v,
-        atr=atr,
-        capital=signal_capital,
+
+    risk_log(
+        f"{ticker} budget={signal_capital:.2f} "
+        f"gate={gate_result.score:.2f}"
     )
-    risk_log(f"风险计划:{plan}")
-    order = position_mgr.on_signal(
-        ticker=ticker,
+
+    plan = risk_mgr.evaluate(
+    last_price=price,
+    chronos_low=low_v,
+    chronos_high=high_v,
+    atr=atr,
+    capital=signal_capital,
+)
+
+    if plan is None:
+        risk_log(f"{ticker} no risk plan")
+        return
+
+    # ===== 5. Signal → Trade Action（唯一 OPEN 来源）=====
+    action = position_mgr.on_signal(
+        symbol=ticker,
         signal=final_signal,
         last_price=price,
         trade_plan=plan,
     )
-  
-    if order:
-        order_log(f"📌 实盘决策:{order}")
+
+    # ===== 6. Gate Reject → Policy 干预 =====
+    if action is None and not gate_result.allow:
+        position = position_mgr.positions.get(ticker)
+        action = position_policy.decide(position, gate_result)
+
+    # ===== 7. 执行 =====
+    if action:
+        position_mgr.apply_action(ticker, action)

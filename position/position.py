@@ -9,5 +9,5 @@ class Position:
     size: int = 0
     stop_loss: float = 0.0
     take_profit: float = 0.0
-    open_time:datetime = datetime.now()
-
+    open_time:datetime = datetime.now()    
+    contract_size:int = 100
