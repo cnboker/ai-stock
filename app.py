@@ -140,4 +140,4 @@ app.clientside_callback(
 if __name__ == "__main__":
     print("🚀 Chronos Dash 启动中...")
     load_history()
-    app.run(debug=True, port=8050)
+    app.run(debug=True, port=8050, host="0.0.0.0")
