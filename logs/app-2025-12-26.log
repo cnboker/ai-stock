@@ -462,3 +462,39 @@ sz002137 budget=550.77 gate=1.00
 2025-12-26 15:37:52,799 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD
 2025-12-26 15:37:52,802 | WARNING | risk | [red][RISK][/red]
 sz000617 budget=612.77 gate=0.80
+2025-12-26 15:53:50,777 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 15:53:50,782 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份/sh600446: HOLD
+2025-12-26 15:53:50,783 | WARNING | risk | [red][RISK][/red]
+sh600446 budget=304.77 gate=1.00
+2025-12-26 15:53:51,892 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 15:53:51,893 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达/sz002137: HOLD
+2025-12-26 15:53:51,895 | WARNING | risk | [red][RISK][/red]
+sz002137 budget=550.77 gate=1.00
+2025-12-26 15:53:52,671 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-26 15:53:52,672 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD
+2025-12-26 15:53:52,674 | WARNING | risk | [red][RISK][/red]
+sz000617 budget=612.77 gate=0.80
+2025-12-26 15:56:51,582 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 15:56:51,586 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份/sh600446: HOLD
+2025-12-26 15:56:51,587 | WARNING | risk | [red][RISK][/red]
+sh600446 budget=304.77 gate=1.00
+2025-12-26 15:56:52,013 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 15:56:52,015 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达/sz002137: HOLD
+2025-12-26 15:56:52,016 | WARNING | risk | [red][RISK][/red]
+sz002137 budget=550.77 gate=1.00
+2025-12-26 15:56:53,522 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-26 15:56:53,524 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD
+2025-12-26 15:56:53,526 | WARNING | risk | [red][RISK][/red]
+sz000617 budget=612.77 gate=0.80
+2025-12-26 15:57:51,319 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 15:57:51,324 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份/sh600446: HOLD
+2025-12-26 15:57:51,325 | WARNING | risk | [red][RISK][/red]
+sh600446 budget=304.77 gate=1.00
+2025-12-26 15:57:52,620 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 15:57:52,622 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达/sz002137: HOLD
+2025-12-26 15:57:52,624 | WARNING | risk | [red][RISK][/red]
+sz002137 budget=550.77 gate=1.00
+2025-12-26 15:57:53,563 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-26 15:57:53,565 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD
+2025-12-26 15:57:53,567 | WARNING | risk | [red][RISK][/red]
+sz000617 budget=612.77 gate=0.80

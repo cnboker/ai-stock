@@ -2,7 +2,7 @@ from venv import logger
 
 from pandas import DataFrame
 from log import order_log, risk_log, signal_log
-from position.position_manager2 import position_mgr
+from position.position_manager import position_mgr
 from risk.risk_manager import risk_mgr
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
