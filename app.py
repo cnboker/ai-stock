@@ -1,7 +1,10 @@
 # ========================== 必须最前面（CUDA / Torch 配置） ==========================
+import asyncio
 import os
+import threading
 import traceback
 
+from position.LivePositionLoader import live_positions_hot_load
 from position.position_manager import position_mgr
 from predict.prediction_store import load_history
 
@@ -140,4 +143,12 @@ app.clientside_callback(
 if __name__ == "__main__":
     print("🚀 Chronos Dash 启动中...")
     load_history()
-    app.run(debug=True, port=8050)
+    stop_event = threading.Event()
+
+    hotload_thread = threading.Thread(
+        target=live_positions_hot_load,
+        args=(),
+        daemon=True
+    )
+    hotload_thread.start()
+    app.run(debug=True, port=8050, host="0.0.0.0")

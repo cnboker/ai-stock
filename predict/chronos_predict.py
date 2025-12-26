@@ -1,7 +1,7 @@
 import pandas as pd
-from chronos import ChronosPipeline
 import torch
 
+from config.settings import MODEL_NAME
 from predict.chronos_model import load_chronos_model
 from predict.price_alpha import chronos2_to_large_style
 
@@ -55,7 +55,7 @@ def run_prediction(
             "hs300": hs300_series.astype(float),
         }
     )
-    pipeline = load_chronos_model()
+    pipeline = load_chronos_model(MODEL_NAME)
     # ========== Chronos 推理 ==========
     pred = pipeline.predict_df(
         df=df_input,
@@ -65,16 +65,23 @@ def run_prediction(
     q10 = pred["0.1"].values
     q50 = pred["0.5"].values
     q90 = pred["0.9"].values
+    low, median, high = q10, q50, q90
 
-    low, median, high = chronos2_to_large_style(
-        q10=q10,
-        q50=q50,
-        q90=q90,
-        context=recent_df["close"].values,
-    )
+    is_t5_style = MODEL_NAME.startswith("chronos-t5")
 
-    # 显存回收
-    del pred, df_input
-    torch.cuda.empty_cache()
+    if not is_t5_style:
+        context = recent_df["close"].values
+        assert len(context) >= len(q50), "context too short"
+        
+        low, median, high = chronos2_to_large_style(
+            q10=q10,
+            q50=q50,
+            q90=q90,
+            context=context,
+        )
 
+    # 显存清理（只在 CUDA）
+    del pred
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
     return low, median, high

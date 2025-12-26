@@ -222,10 +222,7 @@ class PositionManager:
             "price": price,
         }
 
-    def load_from_yaml(self, path="data/live_positions.yaml"):
-        with open(path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-
+    def load_from_yaml(self, data):    
         self.positions.clear()
         self.cash = data.get("init_cash", 100000)
         self.account_name = data.get("account", "")
@@ -243,7 +240,6 @@ class PositionManager:
             )
 
 
+
 position_mgr = PositionManager()
 
-# 1️ 启动时加载真实仓位
-account = position_mgr.load_from_yaml("config/live_positions.yaml")
