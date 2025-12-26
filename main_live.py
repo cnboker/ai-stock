@@ -1,6 +1,7 @@
 from venv import logger
 
 from pandas import DataFrame
+from log import order_log, risk_log, signal_log
 from position.position_manager import position_mgr
 from risk.risk_manager import risk_mgr
 from strategy.gate import gater
@@ -50,7 +51,8 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
         )
 
     final_signal = debouncer_manager.update(ticker, raw_signal)
-    print_signal(f"{name}[{ticker}]", final_signal)
+    signal_log(f"{name}[{ticker}:{final_signal}]")
+
     plan = None
 
     low_v = float(low[-1])
@@ -61,7 +63,7 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
     # 计算预算
 
     position_value = position_mgr.market_value(ticker=ticker,latest_price=price)
-    print('position_value', position_value)
+    
     signal_capital = budget_mgr.get_budget(
         ticker=ticker,
         gate_score=gate_result.score,
@@ -70,7 +72,7 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
         positions_value=position_value,
     )
     print("允许你冒险的资金预算", signal_capital)
-    print("chronos_low,chronos_high", low_v,high_v)
+    
     plan = risk_mgr.evaluate(
         last_price=price,
         chronos_low=low_v,
@@ -78,7 +80,7 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
         atr=atr,
         capital=signal_capital,
     )
-    print("风险计划", plan)
+    risk_log(f"风险计划:{plan}")
     order = position_mgr.on_signal(
         ticker=ticker,
         signal=final_signal,
@@ -87,4 +89,4 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
     )
   
     if order:
-        print("📌 实盘决策:", order)
+        order_log(f"📌 实盘决策:{order}")

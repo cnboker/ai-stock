@@ -1,0 +1,45 @@
+2025-12-26 12:15:09,834 | INFO    | HOLD | [cyan][SIGNAL][/cyan] 金证股份[sh600446]
+2025-12-26 12:15:10,595 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:15:10,596 | INFO    | HOLD | [cyan][SIGNAL][/cyan] 实益达[sz002137]
+2025-12-26 12:15:11,256 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:15:11,257 | INFO    | HOLD | [cyan][SIGNAL][/cyan] 中油资本[sz000617]
+2025-12-26 12:18:10,175 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:18:10,177 | INFO    | HOLD | [cyan][SIGNAL][/cyan] 金证股份[sh600446]
+2025-12-26 12:18:10,957 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:18:10,959 | INFO    | HOLD | [cyan][SIGNAL][/cyan] 实益达[sz002137]
+2025-12-26 12:18:11,640 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:18:11,642 | INFO    | HOLD | [cyan][SIGNAL][/cyan] 中油资本[sz000617]
+2025-12-26 12:19:50,550 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份[sh600446:HOLD]
+2025-12-26 12:19:50,629 | WARNING | risk | [red][RISK][/red]
+风险计划:{plan}
+2025-12-26 12:19:51,338 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:19:51,339 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达[sz002137:HOLD]
+2025-12-26 12:19:51,341 | WARNING | risk | [red][RISK][/red]
+风险计划:{plan}
+2025-12-26 12:19:52,027 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:19:52,028 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本[sz000617:HOLD]
+2025-12-26 12:19:52,030 | WARNING | risk | [red][RISK][/red]
+风险计划:{plan}
+2025-12-26 12:20:38,132 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份[sh600446:HOLD]
+2025-12-26 12:20:38,209 | WARNING | risk | [red][RISK][/red]
+风险计划:TradePlan(allow_trade=False, reason='RR 不足 (1.06)', size=0, stop_loss=0.0, take_profit=0.0, expected_rr=np.float64(1.0639083166527172))
+2025-12-26 12:20:38,906 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:20:38,907 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达[sz002137:HOLD]
+2025-12-26 12:20:38,908 | WARNING | risk | [red][RISK][/red]
+风险计划:TradePlan(allow_trade=False, reason='RR 不足 (1.00)', size=0, stop_loss=0.0, take_profit=0.0, expected_rr=np.float64(1.0))
+2025-12-26 12:20:39,632 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:20:39,634 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本[sz000617:HOLD]
+2025-12-26 12:20:39,635 | WARNING | risk | [red][RISK][/red]
+风险计划:TradePlan(allow_trade=False, reason='RR 不足 (1.18)', size=0, stop_loss=0.0, take_profit=0.0, expected_rr=np.float64(1.175236096537234))
+2025-12-26 12:23:37,018 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:23:37,020 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份[sh600446:HOLD]
+2025-12-26 12:23:37,159 | WARNING | risk | [red][RISK][/red]
+风险计划:TradePlan(allow_trade=False, reason='RR 不足 (1.06)', size=0, stop_loss=0.0, take_profit=0.0, expected_rr=np.float64(1.0639083166527172))
+2025-12-26 12:23:38,003 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:23:38,005 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达[sz002137:HOLD]
+2025-12-26 12:23:38,006 | WARNING | risk | [red][RISK][/red]
+风险计划:TradePlan(allow_trade=False, reason='RR 不足 (1.00)', size=0, stop_loss=0.0, take_profit=0.0, expected_rr=np.float64(1.0))
+2025-12-26 12:23:38,797 | INFO    | venv | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-26 12:23:38,799 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本[sz000617:HOLD]
+2025-12-26 12:23:38,800 | WARNING | risk | [red][RISK][/red]
+风险计划:TradePlan(allow_trade=False, reason='RR 不足 (1.18)', size=0, stop_loss=0.0, take_profit=0.0, expected_rr=np.float64(1.175236096537234))
