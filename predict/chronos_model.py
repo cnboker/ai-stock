@@ -45,3 +45,4 @@ def load_chronos_model(
         raise ValueError(f"Unknown model: {model_name}")
 
     return pipeline
+
