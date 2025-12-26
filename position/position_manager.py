@@ -68,7 +68,7 @@ class PositionManager:
 
         # 3. 调用外部方法获取最新价格
         latest_prices = fetch_sina_quote_live(tickers)  # 返回 dict: {ticker: price}
-        print("latest_prices", latest_prices)
+        #print("latest_prices", latest_prices)
         # 4. 更新 price_map
         price_map.update(latest_prices)
 

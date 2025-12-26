@@ -51,7 +51,7 @@ def on_bar(ticker, name, context: DataFrame, low, median, high, atr):
         )
 
     final_signal = debouncer_manager.update(ticker, raw_signal)
-    signal_log(f"{name}[{ticker}:{final_signal}]")
+    signal_log(f"{name}/{ticker}:{final_signal}")
 
     plan = None
 

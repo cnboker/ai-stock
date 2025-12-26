@@ -1,6 +1,7 @@
-from venv import logger
 import numpy as np
 from dataclasses import dataclass
+
+from log import get_logger
 
 
 @dataclass
@@ -85,7 +86,7 @@ class PredictionGate:
             context=context,
         )
 
-        print("score", score)
+        #print("score", score)
 
         allow = score >= self.score_threshold
         reason = "OK" if allow else "LOW_OPERATIONAL_SCORE"
@@ -96,7 +97,7 @@ class PredictionGate:
             reason=reason,
             meta=meta,
         )
-        logger.info(
+        get_logger("gate").info(
             f"[GATE] score={gate_result.score:.3f} "
             f"space={gate_result.meta['space']:.2f} "
             f"coverage={gate_result.meta['coverage']:.2f}"

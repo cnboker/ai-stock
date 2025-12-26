@@ -1,4 +1,5 @@
 # predict/chronos_model.py
+from functools import lru_cache
 import torch
 from chronos import Chronos2Pipeline, ChronosPipeline
 
@@ -10,8 +11,8 @@ def get_device():
     if torch.cuda.is_available():
         return "cuda"
     return "cpu"
-
-
+#cache
+@lru_cache(maxsize=2)
 def load_chronos_model(
     model_name: str = "chronos-2",
     base_path: str = "."
