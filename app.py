@@ -1,10 +1,7 @@
-# ========================== 必须最前面（CUDA / Torch 配置） ==========================
-import asyncio
 import os
 import threading
-import traceback
 
-from position.LivePositionLoader import live_positions_hot_load
+from position.live_position_loader import live_positions_hot_load
 from position.position_manager import position_mgr
 from predict.prediction_store import load_history
 
@@ -12,8 +9,6 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-# ========================== 基础库 ==========================
-from datetime import datetime
 from dash import Dash, dcc, html, Input, Output, callback, no_update
 
 # ========================== 项目内模块 ==========================
@@ -22,7 +17,8 @@ from predict.time_utils import is_market_break
 from data.loader import load_index_df
 from plot.base import create_base_figure, finalize_figure
 from update_graph import process_single_stock, build_update_text
-
+from equity.equity_recorder import eq_recorder
+from equity.equity_features import get_metrics,equity_features
 # ========================== Dash App ==========================
 app = Dash(__name__, title="Chronos 实时预测")
 
@@ -83,7 +79,7 @@ def update_graph(n_intervals):
     fig = create_base_figure()
 
     prediction_tails = []
-
+    eq_feat = equity_features(eq_recorder.to_series())
     # === 核心循环：每只股票 ===
     for index, (ticker,p) in enumerate(position_mgr.positions.copy().items()):
         try:
@@ -93,15 +89,15 @@ def update_graph(n_intervals):
                 index=index,
                 period=period,
                 hs300_df=hs300_df,
+                eq_feat=eq_feat
             )
             if tail:
                 prediction_tails.append(tail)
 
         except Exception as e:
             print(f"[WARN] {ticker} 处理失败: {e}")
-            #traceback.print_stack()
-    # 统一收尾（annotation / layout）
-   # print('prediction_tails',prediction_tails)
+    #记录资产波动
+    eq_recorder.record(position_mgr.equity)
     finalize_figure(fig, prediction_tails)
 
     return fig, build_update_text()

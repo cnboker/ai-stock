@@ -1,0 +1,84 @@
+2025-12-28 22:23:25,461 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:23:26,777 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:23:27,213 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:30:24,780 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:30:25,192 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:30:25,632 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:36:13,391 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:36:13,431 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:36:13,868 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:36:14,314 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:36:14,638 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:36:15,005 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:37:10,405 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:37:10,833 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:37:11,575 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:38:09,027 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:38:09,455 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:38:09,889 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:40:10,291 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:40:12,147 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:40:12,651 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:41:57,676 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:41:58,143 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:41:59,886 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:42:51,939 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:42:52,419 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:42:54,158 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:43:22,808 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:43:23,214 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:43:23,989 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:45:24,036 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:45:24,470 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:45:25,494 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:47:43,206 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:47:43,894 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:47:44,327 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:48:39,671 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:48:39,676 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份/sh600446: HOLD (confidence=0.00)
+2025-12-28 22:48:39,677 | WARNING | risk | [red][RISK][/red]
+sh600446 budget=304.77 gate=1.00
+2025-12-28 22:48:40,070 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:48:40,072 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达/sz002137: HOLD (confidence=0.00)
+2025-12-28 22:48:40,073 | WARNING | risk | [red][RISK][/red]
+sz002137 budget=550.77 gate=1.00
+2025-12-28 22:48:40,582 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:48:40,584 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD (confidence=0.00)
+2025-12-28 22:48:40,586 | WARNING | risk | [red][RISK][/red]
+sz000617 budget=612.77 gate=0.80
+2025-12-28 22:49:59,448 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:49:59,452 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份/sh600446: HOLD (confidence=0.00)
+2025-12-28 22:49:59,454 | WARNING | risk | [red][RISK][/red]
+sh600446 budget=304.77 gate=1.00
+2025-12-28 22:49:59,845 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:49:59,846 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达/sz002137: HOLD (confidence=0.00)
+2025-12-28 22:49:59,848 | WARNING | risk | [red][RISK][/red]
+sz002137 budget=550.77 gate=1.00
+2025-12-28 22:50:00,307 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:50:00,309 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD (confidence=0.00)
+2025-12-28 22:50:00,310 | WARNING | risk | [red][RISK][/red]
+sz000617 budget=612.77 gate=0.80
+2025-12-28 22:52:54,684 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:52:54,688 | INFO    | signal | [cyan][SIGNAL][/cyan] 金证股份/sh600446: HOLD (confidence=0.00)
+2025-12-28 22:52:54,690 | WARNING | risk | [red][RISK][/red]
+sh600446 budget=304.77 gate=1.00
+2025-12-28 22:52:54,691 | INFO    | order | [green][ORDER][/green] [PositionAction] sh600446 → HOLD ratio=0.30
+2025-12-28 22:52:54,693 | WARNING | risk | [red][RISK][/red]
+sh600446 HOLD
+2025-12-28 22:52:54,694 | INFO    | order | [green][ORDER][/green] sh600446 executed action: PositionAction(action='HOLD', size=0, contract_size=100, plan=None, ratio=0.3)
+2025-12-28 22:52:55,565 | INFO    | gate | [GATE] score=1.000 space=1.00 coverage=1.00
+2025-12-28 22:52:55,567 | INFO    | signal | [cyan][SIGNAL][/cyan] 实益达/sz002137: HOLD (confidence=0.00)
+2025-12-28 22:52:55,569 | WARNING | risk | [red][RISK][/red]
+sz002137 budget=550.77 gate=1.00
+2025-12-28 22:52:55,570 | INFO    | order | [green][ORDER][/green] [PositionAction] sz002137 → HOLD ratio=0.30
+2025-12-28 22:52:55,572 | WARNING | risk | [red][RISK][/red]
+sz002137 HOLD
+2025-12-28 22:52:55,573 | INFO    | order | [green][ORDER][/green] sz002137 executed action: PositionAction(action='HOLD', size=0, contract_size=100, plan=None, ratio=0.3)
+2025-12-28 22:52:56,138 | INFO    | gate | [GATE] score=0.800 space=1.00 coverage=1.00
+2025-12-28 22:52:56,140 | INFO    | signal | [cyan][SIGNAL][/cyan] 中油资本/sz000617: HOLD (confidence=0.00)
+2025-12-28 22:52:56,142 | WARNING | risk | [red][RISK][/red]
+sz000617 budget=612.77 gate=0.80
+2025-12-28 22:52:56,143 | INFO    | order | [green][ORDER][/green] [PositionAction] sz000617 → HOLD ratio=0.30
+2025-12-28 22:52:56,145 | WARNING | risk | [red][RISK][/red]
+sz000617 HOLD
+2025-12-28 22:52:56,147 | INFO    | order | [green][ORDER][/green] sz000617 executed action: PositionAction(action='HOLD', size=0, contract_size=100, plan=None, ratio=0.3)

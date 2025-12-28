@@ -9,24 +9,26 @@ from predict.time_utils import build_future_index
 from datetime import datetime
 from config.settings import ticker_name_map
 
-def process_single_stock(fig, ticker, index, period, hs300_df):
+def process_single_stock(fig, ticker, index, period, hs300_df,eq_feat):
     """
     单只股票：行情 → 预测 → 历史 → 绘图 → 标签
     """
     name = ticker_name_map.get(ticker,ticker)
 
     df = load_stock_df(ticker, period)
-
-    low, median, high = run_prediction(
+   
+    low, median, high, model_score = run_prediction(
         df=df,
         hs300_df=hs300_df,
         ticker=ticker,
         period=period,
+        eq_feat=eq_feat
     )
     last_price = df["close"].iloc[-1]
-    print('last_price',type(last_price), last_price)
+    print('last_price, model_score',type(last_price), last_price, model_score)
     atr = calc_atr(df)
-    on_bar(ticker,name, df["close"],low, median, high, atr)
+  
+    on_bar(ticker,name, df["close"],low, median, high, atr,model_score,eq_feat)
 
     future_index = build_future_index(df, period)
 

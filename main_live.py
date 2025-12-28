@@ -6,11 +6,11 @@ from position.position_manager import position_mgr
 from risk.risk_manager import risk_mgr
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
-from strategy.signal_engine import make_signal, print_signal
-from risk.BudgetManager import budget_mgr
+from risk.budget_manager import budget_mgr
 from position.PositionPolicy import position_policy
+from strategy.signal_mgr import SignalManager
 
-'''
+"""
 Chronos 区间
    ↓
 PredictionGate   ←【只做一件事：值不值得信】
@@ -27,7 +27,8 @@ Gate 决定“值不值得冒险”
 Risk 决定“冒多少险”
 PositionManager 决定“钱够不够”
 
-'''
+"""
+
 
 # 2️ 实盘主循环,每次行情 / 预测更新
 def on_bar(
@@ -36,37 +37,37 @@ def on_bar(
     context: DataFrame,
     low,
     median,
-    high,
+    high,    
     atr: float,
+    model_score,
+    eq_feat
 ):
-    print('test')
     # ===== 1. 最新价格 =====
     price = float(context.iloc[-1])
     position_mgr.update_price(ticker, price)
-    
-    # ===== 2. Gate =====
-    gate_result = gater.evaluate(
-        lower=low,
-        mid=median,
-        upper=high,
-        context=context.values,
+   
+    signal_mgr = SignalManager(
+        gater=gater,
+        debouncer_manager=debouncer_manager,
+        min_score=0.08,
+    )    
+    has_position = ticker in position_mgr.positions
+    final_action, confidence, gate_result = signal_mgr.evaluate(
+        ticker=ticker,
+        low=low,
+        median=median,
+        high=high,
+        latest_price=price,
+        context=context,
+        model_score=model_score,
+        eq_feat=eq_feat,
+        has_position=has_position,
+        atr=atr
     )
 
-    if not gate_result.allow:
-        raw_signal = "HOLD"
-    else:
-        raw_signal = make_signal(
-            low=low,
-            median=median,
-            high=high,
-            last_price=price,
-        )
+    signal_log(f"{name}/{ticker}: {final_action} (confidence={confidence:.2f})")
 
-    # ===== 3. Debounce =====
-    final_signal = debouncer_manager.update(ticker, raw_signal)
-    signal_log(f"{name}/{ticker}: {final_signal}")
-
-    # ===== 4. Risk + Budget =====
+    # =====Risk + Budget =====
     low_v = float(low[-1])
     high_v = float(high[-1])
 
@@ -80,10 +81,7 @@ def on_bar(
         positions_value=position_value,
     )
 
-    risk_log(
-        f"{ticker} budget={signal_capital:.2f} "
-        f"gate={gate_result.score:.2f}"
-    )
+    risk_log(f"{ticker} budget={signal_capital:.2f} " f"gate={gate_result.score:.2f}")
 
     plan = risk_mgr.evaluate(
         last_price=price,
@@ -100,16 +98,21 @@ def on_bar(
     # ===== 5. Signal → Trade Action（开仓信号）=====
     action = position_mgr.on_signal(
         symbol=ticker,
-        signal=final_signal,
+        action=final_action,
+        confidence=confidence,
         last_price=price,
         trade_plan=plan,
     )
 
-    # ===== 6. Gate Reject → Policy 干预(平仓或建仓) =====
-    if action is None and not gate_result.allow:
+      # 4️⃣ Gate Reject → Policy 干预(平仓或建仓)
+    if action is None:
         position = position_mgr.positions.get(ticker)
-        action = position_policy.decide(position, gate_result)
+        if position:
+            action = position_policy.decide(position, gate=gate_result)  # gate_result 可选
 
-    # ===== 7. 执行 =====
+    # 5️⃣ 执行动作
     if action:
         position_mgr.apply_action(ticker, action)
+        order_log(f"{ticker} executed action: {action}")
+
+   

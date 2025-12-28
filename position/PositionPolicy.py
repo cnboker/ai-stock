@@ -5,7 +5,7 @@ from typing import Optional
 @dataclass
 class PositionAction:
     action: str                 # OPEN / REDUCE / EXIT / HOLD
-    size: int                   # 本次变动的手数
+    size: int =0                  # 本次变动的手数
     contract_size: int = 100
     plan: Optional[object] = None 
     ratio: float = 0.3 #减仓比例
@@ -26,7 +26,7 @@ class PositionPolicy:
         gate: GateResult
         """
 
-        # 没仓位 → 永远 HOLD
+        # 没仓位 → 永远 HOLD->不操作
         if position is None or position.size == 0:
             return PositionAction("HOLD")
 

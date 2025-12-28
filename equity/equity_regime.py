@@ -1,0 +1,24 @@
+#Equity Regime（好 / 中 / 坏状态）
+'''
+Docstring for equity.equity_regime
+📌 用途
+
+bad → 熔断 / 禁开新仓
+
+neutral → 正常
+
+good → 放大仓位 / 放宽止盈
+'''
+
+def equity_regime(eq_feat):
+    """
+    返回: good / neutral / bad
+    """
+    dd = eq_feat["eq_drawdown"].iloc[-1]
+    slope = eq_feat["eq_slope"].iloc[-1]
+
+    if dd < -0.06:
+        return "bad"
+    if slope > 0 and dd > -0.02:
+        return "good"
+    return "neutral"

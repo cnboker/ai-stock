@@ -44,6 +44,7 @@ class PositionManager:
         return self.cash
 
     def update_price(self, symbol: str, price: float):
+        print(type(price))
         self.price_cache[symbol] = price
 
     def position_value(self) -> float:
@@ -70,32 +71,28 @@ class PositionManager:
     # ======================================================
     # 主交易入口（唯一产生 OPEN / ADD / REVERSE 的地方）
     # ======================================================
-    def on_signal(
-        self,
-        symbol: str,
-        signal: str,  # LONG / SHORT / HOLD
-        last_price: float,
-        trade_plan=None,  # 来自 RiskManager
-    ) -> Optional[PositionAction]:
-
+    def on_signal(self, symbol: str, action: str, confidence: float, last_price: float, trade_plan=None):
         pos = self.positions.get(symbol)
-
-        # ================= 无仓位 =================
         if not pos or pos.size <= 0:
-            if signal == "LONG" and trade_plan and trade_plan.allow_open:
+            if action == "LONG" and trade_plan and trade_plan.allow_open:
                 return PositionAction(action="OPEN", plan=trade_plan)
             return None
 
-        # ================= 有仓位 =================
-        # ---- 反向信号：清仓 ----
-        if signal == "SHORT":
+        # ---------------- REDUCE 分批 ----------------
+        if action == "REDUCE":
+            reduce_ratio = min(1.0, confidence)  # confidence 控制减仓比例
+            reduce_size = int(pos.size * reduce_ratio // 100 * 100)  # 向下取整到 100 股
+            if reduce_size > 0:
+                return PositionAction(action="REDUCE", size=reduce_size)
+
+        # ---------------- SHORT / CLOSE ----------------
+        if action == "SHORT":
             return PositionAction(action="CLOSE")
 
-        # ---- 加仓 ----
-        if signal == "LONG" and trade_plan and trade_plan.allow_add:
+        # ---------------- ADD ----------------
+        if action == "LONG" and trade_plan and trade_plan.allow_add:
             add_budget = self.get_add_budget(symbol, trade_plan)
             size = int(add_budget / last_price // 100 * 100)
-
             if size > 0:
                 return PositionAction(action="ADD", size=size, plan=trade_plan)
 
@@ -121,7 +118,6 @@ class PositionManager:
                 if not pos or pos.size <= 0:
                     raise RuntimeError(f"{symbol} REDUCE but no position")
                 self._reduce(symbol, action.reduce_ratio)
-
             case "CLOSE":
                 if not pos or pos.size <= 0:
                     raise RuntimeError(f"{symbol} CLOSE but no position")
