@@ -1,7 +1,7 @@
 from venv import logger
 
 from pandas import DataFrame
-from log import order_log, risk_log, signal_log
+from log import order_log_1, risk_log, signal_log
 from position.position_manager import position_mgr
 from risk.risk_manager import risk_mgr
 from strategy.gate import gater
@@ -113,6 +113,7 @@ def on_bar(
     # 5️⃣ 执行动作
     if action:
         position_mgr.apply_action(ticker, action)
-        order_log(f"{ticker} executed action: {action}")
-
+        position = position_mgr.positions.get(ticker)
+        if position:
+            order_log_1(ticker, action=action, position=position)
    

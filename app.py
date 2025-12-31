@@ -5,7 +5,7 @@ from position.live_position_loader import live_positions_hot_load
 from position.position_manager import position_mgr
 from predict.prediction_store import load_history
 
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -18,7 +18,7 @@ from data.loader import load_index_df
 from plot.base import create_base_figure, finalize_figure
 from update_graph import process_single_stock, build_update_text
 from equity.equity_recorder import eq_recorder
-from equity.equity_features import get_metrics,equity_features
+from equity.equity_features import equity_features
 # ========================== Dash App ==========================
 app = Dash(__name__, title="Chronos 实时预测")
 
@@ -97,7 +97,7 @@ def update_graph(n_intervals):
         except Exception as e:
             print(f"[WARN] {ticker} 处理失败: {e}")
     #记录资产波动
-    eq_recorder.record(position_mgr.equity)
+    eq_recorder.add(position_mgr.equity)
     finalize_figure(fig, prediction_tails)
 
     return fig, build_update_text()

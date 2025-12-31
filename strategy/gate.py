@@ -97,6 +97,11 @@ class PredictionGate:
             reason=reason,
             meta=meta,
         )
+        '''
+        score：市场可交易性评分（0.8 / 1.0 都是 允许交易）
+        space=1.00：仓位空间充足
+        coverage=1.00：信号覆盖完整
+        '''
         get_logger("gate").info(
             f"[GATE] score={gate_result.score:.3f} "
             f"space={gate_result.meta['space']:.2f} "

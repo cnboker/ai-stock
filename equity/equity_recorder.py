@@ -10,7 +10,7 @@ class EquityRecorder:
         self.max_len = max_len
         self.df = pd.DataFrame(
             {
-                "ts": pd.Series(dtype="datetime64[ns]"),
+                "timestamp": pd.Series(dtype="datetime64[ns]"),
                 "equity": pd.Series(dtype="float64"),
             }
         )
@@ -39,8 +39,9 @@ class EquityRecorder:
 
     def _save_disk(self):
         try:
-            if os.path.exists(self.path):
-                self.df.to_csv(self.path, index=False)
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
+            self.df.to_csv(self.path, index=False)
+
         except Exception as e:
             print(f"Warning: failed to save equity file: {e}")
 

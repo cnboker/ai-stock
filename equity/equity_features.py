@@ -5,7 +5,7 @@ def zscore(s: pd.Series, win: int):
     return (s - s.rolling(win).mean()) / (s.rolling(win).std() + 1e-8)
 
 #特征工程（Chronos 协变量）
-def equity_features(eq: pd.Series) -> pd.DataFrame:
+def equity_features1(eq: pd.Series) -> pd.DataFrame:
     # 1. 保证 eq 是 float
     eq = eq.astype(float)
 
@@ -17,9 +17,11 @@ def equity_features(eq: pd.Series) -> pd.DataFrame:
 
     # 4. 滑动斜率
     slope = eq.rolling(20).apply(lambda x: np.polyfit(range(len(x)), x, 1)[0] if len(x)==20 else 0.0)
-
+    
     # 5. zscore
-    z = zscore(ret, 50)
+    #z = zscore(ret, 50)
+    std = ret.std()
+    z = (ret - ret.mean()) / std if std > 1e-8 else np.nan
 
     # 6. 构建 DataFrame
     df_feat = pd.DataFrame({
@@ -32,7 +34,7 @@ def equity_features(eq: pd.Series) -> pd.DataFrame:
     # 7. 删除缺失
     return df_feat.dropna()
 
-def get_metrics(eq)-> pd.DataFrame:
+def equity_features(eq)-> pd.DataFrame:
     # 基础检查：如果数据长度不足以支撑最大的窗口 (50)，直接返回空表
     # 这能避免 rolling 产生全 NaN 导致的后续逻辑崩溃
   # 1. 安全检查逻辑

@@ -1,5 +1,5 @@
 from datetime import datetime
-from equity.equity_features import equity_features, get_metrics
+from equity.equity_features import equity_features
 from equity.equity_recorder import EquityRecorder,eq_recorder
 
 
@@ -34,8 +34,8 @@ def test_to_equity_features_get_metrics_ok():
     )
     eq = rec.to_series()
     
-    eq_feat = get_metrics(eq)
-    print('get_metrics', eq_feat)
+    eq_feat = equity_features(eq)
+    print('equity_features', eq_feat)
 
 def test_eq_recorder():
     eq = eq_recorder.to_series()

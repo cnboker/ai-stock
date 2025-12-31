@@ -5,7 +5,7 @@ from typing import Dict, Optional
 from infra.notify.order import OrderEvent, notify_order
 from position.PositionPolicy import PositionAction
 from position.position import Position
-from log import order_log, risk_log
+from log import order_log, order_log_1, risk_log
 
 """
 PositionManager：只做三件事
@@ -65,8 +65,11 @@ class PositionManager:
 
         if extra:
             msg += f" | {extra}"
-
-        order_log(msg)
+        
+        position = position_mgr.positions.get(symbol)
+        if position:
+            order_log_1(symbol, action=action, position=position)
+   
 
     # ======================================================
     # 主交易入口（唯一产生 OPEN / ADD / REVERSE 的地方）

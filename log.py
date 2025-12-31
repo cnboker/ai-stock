@@ -11,6 +11,9 @@ import yaml
 from rich.logging import RichHandler
 from rich.traceback import install
 
+from position.PositionPolicy import PositionAction
+from position.position import Position
+
 # ==========================
 # 美化 traceback（显示局部变量）
 # ==========================
@@ -97,11 +100,29 @@ def get_logger(name: str) -> logging.Logger:
 
 
 # log.py（底部追加）
+def is_noop_hold(action: PositionAction, position):
+    return (
+        action.action == "HOLD"
+        and action.size == 0
+        and action.plan is None
+        and position is None  # 或 position.size == 0
+    )
 
 def signal_log(msg: Any, logger_name: str = "signal"):
     if isinstance(msg, (dict, list)):
         msg = json.dumps(msg, indent=2, ensure_ascii=False)
     get_logger(logger_name).info(f"[cyan][SIGNAL][/cyan] {msg}")
+
+def order_log_1(symbol, action:PositionAction, position:Position):
+    logger = get_logger('order')
+    if is_noop_hold(action, position):
+        logger.debug(
+            f"{symbol} HOLD (noop)"
+        )
+    else:
+        logger.info(
+            f"{symbol} executed action: {action}"
+        )
 
 def order_log(msg: Any, logger_name: str = "order"):
     if isinstance(msg, (dict, list)):

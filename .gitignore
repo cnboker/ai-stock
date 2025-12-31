@@ -5,3 +5,5 @@ chronos-2
 chronos-bolt-base
 __pycache__/
 data/prediction_history.pkl
+data/equity.csv
+logs
