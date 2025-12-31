@@ -6,7 +6,7 @@ from config.settings import PREDICTION_LENGTH
 
 def is_market_break():
     now = datetime.now().time()
-    return time(11, 30) <= now < time(13, 0)
+    return time(11, 30) <= now < time(13, 0) or now >= time(15,00)
 
 def get_next_trading_times(start_dt, n, freq):
     freq_min = 5 if freq == "5" else 15

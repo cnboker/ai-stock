@@ -3,6 +3,8 @@ import numpy as np
 
 from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
+from strategy import equity_decide, regime_cooldown
+from strategy.equity_logger import log_equity_decision
 
 
 RED = "\033[91m"
@@ -33,6 +35,27 @@ class SignalManager:
         self.debouncer = debouncer_manager
         self.min_score = min_score
 
+    '''
+    你现在已经具备的能力
+
+    ✔ bad 状态自动冷却
+
+    ✔ 连续 good 才放行
+
+    ✔ 分级减仓 / 强平
+
+    ✔ Equity 决策集中管理
+
+    ✔ SignalManager 干净可维护
+
+    raw_signal	含义
+    LONG	尝试开/加多
+    SHORT	尝试开/加空
+    HOLD	不新增风险
+    REDUCE	主动减仓
+    LIQUIDATE	强平
+
+    '''
     def evaluate(
         self,
         *,
@@ -73,48 +96,48 @@ class SignalManager:
             )
         print("gate_result", gate_result)
         # =========================================================
-        # 2️⃣ Equity Regime（硬熔断）
+        # 2️⃣ Equity Decision（统一层）
         # =========================================================
-        if eq_feat is None or eq_feat.empty:
-            regime = "neutral"  # 默认倍率，或根据业务逻辑
-        else:
-            regime = equity_regime(eq_feat)
-        if regime == "bad":
-            if has_position:
-                raw_signal = "REDUCE"
-            else:
-                raw_signal = "HOLD"
-        print("regime", regime)
+        eq_decision = equity_decide(eq_feat, has_position)
+        '''
+        防抖
+        bad 进得快，出得慢
+        good 要连续确认
+        neutral 是缓冲态
+        '''
+        regime = regime_cooldown.update(ticker, eq_decision.regime)
+        eq_decision.regime = regime
+        gate_mult = eq_decision.gate_mult
+
+        # 行为覆盖
+        if eq_decision.action:
+            raw_signal = eq_decision.action
+        elif regime == "bad":
+            raw_signal = "HOLD"
+
+        log_equity_decision(ticker, eq_feat, eq_decision)
+
         # =========================================================
-        # 3️⃣ Equity Gate（软放大 / 压制）
+        # 3️⃣ Score
         # =========================================================
-       
-        if eq_feat is None or eq_feat.empty:
-            gate_mult = 1.0  # 默认倍率，或根据业务逻辑
-        else:
-            gate_mult = equity_gate(eq_feat)
-        print("gate_mult", gate_mult)
-        # ===== final_score =====
         if raw_signal == "LONG":
             final_score = +model_score * gate_mult
         elif raw_signal == "SHORT":
             final_score = -model_score * gate_mult
-        elif raw_signal == "REDUCE":
+        elif raw_signal in ("REDUCE", "LIQUIDATE"):
             """
              回撤	减仓力度
             -2%	小幅减
             -5%	明显减
             -8%	强制减
             """
-            dd = abs(eq_feat["eq_drawdown"].iloc[-1])
-            reduce_strength = min(1.0, dd / 0.08)  # 8% 回撤 → 满减仓
-            final_score = -reduce_strength * gate_mult
+            final_score = -eq_decision.reduce_strength * gate_mult
         else:
             final_score = 0.0
         # =========================================================
         # 4️⃣ 弱信号过滤（避免抖动）,避免min_score 会“吃掉 REDUCE”
         # =========================================================
-        if raw_signal != "REDUCE" and abs(final_score) < self.min_score:
+        if raw_signal not in ("REDUCE", "LIQUIDATE") and abs(final_score) < self.min_score:
             final_score = 0.0
 
         # =========================================================

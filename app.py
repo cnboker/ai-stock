@@ -67,8 +67,8 @@ def update_graph(n_intervals):
     """
 
     # 午休不更新（避免空预测 & 闪图）
-    # if is_market_break():
-    #     return no_update, no_update
+    if is_market_break():
+        return no_update, no_update
 
     period = TICKER_PERIOD
 
