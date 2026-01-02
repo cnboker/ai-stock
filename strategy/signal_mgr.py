@@ -3,7 +3,8 @@ import numpy as np
 
 from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
-from strategy import equity_decide, regime_cooldown
+from strategy.equity_decide import equity_decide
+from strategy.regime_cooldown import regime_cooldown
 from strategy.equity_logger import log_equity_decision
 
 
@@ -64,7 +65,7 @@ class SignalManager:
         median: float,
         high: float,
         latest_price: float,
-        context,
+        close_df,
         model_score: float,
         eq_feat,
         has_position: bool,
@@ -82,7 +83,7 @@ class SignalManager:
             lower=low,
             mid=median,
             upper=high,
-            context=context.values,
+            close_df=close_df.values,
         )
 
         if not gate_result.allow:

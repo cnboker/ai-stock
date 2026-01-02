@@ -3,7 +3,7 @@ import pickle
 import os
 import pandas as pd
 from config.settings import HISTORY_FILE
-
+from predict.predict_result import PredictionResult
 PREDICTION_HISTORY = {}
 
 def load_history():
@@ -33,14 +33,14 @@ def append_prediction(ticker: str, new_pred: pd.DataFrame):
 
     return PREDICTION_HISTORY[ticker]
 
-def update_prediction_history(ticker, future_index, low, median, high):
+def update_prediction_history(ticker, future_index, pre_result:PredictionResult):
     """
     合并 & 持久化预测历史
     """
     new_pred = pd.DataFrame({
         "datetime": future_index,
-        "low": low,
-        "median": median,
-        "high": high,
+        "low": pre_result.low,
+        "median": pre_result.median,
+        "high": pre_result.high,
     })
     return append_prediction(ticker, new_pred)

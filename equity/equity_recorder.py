@@ -70,6 +70,3 @@ class EquityRecorder:
             return 0.0
         return float(self.df["equity"].iloc[-1])
 
-
-eq_recorder = EquityRecorder("data/equity.csv")
-eq_recorder._load_disk()

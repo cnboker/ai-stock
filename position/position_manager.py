@@ -1,10 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
+from infra.core.runtime import RunMode
 from infra.notify.order import OrderEvent, notify_order
 from position.PositionPolicy import PositionAction
 from position.position import Position
+from infra.core.runtime import RunMode
 from log import order_log, order_log_1, risk_log
 
 """
@@ -20,14 +22,18 @@ PositionManager：只做三件事
 
 # 算钱、改仓位、记账
 class PositionManager:
-    def __init__(self, init_cash: float = 0.0):
+    def __init__(self, init_cash: float = 0.0, run_mode:RunMode=RunMode.LIVE):
         # ===== 账户资金 =====
         self.cash: float = init_cash
         self.frozen_cash: float = 0.0
         self.account_name: str = ""
 
         # ===== 持仓 =====
-        self.positions: Dict[str, Position] = {}
+        #self.positions: Dict[str, Position] = {}
+        #self.trade_log = []
+        self.run_mode: str = run_mode
+        self.positions: Dict[str, dict] = {}
+        self.trade_log: List[dict] = []
 
         # ===== 价格缓存（由行情系统更新）=====
         self.price_cache: Dict[str, float] = {}
@@ -42,7 +48,19 @@ class PositionManager:
     @property
     def available_cash(self) -> float:
         return self.cash
+    
+    def get(self, ticker: str):
+        return self.positions.get(ticker)
 
+    def set(self, ticker: str, position: dict):
+        self.positions[ticker] = position
+
+    def record_trade(self, trade: dict):
+        trade = trade.copy()
+        trade["run_mode"] = self.run_mode
+        trade["ts"] = datetime.now()
+        self.trade_log.append(trade)
+        
     def update_price(self, symbol: str, price: float):
         print(type(price))
         self.price_cache[symbol] = price
@@ -66,7 +84,7 @@ class PositionManager:
         if extra:
             msg += f" | {extra}"
         
-        position = position_mgr.positions.get(symbol)
+        position = self.positions.get(symbol)
         if position:
             order_log_1(symbol, action=action, position=position)
    
@@ -338,4 +356,8 @@ class PositionManager:
             )
 
 
-position_mgr = PositionManager()
+    def clear(self):
+        self.positions.clear()
+        self.trade_log.clear()
+
+    

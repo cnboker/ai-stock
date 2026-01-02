@@ -1,4 +1,4 @@
-from datetime import time
+from datetime import datetime, time
 import pandas as pd
 from plotly.subplots import make_subplots
 from plot.annotation import create_annotation
@@ -91,3 +91,9 @@ def finalize_figure(
         dragmode="pan",
         #  legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
+
+
+
+def build_update_text(ticker="ALL"):
+    now = datetime.now().strftime("%H:%M:%S")
+    return f"更新: {now} | {ticker} | Chronos 实时预测"

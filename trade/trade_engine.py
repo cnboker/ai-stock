@@ -1,8 +1,9 @@
 from venv import logger
 
 from pandas import DataFrame
+from infra.core.context import TradingContext
 from log import order_log_1, risk_log, signal_log
-from position.position_manager import position_mgr
+from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
@@ -31,19 +32,20 @@ PositionManager 决定“钱够不够”
 
 
 # 2️ 实盘主循环,每次行情 / 预测更新
-def on_bar(
-    ticker: str,
-    name: str,
-    context: DataFrame,
-    low,
-    median,
-    high,    
-    atr: float,
-    model_score,
-    eq_feat
+def execute_stock_decision(
+    *,    
+    close_df: DataFrame,
+    pre_result:PredictionResult,    
+    context:TradingContext
 ):
+    ticker = context.ticker
+    name = context.name
+    position_mgr = context.position_mgr
+
+    position = position_mgr.get(ticker)
+
     # ===== 1. 最新价格 =====
-    price = float(context.iloc[-1])
+    price = float(close_df.iloc[-1])
     position_mgr.update_price(ticker, price)
    
     signal_mgr = SignalManager(
@@ -51,25 +53,25 @@ def on_bar(
         debouncer_manager=debouncer_manager,
         min_score=0.08,
     )    
-    has_position = ticker in position_mgr.positions
+    has_position = position is not None
     final_action, confidence, gate_result = signal_mgr.evaluate(
         ticker=ticker,
-        low=low,
-        median=median,
-        high=high,
+        low=pre_result.low,
+        median=pre_result.median,
+        high=pre_result.high,
         latest_price=price,
-        context=context,
-        model_score=model_score,
-        eq_feat=eq_feat,
+        close_df=close_df,
+        model_score=pre_result.model_score,
+        eq_feat=context.eq_feat,
         has_position=has_position,
-        atr=atr
+        atr=pre_result.atr
     )
 
     signal_log(f"{name}/{ticker}: {final_action} (confidence={confidence:.2f})")
 
     # =====Risk + Budget =====
-    low_v = float(low[-1])
-    high_v = float(high[-1])
+    low_v = float(pre_result.low[-1])
+    high_v = float(pre_result.high[-1])
 
     position_value = position_mgr.position_value()
 
@@ -87,7 +89,7 @@ def on_bar(
         last_price=price,
         chronos_low=low_v,
         chronos_high=high_v,
-        atr=atr,
+        atr=pre_result.atr,
         capital=signal_capital,
     )
 

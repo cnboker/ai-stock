@@ -35,11 +35,11 @@ class PredictionGate:
         mid: np.ndarray,
         upper: np.ndarray,
         y_proxy: np.ndarray,
-        context: np.ndarray,
+        close_df: np.ndarray,
     ) -> tuple[float, dict]:
 
         # 1. 空间
-        hist_vol = np.std(context[-self.vol_window :]) + 1e-6
+        hist_vol = np.std(close_df[-self.vol_window :]) + 1e-6
         width = np.mean(upper - lower)
         space_score = np.tanh(width / (hist_vol * self.min_width_ratio))
 
@@ -49,7 +49,7 @@ class PredictionGate:
 
         # 3. 方向
         pred_trend = np.sign(mid[-1] - mid[0])
-        true_trend = np.sign(y_proxy[-1] - context[-1])
+        true_trend = np.sign(y_proxy[-1] - close_df[-1])
         direction_score = 1.0 if pred_trend == true_trend else 0.0
 
         score = 0.4 * space_score + 0.4 * coverage_score + 0.2 * direction_score
@@ -70,7 +70,7 @@ class PredictionGate:
         lower: np.ndarray,
         mid: np.ndarray,
         upper: np.ndarray,
-        context: np.ndarray,
+        close_df: np.ndarray,
         y_proxy: np.ndarray | None = None,
     ) -> GateResult:
 
@@ -83,7 +83,7 @@ class PredictionGate:
             mid=mid,
             upper=upper,
             y_proxy=y_proxy,
-            context=context,
+            close_df=close_df,
         )
 
         #print("score", score)

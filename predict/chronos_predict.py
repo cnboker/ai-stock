@@ -3,7 +3,9 @@ import pandas as pd
 import torch
 from config.settings import MODEL_NAME
 from predict.chronos_model import load_chronos_model
+from predict.predict_result import PredictionResult
 from predict.price_alpha import chronos2_to_large_style
+from predict.time_utils import calc_atr
 
 
 @torch.inference_mode()
@@ -120,8 +122,17 @@ def run_prediction(
         high=high,
         latest_price=latest_price,
     )
+
+    atr = calc_atr(df)
     #print('model_score', model_score)
-    return low, median, high, model_score
+    return PredictionResult(
+        low = low,
+        median = median,
+        high = high,
+        model_score = model_score,
+        atr=atr
+    )
+    #return low, median, high, model_score
 
 
 def model_score_from_quantiles(low: np.ndarray, median: np.ndarray, high: np.ndarray, latest_price: float) -> np.ndarray:
