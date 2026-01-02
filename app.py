@@ -78,17 +78,16 @@ def update_graph(n_intervals):
     period = TICKER_PERIOD
 
     # 加载指数（一次）
-    hs300_df = load_index_df(period)
-    print('hs300',hs300_df)
+    hs300_df = load_index_df(period)    
     # 创建空 Figure
     fig = create_base_figure()
 
     prediction_tails = []
 
     context = TradingContext(
-        run_mode=RunMode.SIM,
-        position_mgr=create_position_manager(RunMode.SIM),
-        eq_recorder=create_equity_recorder(RunMode.SIM, ticker),
+        run_mode=RunMode.LIVE,
+        position_mgr=create_position_manager(RunMode.LIVE),
+        eq_recorder=create_equity_recorder(RunMode.LIVE, ticker),
         ticker=ticker,
         period=period,
         hs300_df=hs300_df

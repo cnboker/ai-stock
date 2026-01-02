@@ -9,7 +9,7 @@ from infra.core.context import TradingContext
 from predict.prediction_store import update_prediction_history
 
 
-def execute_stock_analysis(pre_result:PredictionResult, context:TradingContext):
+def execute_stock_analysis(context:TradingContext):
     """
     只处理交易逻辑，不涉及 UI 绘图
     """
@@ -30,7 +30,11 @@ def execute_stock_analysis(pre_result:PredictionResult, context:TradingContext):
     )
 
     # 执行交易决策
-    execute_stock_decision(df["close"], pre_result, context=context)
+     execute_stock_decision(
+            close_df=df["close"],
+            pre_result=pre_result,
+            context=context
+        )
 
     future_index = build_future_index(df, period)
 
