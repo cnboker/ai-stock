@@ -1,4 +1,5 @@
 # utils/time_utils.py
+import numpy as np
 import pandas_market_calendars as mcal
 import pandas as pd
 from datetime import datetime, time
@@ -63,14 +64,20 @@ def build_future_index(df, period: str):
         freq=freq,
     )
 
+
+
 def calc_atr(df: pd.DataFrame, period: int = 3) -> float:
     """
-    df 必须包含: high, low, close
-    返回最新一根 ATR
+    鲁棒 ATR：
+    - 不返回 0 / NaN
+    - 支持涨停、一字板、小样本
     """
-    high = df["high"]
-    low = df["low"]
-    close = df["close"]
+    if df is None or len(df) == 0:
+        return 1e-6
+
+    high = df["high"].astype(float)
+    low = df["low"].astype(float)
+    close = df["close"].astype(float)
 
     prev_close = close.shift(1)
 
@@ -83,6 +90,15 @@ def calc_atr(df: pd.DataFrame, period: int = 3) -> float:
         axis=1,
     ).max(axis=1)
 
-    atr = tr.rolling(period).mean()
+    # rolling ATR，允许小样本
+    atr = tr.rolling(period, min_periods=1).mean()
 
-    return float(atr.iloc[-1])
+    val = float(atr.iloc[-1])
+
+    # 🚑 兜底：防止 0 / NaN
+    if not np.isfinite(val) or val <= 0:
+        # 用价格比例兜底（千分之一）
+        price = float(close.iloc[-1])
+        return max(price * 0.001, 1e-6)
+
+    return val

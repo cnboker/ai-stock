@@ -1,8 +1,24 @@
 # ===================== 配置表：score → action =====================
+# SCORE_ACTION_MAP = [
+#     {"min_score": 0.3, "action": "LONG"},
+#     {"min_score": 0.05, "action": "HOLD"},
+#     {"min_score": -0.05, "action": "HOLD"},
+#     {"min_score": -0.3, "action": "REDUCE"},
+#     {"min_score": -1.0, "action": "SHORT"},
+# ]
+'''
+    💡 实战参考：
+
+    策略类型	model_score 阈值	说明
+    高频日内	0.01~0.02	小波动可进场
+    中短线跟随	0.03~0.05	过滤噪音
+    趋势跟随 / 套利	0.05~0.1	确保信号强，滑点影响低
+'''
+
 SCORE_ACTION_MAP = [
-    {"min_score": 0.3, "action": "LONG"},
-    {"min_score": 0.05, "action": "HOLD"},
-    {"min_score": -0.05, "action": "HOLD"},
+    {"min_score": 0.01, "action": "LONG"},  # 原来 0.3 改成 0.01
+    {"min_score": 0.0, "action": "HOLD"},
+    {"min_score": -0.01, "action": "HOLD"},
     {"min_score": -0.3, "action": "REDUCE"},
     {"min_score": -1.0, "action": "SHORT"},
 ]

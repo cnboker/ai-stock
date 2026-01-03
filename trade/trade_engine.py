@@ -89,7 +89,7 @@ def execute_stock_decision(
     )
      # ===== 3. 非确认信号直接返回 =====
     if not decision.confirmed and not decision.force_reduce:
-        return
+        return decision
     
     # =====Risk + Budget =====
     low_v = float(pre_result.low[-1])
@@ -117,7 +117,7 @@ def execute_stock_decision(
 
     if plan is None:
         risk_log(f"{ticker} no risk plan")
-        return
+        return decision
 
     # ===== 5. Signal → Trade Action（开仓信号）=====
     execute_equity_decision(
@@ -126,6 +126,7 @@ def execute_stock_decision(
         ticker=ticker,
         last_price=price,
     )
+    return decision
     # action = position_mgr.on_signal(
     #     symbol=ticker,
     #     action=final_action,

@@ -95,7 +95,7 @@ class SignalManager:
                 high=high,
                 latest_price=latest_price,
             )
-        print("gate_result", gate_result)
+       
         # =========================================================
         # 2️⃣ Equity Decision（统一层）
         # =========================================================
@@ -135,11 +135,20 @@ class SignalManager:
             final_score = -eq_decision.reduce_strength * gate_mult
         else:
             final_score = 0.0
+
         # =========================================================
-        # 4️⃣ 弱信号过滤（避免抖动）,避免min_score 会“吃掉 REDUCE”
+        # 4️⃣ 弱信号过滤（升级版）
         # =========================================================
-        if raw_signal not in ("REDUCE", "LIQUIDATE") and abs(final_score) < self.min_score:
-            final_score = 0.0
+        # 规则：
+        # 1. LONG 趋势允许，即便 score < min_score
+        # 2. SHORT / REDUCE 按原逻辑
+        # 3. 保留 min_score 对 HOLD 的判断
+        if raw_signal not in ("REDUCE", "LIQUIDATE"):
+            if raw_signal == "LONG" and (model_score > 0.01):  # 可自定义阈值
+                pass  # 保留 LONG 信号
+            elif abs(final_score) < self.min_score:
+                final_score = 0.0
+
 
         # =========================================================
         # 5️⃣ Debounce（最终裁决）

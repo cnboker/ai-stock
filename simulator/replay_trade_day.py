@@ -2,12 +2,22 @@ import pandas as pd
 from data.loader import load_stock_df
 from config.settings import TICKER_PERIOD
 from predict.chronos_predict import run_prediction
+from predict.predict_result import PredictionResult
+from strategy.equity_decide import EquityDecision
 from trade.trade_engine import execute_stock_decision
 from infra.core.context import TradingContext
 from infra.core.runtime import RunMode
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
 from data.loader import load_index_df
+from simulator.anysis import dump_abnormal_predictions
+from dataclasses import dataclass
+
+@dataclass
+class EvalResult:
+    prediction: PredictionResult
+    decision: EquityDecision
+
 
 def simulate_trade_day(ticker: str, trade_date: str, period="3"):
 
@@ -42,7 +52,7 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
 
     print(f"[SIM] 开始回放 {ticker} {trade_date} 共 {len(df_today)} 根 3min")
    
-
+    results = []
     for i in range(len(df_today)):
         df_slice = df_today.iloc[: i + 1]
         df_combined = pd.concat([df_history, df_slice])
@@ -55,12 +65,22 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
             period=period,
             eq_feat=eq_feat       # 或者传你已有的 eq_feat
         )
-
+        
+        # with open("pre_result.txt", "a", encoding="utf-8") as f:
+        #     f.write(str(pre_result) + "\n\n")  # 每条记录之间空一行
+        
         # ===== 实盘核心逻辑（完全复用）=====
-        execute_stock_decision(
+        decision = execute_stock_decision(
             close_df=df_slice["close"],
             pre_result=pre_result,
             context=context
         )
-        
+        result = EvalResult(
+            prediction=pre_result,
+            decision=decision
+        )
+        results.append(result)
         context.eq_recorder._save_disk()
+
+    
+    dump_abnormal_predictions(results)

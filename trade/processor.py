@@ -27,7 +27,7 @@ def execute_stock_analysis(context:TradingContext):
         period=period,
         eq_feat=eq_feat
     )
-
+ 
         # 执行交易决策
     execute_stock_decision(
         close_df=df["close"],

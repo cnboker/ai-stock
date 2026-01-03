@@ -90,7 +90,7 @@ def run_prediction(
         df=df_input,
         prediction_length=prediction_length,
     )
-    print('pre->',pred)
+    #print('pre->',pred)
     q10 = pred["0.1"].values
     q50 = pred["0.5"].values
     q90 = pred["0.9"].values
