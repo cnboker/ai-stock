@@ -5,11 +5,13 @@ from infra.core.context import TradingContext
 from log import order_log_1, risk_log, signal_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
+from strategy.equity_decide import EquityDecision
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
 from risk.budget_manager import budget_mgr
 from position.PositionPolicy import position_policy
 from strategy.signal_mgr import SignalManager
+from trade.execute_equity import execute_equity_decision
 
 """
 Chronos 区间
@@ -54,7 +56,21 @@ def execute_stock_decision(
         min_score=0.08,
     )    
     has_position = position is not None
-    final_action, confidence, gate_result = signal_mgr.evaluate(
+    '''
+            模型预测
+        ↓
+        score 计算（连续）
+        ↓
+        Debouncer（事件过滤）
+        ↓
+        EquityDecision（语义化决策）
+        ↓
+        PositionManager（下单 / 仓位变化）
+        名称	含义	是否连续
+        raw_score	模型方向 + 强度	✅ 连续
+        confidence	是否触发交易事件	❌ 事件型
+    '''
+    decision: EquityDecision  = signal_mgr.evaluate(
         ticker=ticker,
         low=pre_result.low,
         median=pre_result.median,
@@ -67,8 +83,14 @@ def execute_stock_decision(
         atr=pre_result.atr
     )
 
-    signal_log(f"{name}/{ticker}: {final_action} (confidence={confidence:.2f})")
-
+    signal_log(
+        f"{name}/{ticker}: {decision.action} "
+        f"(conf={decision.confidence:.2f}, reason={decision.reason})"
+    )
+     # ===== 3. 非确认信号直接返回 =====
+    if not decision.confirmed and not decision.force_reduce:
+        return
+    
     # =====Risk + Budget =====
     low_v = float(pre_result.low[-1])
     high_v = float(pre_result.high[-1])
@@ -77,13 +99,13 @@ def execute_stock_decision(
 
     signal_capital = budget_mgr.get_budget(
         ticker=ticker,
-        gate_score=gate_result.score,
+        gate_score=decision.gate_mult,
         available_cash=position_mgr.available_cash,
         equity=position_mgr.equity,
         positions_value=position_value,
     )
 
-    risk_log(f"{ticker} budget={signal_capital:.2f} " f"gate={gate_result.score:.2f}")
+    risk_log(f"{ticker} budget={signal_capital:.2f} " f"gate={decision.gate_mult:.2f}")
 
     plan = risk_mgr.evaluate(
         last_price=price,
@@ -98,24 +120,30 @@ def execute_stock_decision(
         return
 
     # ===== 5. Signal → Trade Action（开仓信号）=====
-    action = position_mgr.on_signal(
-        symbol=ticker,
-        action=final_action,
-        confidence=confidence,
+    execute_equity_decision(
+        decision=decision,
+        position_mgr=position_mgr,
+        ticker=ticker,
         last_price=price,
-        trade_plan=plan,
     )
+    # action = position_mgr.on_signal(
+    #     symbol=ticker,
+    #     action=final_action,
+    #     confidence=confidence,
+    #     last_price=price,
+    #     trade_plan=plan,
+    # )
 
-      # 4️⃣ Gate Reject → Policy 干预(平仓或建仓)
-    if action is None:
-        position = position_mgr.positions.get(ticker)
-        if position:
-            action = position_policy.decide(position, gate=gate_result)  # gate_result 可选
+    #   # 4️⃣ Gate Reject → Policy 干预(平仓或建仓)
+    # if action is None:
+    #     position = position_mgr.positions.get(ticker)
+    #     if position:
+    #         action = position_policy.decide(position, gate=gate_result)  # gate_result 可选
 
-    # 5️⃣ 执行动作
-    if action:
-        position_mgr.apply_action(ticker, action)
-        position = position_mgr.positions.get(ticker)
-        if position:
-            order_log_1(ticker, action=action, position=position)
+    # # 5️⃣ 执行动作
+    # if action:
+    #     position_mgr.apply_action(ticker, action)
+    #     position = position_mgr.positions.get(ticker)
+    #     if position:
+    #         order_log_1(ticker, action=action, position=position)
    

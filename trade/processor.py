@@ -2,7 +2,6 @@
 import pandas as pd
 from data.loader import load_stock_df
 from predict.chronos_predict import run_prediction
-from predict.predict_result import PredictionResult
 from predict.time_utils import build_future_index
 from trade.trade_engine import execute_stock_decision
 from infra.core.context import TradingContext
@@ -29,12 +28,12 @@ def execute_stock_analysis(context:TradingContext):
         eq_feat=eq_feat
     )
 
-    # 执行交易决策
-     execute_stock_decision(
-            close_df=df["close"],
-            pre_result=pre_result,
-            context=context
-        )
+        # 执行交易决策
+    execute_stock_decision(
+        close_df=df["close"],
+        pre_result=pre_result,
+        context=context
+    )
 
     future_index = build_future_index(df, period)
 

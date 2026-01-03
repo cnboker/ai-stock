@@ -46,7 +46,7 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
     for i in range(len(df_today)):
         df_slice = df_today.iloc[: i + 1]
         df_combined = pd.concat([df_history, df_slice])
-
+        #print('df_combined',df_combined)
         # ===== 预测 =====
         pre_result = run_prediction(
             df=df_combined,
@@ -55,7 +55,7 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
             period=period,
             eq_feat=eq_feat       # 或者传你已有的 eq_feat
         )
-  
+
         # ===== 实盘核心逻辑（完全复用）=====
         execute_stock_decision(
             close_df=df_slice["close"],

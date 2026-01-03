@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
+from strategy.signal_debouncer import debouncer_manager
 '''
 action: str
 
@@ -73,7 +74,12 @@ class EquityDecision:
     gate_mult: float         # 仓位放大/压制
     force_reduce: bool       # 是否强制减仓
     reduce_strength: float   # 0~1
-    
+   
+    # ===== 信号语义层（新增）=====
+    confidence: float = 0.0     # 事件强度（来自 debouncer）
+    raw_score: float = 0.0      # 连续 score（模型 × gate × equity）
+    confirmed: bool = False    # 是否通过 debouncer
+    reason: str = ""            # 触发原因（日志 / 回测用）
 #分级减仓 / 强平策略
 def reduce_policy(drawdown: float):
     """
@@ -125,4 +131,57 @@ def equity_decide(eq_feat, has_position: bool) -> EquityDecision:
         gate_mult=gate_mult,
         action=action,
         reduce_strength=reduce_strength,
+    )
+
+
+def decision_from_score(
+    *,
+    ticker: str,
+    score: float,
+    atr: float,
+    regime: str,
+) -> EquityDecision:
+    """
+    把模型 score + debouncer 输出，转成唯一交易决策对象
+    """
+
+    # ===== 1. Debounce =====
+    action, confidence = debouncer_manager.update(
+        ticker=ticker,
+        final_score=score,
+        atr=atr,
+    )
+
+    confirmed = confidence > 0
+
+    # ===== 2. gate_mult：是否放大仓位 =====
+    if regime == "good":
+        gate_mult = 1.0
+    elif regime == "neutral":
+        gate_mult = 0.5
+    else:
+        gate_mult = 0.0
+
+    # ===== 3. 强制风控（bad regime）=====
+    force_reduce = regime == "bad"
+    reduce_strength = 1.0 if force_reduce else confidence
+
+    # ===== 4. reason 解释 =====
+    if force_reduce:
+        reason = "regime_bad_force_reduce"
+    elif not confirmed:
+        reason = "debounce_not_confirmed"
+    else:
+        reason = f"signal_confirmed_{action.lower()}"
+
+    return EquityDecision(
+        action=action,
+        regime=regime,
+        gate_mult=gate_mult,
+        force_reduce=force_reduce,
+        reduce_strength=reduce_strength,
+        confidence=confidence,
+        raw_score=score,
+        confirmed=confirmed,
+        reason=reason,
     )

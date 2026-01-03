@@ -3,7 +3,7 @@ import numpy as np
 
 from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
-from strategy.equity_decide import equity_decide
+from strategy.equity_decide import EquityDecision, equity_decide
 from strategy.regime_cooldown import regime_cooldown
 from strategy.equity_logger import log_equity_decision
 
@@ -70,7 +70,7 @@ class SignalManager:
         eq_feat,
         has_position: bool,
         atr: float = 1.0,
-    ) -> tuple[str, float, any]:
+    ) -> EquityDecision:
         """
         返回最终交易信号:
         LONG / SHORT / HOLD / None
@@ -151,8 +151,26 @@ class SignalManager:
         = 0	HOLD
         """
         final_action, confidence = self.debouncer.update(ticker, final_score, atr=atr)
+        confirmed = final_action != "HOLD" and confidence > 0
 
-        return final_action, confidence, gate_result
+        # =========================================================
+        # 6️⃣ 统一封装 EquityDecision
+        # =========================================================
+        return EquityDecision(
+            action=final_action,
+            confidence=confidence,
+            regime=regime,
+
+            gate_mult=gate_mult,
+            force_reduce=eq_decision.force_reduce,
+            reduce_strength=eq_decision.reduce_strength,
+
+            raw_score=final_score,            
+
+            confirmed=confirmed,            
+
+            reason=f"raw={raw_signal}, score={final_score:.3f}"
+        )
 
 
 def make_signal(

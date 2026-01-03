@@ -22,15 +22,6 @@ class SignalDebouncer:
         self.count = 0
         self.last_confirmed_bucket = None
 
-    def score_to_bucket(self, score: float, atr: float = 1.0) -> str:
-        if score >= 0.3:
-            return "LONG"
-        if score <= -0.3:
-            return "SHORT"
-        if -0.3 < score < -0.05:
-            return "REDUCE"
-        return "HOLD"
-
     def update(self, score: float, atr: float = 1.0):
         """
         动态 confirm_n 随波动率调整

@@ -9,6 +9,7 @@ class PositionAction:
     contract_size: int = 100
     plan: Optional[object] = None 
     ratio: float = 0.3 #减仓比例
+    
 class PositionPolicy:
     def __init__(
         self,
