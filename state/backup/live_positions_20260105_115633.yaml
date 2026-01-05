@@ -1,0 +1,27 @@
+account: main_account
+init_cash: 10000
+as_of: "2025-01-18 09:25:00"
+
+positions:
+#金正股份
+  sh600446:
+    direction: LONG
+    size: 3
+    entry_price: 16.73
+    stop_loss: 15.5
+    take_profit: 17.2
+#实益达
+  sz002137:
+    direction: LONG
+    size: 30
+    entry_price: 9.06
+    stop_loss: 8.2
+    take_profit: 9.8
+#中油资本
+  sz000617:
+    direction: LONG
+    size: 5
+    entry_price: 10.16
+    stop_loss: 9
+    take_profit: 10.5
+

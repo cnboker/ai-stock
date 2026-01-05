@@ -73,7 +73,7 @@ def equity_features(eq)-> pd.DataFrame:
         "eq_drawdown": drawdown,
         "eq_slope": eq_slope
     })
-    print('get_metrics', df)
+    #print('get_metrics', df)
     # dropna 会删掉前 49 行（因为 Z-Score 窗口是 50）
     # 如果总长度只有 10，这里结果就是空，需要确保下游能处理空 DataFrame
     return df.dropna()

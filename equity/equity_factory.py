@@ -4,7 +4,7 @@ from infra.core.runtime import RunMode
 
 def create_equity_recorder(
     run_mode: RunMode,
-    ticker: str,
+    ticker: str | None = None,
     trade_date: str | None = None
 ):
     if run_mode == RunMode.LIVE:

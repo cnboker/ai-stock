@@ -1,0 +1,31 @@
+account: main_account
+cash: 130212.4
+positions:
+  sh600446:
+    direction: LONG
+    entry_price: 16.73
+    open_time: '2026-01-05T11:56:19.137481'
+    size: 0
+    stop_loss: 15.5
+    take_profit: 17.2
+  sz000617:
+    direction: LONG
+    entry_price: 10.16
+    open_time: '2026-01-05T11:56:19.137481'
+    size: 0
+    stop_loss: 9
+    take_profit: 10.5
+  sz300142:
+      direction: LONG
+      entry_price: 10.80
+      open_time: '2026-01-05T11:56:19.137481'
+      size: 11
+      stop_loss: 10.5
+      take_profit: 12
+  sz002137:
+    direction: LONG
+    entry_price: 9.00
+    open_time: '2026-01-05T11:56:19.137481'
+    size: 33
+    stop_loss: 8.26
+    take_profit: 12

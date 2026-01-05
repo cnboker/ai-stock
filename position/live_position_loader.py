@@ -1,9 +1,9 @@
 import os
 import time
 import yaml
-from position.position_manager import position_mgr
+from infra.core.runtime import RunMode
 from typing import Callable, Optional
-
+from global_state import position_mgr, state_lock
 
 class LivePositionLoader:
     def __init__(
@@ -35,22 +35,18 @@ class LivePositionLoader:
                 self._on_reload(self._cache)
 
         return self._cache, reloaded
-
     
-
 def on_positions_reload(data: dict):
     print(f"[Callback] positions updated: {list(data.keys())}")
-    # ✅ 推荐：同步到 PositionManager
-    position_mgr.load_from_yaml(data)
-
+    with state_lock:
+        position_mgr.load_from_yaml(data)
 
 live_loader = LivePositionLoader(
     "state/live_positions.yaml",
     on_reload=on_positions_reload
 )
 
-
-def live_positions_hot_load():
-    while True:
-        data, reloaded = live_loader.load()
-        time.sleep(1)
+def live_positions_hot_load(stop_event=None, interval=1.0):
+    while stop_event is None or not stop_event.is_set():
+        live_loader.load()
+        time.sleep(interval)

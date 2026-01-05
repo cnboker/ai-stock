@@ -72,8 +72,8 @@ class EquityDecision:
     action:str
     regime: str              # good / neutral / bad
     gate_mult: float         # 仓位放大/压制
-    force_reduce: bool       # 是否强制减仓
     reduce_strength: float   # 0~1
+    force_reduce: bool = True      # 是否强制减仓
    
     # ===== 信号语义层（新增）=====
     confidence: float = 0.0     # 事件强度（来自 debouncer）

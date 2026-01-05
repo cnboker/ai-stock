@@ -25,7 +25,13 @@ def execute_equity_decision(
     # ===== 2. 非确认信号 → 不交易 =====
     if not decision.confirmed:
         return
-
+    if decision.action == "LIQUIDATE":
+        position_mgr.close(
+            ticker=ticker,
+            price=last_price,
+            reason=decision.reason,
+        )
+        return
     # ===== 3. 执行动作 =====
     if decision.action == "LONG":
         position_mgr.open_or_add(

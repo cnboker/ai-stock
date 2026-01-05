@@ -6,7 +6,6 @@ from infra.core.context import TradingContext
 from infra.core.runtime import RunMode
 from position.live_position_loader import live_positions_hot_load
 from position.position_factory import create_position_manager
-from position.position_manager import position_mgr
 from predict.prediction_store import load_history
 from trade.processor import execute_stock_analysis
 from plot.draw import draw_current_prediction, draw_prediction_band, draw_realtime_price, update_xaxes, update_yaxes
@@ -23,9 +22,13 @@ from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC, ALL_TICKERS
 from predict.time_utils import is_market_break
 from data.loader import load_index_df
 from plot.base import build_update_text, create_base_figure, finalize_figure
+# app.py
+from global_state import position_mgr, eq_recorder, state_lock
+from position.live_position_loader import live_positions_hot_load
 
 # ========================== Dash App ==========================
 app = Dash(__name__, title="Chronos 实时预测")
+# ====== 全局状态（只初始化一次） ======
 
 app.layout = html.Div(
     [
@@ -64,64 +67,62 @@ app.layout = html.Div(
     Output("last-update", "children"),
     Input("interval", "n_intervals"),
 )
-def update_graph(n_intervals):
-    """
-    Dash 回调入口：
-    - 只负责调度
-    - 不关心任何细节
-    """
 
-    # 午休不更新（避免空预测 & 闪图）
+def update_graph(_):
+
     if is_market_break():
         return no_update, no_update
 
     period = TICKER_PERIOD
-
-    # 加载指数（一次）
-    hs300_df = load_index_df(period)    
-    # 创建空 Figure
+    hs300_df = load_index_df(period)
     fig = create_base_figure()
-
     prediction_tails = []
 
-    context = TradingContext(
-        run_mode=RunMode.LIVE,
-        position_mgr=create_position_manager(RunMode.LIVE),
-        eq_recorder=create_equity_recorder(RunMode.LIVE, ticker),
-        ticker=ticker,
-        period=period,
-        hs300_df=hs300_df
-    )
+    with state_lock:
+        positions = list(position_mgr.positions.items())
 
+    for index, (ticker, p) in enumerate(positions):
+        try:
+            context = TradingContext(
+                run_mode=RunMode.LIVE,
+                position_mgr=position_mgr,
+                eq_recorder=eq_recorder,
+                ticker=ticker,
+                period=period,
+                hs300_df=hs300_df,
+            )
 
-    # === 核心循环：每只股票 ===
-    for index, (ticker,p) in enumerate(position_mgr.positions.copy().items()):
-        try:           
-            """
-            单只股票：行情 → 预测 → 历史 → 绘图 → 标签
-            """
             result = execute_stock_analysis(context)
-            # 绘图
+
             draw_prediction_band(fig, result["history_pred"], index, result["name"])
             draw_realtime_price(fig, result["df"], index, result["name"])
-            draw_current_prediction(fig, result["future_index"],
-                                    result["low"], result["median"], result["high"],
-                                    index, result["name"])
+            draw_current_prediction(
+                fig,
+                result["future_index"],
+                result["low"],
+                result["median"],
+                result["high"],
+                index,
+                result["name"],
+            )
+
             update_yaxes(fig, result["last_price"], index)
             update_xaxes(fig)
 
-            tail = generate_tail_label(result["future_index"], result["median"], result["high"], index, result["name"])
-
-
+            tail = generate_tail_label(
+                result["future_index"],
+                result["median"],
+                result["high"],
+                index,
+                result["name"],
+            )
             if tail:
                 prediction_tails.append(tail)
 
         except Exception as e:
-            print(f"[WARN] {ticker} 处理失败: {e}")
-    #记录资产波动
-    context.eq_recorder.add(position_mgr.equity)
+            print(f"[WARN] {ticker} failed: {e}")
+    eq_recorder.add(position_mgr.equity)
     finalize_figure(fig, prediction_tails)
-
     return fig, build_update_text()
 
 # ========================== 客户端 hover 联动（保持你原来的高级体验） ==========================
@@ -165,8 +166,8 @@ if __name__ == "__main__":
 
     hotload_thread = threading.Thread(
         target=live_positions_hot_load,
-        args=(),
+        args=(stop_event,),
         daemon=True
-    )
+    )    
     hotload_thread.start()
     app.run(debug=True, port=8050, host="0.0.0.0")

@@ -1,303 +1,71 @@
-from dataclasses import dataclass,field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 
 from infra.core.runtime import RunMode
 from infra.notify.order import OrderEvent, notify_order
-from position.PositionPolicy import PositionAction
 from position.position import Position
-from infra.core.runtime import RunMode
-from log import order_log, order_log_1, risk_log
-
-"""
-PositionManager：只做三件事
-
-持仓状态
-
-资金状态
-
-执行 Action
-"""
+from log import order_log, risk_log
 
 
-# 算钱、改仓位、记账
 class PositionManager:
-    def __init__(self, init_cash: float = 0.0, run_mode:RunMode=RunMode.LIVE):
-        # ===== 账户资金 =====
+    """
+    PositionManager 只负责三件事：
+    1. 账户资金
+    2. 仓位状态
+    3. 执行明确动作（OPEN / ADD / REDUCE / CLOSE / SHORT）
+    """
+
+    def __init__(self, init_cash: float = 0.0, run_mode: RunMode = RunMode.LIVE):
+        # ===== 资金 =====
         self.cash: float = init_cash
         self.frozen_cash: float = 0.0
+        self.run_mode: RunMode = run_mode
         self.account_name: str = ""
 
-        # ===== 持仓 =====
-        #self.positions: Dict[str, Position] = {}
-        #self.trade_log = []
-        self.run_mode: str = run_mode
-        self.positions: Dict[str, dict] = {}
-        self.trade_log: List[dict] = []
+        # ===== 仓位 =====
+        self.positions: Dict[str, Position] = {}
 
-        # ===== 价格缓存（由行情系统更新）=====
+        # ===== 行情 =====
         self.price_cache: Dict[str, float] = {}
 
-        # ===== 统计 / 心跳 =====
+        # ===== 记录 =====
+        self.trade_log: List[dict] = []
         self.last_action_ts: Dict[str, float] = {}
 
+    # ==================================================
+    # 基础状态
+    # ==================================================
     @property
     def equity(self) -> float:
-        return self.cash + self.frozen_cash + self.position_value()
+        return self.cash + self.position_value()
 
     @property
     def available_cash(self) -> float:
         return self.cash
-    
-    def get(self, ticker: str):
+
+    def get(self, ticker: str) -> Optional[Position]:
         return self.positions.get(ticker)
 
-    def set(self, ticker: str, position: dict):
-        self.positions[ticker] = position
+    def has_position(self, ticker: str) -> bool:
+        pos = self.positions.get(ticker)
+        return pos is not None and pos.size > 0
 
-    def record_trade(self, trade: dict):
-        trade = trade.copy()
-        trade["run_mode"] = self.run_mode
-        trade["ts"] = datetime.now()
-        self.trade_log.append(trade)
-        
-    def update_price(self, symbol: str, price: float):
-        print(type(price))
-        self.price_cache[symbol] = price
+    def all_positions(self) -> Dict[str, Position]:
+        return self.positions
 
     def position_value(self) -> float:
         total = 0.0
-        for symbol, pos in self.positions.items():
-            price = self.price_cache.get(symbol, pos.entry_price)
+        for sym, pos in self.positions.items():
+            price = self.price_cache.get(sym, pos.entry_price)
             total += pos.size * price * pos.contract_size
         return total
 
-    def _log_action(self, symbol, action, extra: str | None = None):
-        """
-        统一动作日志（Policy / Signal / Gate）
-        """
-        msg = f"[PositionAction] {symbol} → {action.action}"
-
-        if hasattr(action, "ratio") and action.ratio > 0:
-            msg += f" ratio={action.ratio:.2f}"
-
-        if extra:
-            msg += f" | {extra}"
-        
-        position = self.positions.get(symbol)
-        if position:
-            order_log_1(symbol, action=action, position=position)
-   
-
-    # ======================================================
-    # 主交易入口（唯一产生 OPEN / ADD / REVERSE 的地方）
-    # ======================================================
-    def on_signal(self, symbol: str, action: str, confidence: float, last_price: float, trade_plan=None):
-        pos = self.positions.get(symbol)
-        if not pos or pos.size <= 0:
-            if action == "LONG" and trade_plan and trade_plan.allow_open:
-                return PositionAction(action="OPEN", plan=trade_plan)
-            return None
-
-        # ---------------- REDUCE 分批 ----------------
-        if action == "REDUCE":
-            reduce_ratio = min(1.0, confidence)  # confidence 控制减仓比例
-            reduce_size = int(pos.size * reduce_ratio // 100 * 100)  # 向下取整到 100 股
-            if reduce_size > 0:
-                return PositionAction(action="REDUCE", size=reduce_size)
-
-        # ---------------- SHORT / CLOSE ----------------
-        if action == "SHORT":
-            return PositionAction(action="CLOSE")
-
-        # ---------------- ADD ----------------
-        if action == "LONG" and trade_plan and trade_plan.allow_add:
-            add_budget = self.get_add_budget(symbol, trade_plan)
-            size = int(add_budget / last_price // 100 * 100)
-            if size > 0:
-                return PositionAction(action="ADD", size=size, plan=trade_plan)
-
-        return None
-
-    def apply_action(self, symbol: str, action: PositionAction):
-        self._log_action(symbol, action)
-        self.last_action_ts[symbol] = datetime.now().timestamp()
-
-        pos = self.positions.get(symbol)
-
-        match action.action:
-            case "HOLD":
-                self._on_hold(symbol, action)
-            case "OPEN":
-                if pos and pos.size > 0:
-                    order_log(f"{symbol} OPEN ignored (position exists)")
-                    return
-                self._open(symbol, action)
-            case "ADD":
-                self._add(symbol, action)
-            case "REDUCE":
-                if not pos or pos.size <= 0:
-                    raise RuntimeError(f"{symbol} REDUCE but no position")
-                self._reduce(symbol, action.reduce_ratio)
-            case "CLOSE":
-                if not pos or pos.size <= 0:
-                    raise RuntimeError(f"{symbol} CLOSE but no position")
-                self._close(symbol)
-
-            case "REVERSE":
-                if not pos or pos.size <= 0:
-                    raise RuntimeError(f"{symbol} REVERSE but no position")
-                self._close(symbol)
-                self._open(symbol, action)
-
-            case _:
-                raise ValueError(f"Unknown action {action.action}")
-
-    def _on_hold(self, symbol: str, action: PositionAction):
-        risk_log(f"{symbol} HOLD")
-
-    # 开仓
-    def _open(self, symbol: str, action: PositionAction):
-        price = self.price_cache.get(symbol)
-        price = self._require_price(symbol)
-        plan = self._require_plan(action)
-
-        size = action.size
-        cost = size * price * action.contract_size
-
-        if cost > self.cash:
-            order_log(f"{symbol} OPEN rejected (insufficient cash)")
-            return
-
-        self.cash -= cost
-
-        self.positions[symbol] = Position(
-            ticker=symbol,
-            direction="LONG",
-            size=action.size,
-            entry_price=price,
-            stop_loss=plan.stop_loss,
-            take_profit=plan.take_profit,
-            open_time=datetime.now(),
-            contract_size=action.contract_size,
-        )
-        value = size * price * action.contract_size
-        # order_log(f"{symbol} OPEN {action.side} size={size} price={price}")
-        notify_order(
-            OrderEvent(
-                ts=datetime.now(),
-                symbol=symbol,
-                action="OPEN",
-                side="LONG",
-                size=size,
-                price=price,
-                value=value,
-                reason="Signal LONG + allow_open",
-                extra={
-                    "stop_loss": plan.stop_loss,
-                    "take_profit": plan.take_profit,
-                },
-            ),
-            self,
-        )
-
-    # =========================
-    # ADD：加仓
-    # =========================
-    def _add(self, symbol: str, action: PositionAction):
-        pos = self.positions.get(symbol)
-        if not pos:
-            raise RuntimeError(f"{symbol} ADD but no position")
-
-        price = self._require_price(symbol)
-
-        size = action.size
-        cost = size * price * pos.contract_size
-        if cost > self.cash:
-            order_log(f"{symbol} ADD rejected (cash insufficient)")
-            return
-
-        # 加权成本
-        total_size = pos.size + size
-        pos.entry_price = (pos.entry_price * pos.size + price * size) / total_size
-
-        pos.size = total_size
-        self.cash -= cost
-        value = size * price * action.contract_size
-        # order_log(f"{symbol} ADD size={size} price={price}")
-        notify_order(
-            OrderEvent(
-                ts=datetime.now(),
-                symbol=symbol,
-                action="ADD",
-                side="LONG",
-                size=size,
-                price=price,
-                value=value,
-                reason="Pyramid add",
-            ),
-            self,
-        )
-
-    def _reduce(self, symbol: str, ratio: float):
-        pos = self.positions[symbol]
-        if not pos:
-            return
-        price = self._require_price(symbol)
-
-        reduce_size = pos.size * ratio
-        if reduce_size <= 0:
-            return
-
-        pos.size -= reduce_size
-        cash_back = reduce_size * price * pos.contract_size
-        self.cash += cash_back
-
-        # order_log(
-        #     f"{symbol} REDUCE {ratio:.2f} size={reduce_size} price={price}"
-        # )
-        value = reduce_size * price * pos.contract_size
-        notify_order(
-            OrderEvent(
-                ts=datetime.now(),
-                symbol=symbol,
-                action="REDUCE",
-                side="LONG",
-                size=pos.size,
-                price=price,
-                value=value,
-                reason="REDUCE hit",
-            ),
-            self,
-        )
-
-        if pos.size <= 0:
-            del self.positions[symbol]
-
-    def _close(self, symbol: str):
-        pos = self.positions.pop(symbol)
-        price = self.price_cache.get(symbol, pos.entry_price)
-
-        value = pos.size * price * pos.contract_size
-        self.cash += value
-
-        # order_log(
-        #     f"{symbol} CLOSE size={pos.size} price={price}"
-        # )
-
-        notify_order(
-            OrderEvent(
-                ts=datetime.now(),
-                symbol=symbol,
-                action="CLOSE",
-                side="LONG",
-                size=pos.size,
-                price=price,
-                value=value,
-                reason="StopLoss hit",
-            ),
-            self,
-        )
+    # ==================================================
+    # 行情
+    # ==================================================
+    def update_price(self, symbol: str, price: float):
+        self.price_cache[symbol] = price
 
     def _require_price(self, symbol: str) -> float:
         price = self.price_cache.get(symbol)
@@ -305,59 +73,268 @@ class PositionManager:
             raise RuntimeError(f"No price for {symbol}")
         return price
 
-    def _require_plan(self, action: PositionAction):
-        if not action.plan:
-            raise RuntimeError("OPEN/ADD requires trade_plan")
-        return action.plan
+    # ==================================================
+    # 交易入口（供 execute_equity_decision 调用）
+    # ==================================================
+    def open_or_add(
+        self,
+        *,
+        ticker: str,
+        strength: float,
+        price: float,
+        reason: str,
+        contract_size: int = 1,
+    ):
+        pos = self.positions.get(ticker)
+        if pos:
+            self._add(ticker, strength, price, reason)
+        else:
+            self._open(ticker, strength, price, reason, contract_size)
 
-    def get_add_budget(
+    def open_short(
+        self,
+        *,
+        ticker: str,
+        strength: float,
+        price: float,
+        reason: str,
+    ):
+        # 目前简化为 CLOSE（如后续支持真做空再扩展）
+        self.close(ticker=ticker, price=price, reason=reason)
+
+    def reduce(
+        self,
+        *,
+        ticker: str,
+        strength: float,
+        price: float,
+        reason: str,
+    ):
+        self._reduce(ticker, strength, price, reason)
+
+    def close(
+        self,
+        *,
+        ticker: str,
+        price: float,
+        reason: str,
+    ):
+        self._close(ticker, price, reason)
+
+    # ==================================================
+    # 内部执行逻辑
+    # ==================================================
+    def _open(
         self,
         ticker: str,
-        trade_plan,
-    ) -> float:
-        position = self.positions.get(ticker)
-        if not position:
-            return 0.0
+        strength: float,
+        price: float,
+        reason: str,
+        contract_size: int,
+    ):
+        size = self._calc_open_size(strength, price, contract_size)
+        if size <= 0:
+            return
 
-        # 当前仓位市值
-        current_value = position.market_value
+        cost = size * price * contract_size
+        if cost > self.cash:
+            order_log(f"{ticker} OPEN rejected (cash insufficient)")
+            return
 
-        # 单票最大允许市值
-        max_value = self.equity * trade_plan.single_position_limit
+        self.cash -= cost
 
-        # 还能加多少
-        remaining_capacity = max(max_value - current_value, 0)
+        pos = Position(
+            ticker=ticker,
+            direction="LONG",
+            size=size,
+            entry_price=price,
+            open_time=datetime.now(),
+            contract_size=contract_size,
+        )
+        self.positions[ticker] = pos
 
-        # 策略希望加多少（比例）
-        desired_add = current_value * trade_plan.max_signal_pct
-
-        # 最终取最小
-        return min(
-            remaining_capacity,
-            desired_add,
-            self.available_cash,
+        self._record(
+            symbol=ticker,
+            action="OPEN",
+            size=size,
+            price=price,
+            value=cost,
+            reason=reason,
         )
 
-    def load_from_yaml(self, data):
-        self.positions.clear()
-        self.cash = data.get("init_cash", 100000)
-        self.account_name = data.get("account", "")
+    def _add(
+        self,
+        ticker: str,
+        strength: float,
+        price: float,
+        reason: str,
+    ):
+        pos = self.positions.get(ticker)
+        if not pos:
+            return
 
-        for ticker, p in data.get("positions", {}).items():
-            cost = p["size"] * p["entry_price"]
-            self.cash -= cost
-            self.positions[ticker] = Position(
-                ticker=ticker,
-                direction=p["direction"],
-                size=p["size"],
-                entry_price=p["entry_price"],
-                stop_loss=p["stop_loss"],
-                take_profit=p["take_profit"],
-            )
+        size = self._calc_add_size(pos, strength, price)
+        if size <= 0:
+            return
 
+        cost = size * price * pos.contract_size
+        if cost > self.cash:
+            order_log(f"{ticker} ADD rejected (cash insufficient)")
+            return
 
-    def clear(self):
-        self.positions.clear()
+        # 加权成本
+        pos.entry_price = (
+            pos.entry_price * pos.size + price * size
+        ) / (pos.size + size)
+        pos.size += size
+        self.cash -= cost
+
+        self._record(
+            symbol=ticker,
+            action="ADD",
+            size=size,
+            price=price,
+            value=cost,
+            reason=reason,
+        )
+
+    def _reduce(
+        self,
+        ticker: str,
+        strength: float,
+        price: float,
+        reason: str,
+    ):
+        pos = self.positions.get(ticker)
+        if not pos:
+            return
+
+        ratio = min(max(strength, 0.0), 1.0)
+        reduce_size = int(pos.size * ratio)
+        if reduce_size <= 0:
+            return
+
+        pos.size -= reduce_size
+        cash_back = reduce_size * price * pos.contract_size
+        self.cash += cash_back
+
+        self._record(
+            symbol=ticker,
+            action="REDUCE",
+            size=reduce_size,
+            price=price,
+            value=cash_back,
+            reason=reason,
+        )
+
+        if pos.size <= 0:
+            del self.positions[ticker]
+
+    def _close(
+        self,
+        ticker: str,
+        price: float,
+        reason: str,
+    ):
+        pos = self.positions.pop(ticker, None)
+        if not pos:
+            return
+
+        value = pos.size * price * pos.contract_size
+        self.cash += value
+
+        self._record(
+            symbol=ticker,
+            action="CLOSE",
+            size=pos.size,
+            price=price,
+            value=value,
+            reason=reason,
+        )
+
+    # ==================================================
+    # Size 计算（模拟 / 实盘统一入口）
+    # ==================================================
+    def _calc_open_size(
+        self,
+        strength: float,
+        price: float,
+        contract_size: int,
+    ) -> int:
+        """
+        strength ∈ (0, 1] 表示占用 equity 比例
+        """
+        budget = self.equity * min(max(strength, 0.0), 1.0)
+        size = int(budget / (price * contract_size))
+        return max(size, 0)
+
+    def _calc_add_size(
+        self,
+        pos: Position,
+        strength: float,
+        price: float,
+    ) -> int:
+        budget = self.equity * min(max(strength, 0.0), 1.0)
+        size = int(budget / (price * pos.contract_size))
+        return max(size, 0)
+
+    # ==================================================
+    # 记录 & 通知
+    # ==================================================
+    def _record(
+        self,
+        *,
+        symbol: str,
+        action: str,
+        size: int,
+        price: float,
+        value: float,
+        reason: str,
+    ):
+        ts = datetime.now()
+
+        self.trade_log.append(
+            {
+                "ts": ts,
+                "symbol": symbol,
+                "action": action,
+                "size": size,
+                "price": price,
+                "value": value,
+                "reason": reason,
+                "run_mode": self.run_mode,
+            }
+        )
+
+        notify_order(
+            OrderEvent(
+                ts=ts,
+                symbol=symbol,
+                action=action,
+                side="LONG",
+                size=size,
+                price=price,
+                value=value,
+                reason=reason,
+            ),
+            self,
+        )
+
+    def load_from_yaml(self, data): 
+        self.positions.clear() 
+        self.cash = data.get("init_cash", 100000) 
+        self.account_name = data.get("account", "") 
+        for ticker, p in data.get("positions", {}).items(): 
+            cost = p["size"] * p["entry_price"] 
+            self.cash -= cost 
+            self.positions[ticker] = Position( 
+                ticker=ticker, 
+                direction=p["direction"], 
+                size=p["size"], 
+                entry_price=p["entry_price"], 
+                stop_loss=p["stop_loss"], 
+                take_profit=p["take_profit"], )
+
+    def clear(self): 
+        self.positions.clear() 
         self.trade_log.clear()
-
-    
