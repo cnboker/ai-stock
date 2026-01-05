@@ -29,7 +29,7 @@ def execute_stock_analysis(context:TradingContext):
     )
  
         # 执行交易决策
-    execute_stock_decision(
+    decision = execute_stock_decision(
         close_df=df["close"],
         pre_result=pre_result,
         context=context
@@ -49,7 +49,8 @@ def execute_stock_analysis(context:TradingContext):
         "model_score": pre_result.model_score,
         "future_index": future_index,
         "history_pred": history_pred,
-        "last_price": df["close"].iloc[-1]
+        "last_price": df["close"].iloc[-1],
+        "decision":decision
     }
 
 

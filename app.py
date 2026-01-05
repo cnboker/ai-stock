@@ -1,12 +1,14 @@
 import os
 import threading
 
-from equity.equity_factory import create_equity_recorder
+import pandas as pd
+
 from infra.core.context import TradingContext
 from infra.core.runtime import RunMode
+from plot.trade_monitor import live_stock_table
 from position.live_position_loader import live_positions_hot_load
-from position.position_factory import create_position_manager
 from predict.prediction_store import load_history
+from trade.execute_equity import decision_to_dict
 from trade.processor import execute_stock_analysis
 from plot.draw import draw_current_prediction, draw_prediction_band, draw_realtime_price, update_xaxes, update_yaxes
 from plot.annotation import generate_tail_label
@@ -70,8 +72,8 @@ app.layout = html.Div(
 
 def update_graph(_):
 
-    if is_market_break():
-        return no_update, no_update
+    # if is_market_break():
+    #     return no_update, no_update
 
     period = TICKER_PERIOD
     hs300_df = load_index_df(period)
@@ -80,7 +82,7 @@ def update_graph(_):
 
     with state_lock:
         positions = list(position_mgr.positions.items())
-
+    dfs = {}
     for index, (ticker, p) in enumerate(positions):
         try:
             context = TradingContext(
@@ -93,21 +95,12 @@ def update_graph(_):
             )
 
             result = execute_stock_analysis(context)
+            #print('result',result)
+            decision = decision_to_dict(result["decision"])
 
-            draw_prediction_band(fig, result["history_pred"], index, result["name"])
-            draw_realtime_price(fig, result["df"], index, result["name"])
-            draw_current_prediction(
-                fig,
-                result["future_index"],
-                result["low"],
-                result["median"],
-                result["high"],
-                index,
-                result["name"],
-            )
-
-            update_yaxes(fig, result["last_price"], index)
-            update_xaxes(fig)
+            dfs[ticker] = {**decision, "low":result["low"][-1], "median":result["median"][-1], "high":result["high"][-1]}
+            print('dfs[ticker]', dfs[ticker])
+            draw(result=result,fig=fig, index=index)
 
             tail = generate_tail_label(
                 result["future_index"],
@@ -121,9 +114,33 @@ def update_graph(_):
 
         except Exception as e:
             print(f"[WARN] {ticker} failed: {e}")
+
+    # ===== 更新动态表格 =====
+    df = pd.DataFrame(list(dfs.values()))
+    live_stock_table(df)
+
+    # ===== 更新 equity 记录 =====
     eq_recorder.add(position_mgr.equity)
+
+    # ===== 绘图最终处理 =====
     finalize_figure(fig, prediction_tails)
     return fig, build_update_text()
+
+def draw(result,fig,index):
+    draw_prediction_band(fig, result["history_pred"], index, result["name"])
+    draw_realtime_price(fig, result["df"], index, result["name"])
+    draw_current_prediction(
+        fig,
+        result["future_index"],
+        result["low"],
+        result["median"],
+        result["high"],
+        index,
+        result["name"],
+    )
+
+    update_yaxes(fig, result["last_price"], index)
+    update_xaxes(fig)
 
 # ========================== 客户端 hover 联动（保持你原来的高级体验） ==========================
 app.clientside_callback(
