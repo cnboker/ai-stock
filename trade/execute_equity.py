@@ -21,8 +21,8 @@ def execute_equity_decision(
     唯一允许修改仓位的入口
     返回: dict, 用于动态表格显示
     """
-    # 默认 action 为 NONE
-    final_action = "NONE"
+    # 默认 action 为 HOLD
+    final_action = "HOLD"
 
     if decision.action == "LIQUIDATE":
         position_mgr.close(
@@ -75,7 +75,7 @@ def execute_equity_decision(
                 reason=decision.reason,
             )
             final_action = "SHORT"
-
+    print('final_action',final_action, decision.action,decision.force_reduce)
     # 统一返回字典
     return {
         "ticker": ticker,

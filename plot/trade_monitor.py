@@ -30,9 +30,9 @@ def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
     """
     table = Table(title="[bold green]⚡ 股票关键参数追踪 ⚡[/bold green]", show_lines=True, border_style="green")
 
-    columns = ['Ticker','Name','Position','ATR',
+    columns = ['Ticker','Name','Entry Price','Stop Loss','Take profit','Position','ATR',
                'Low Last','Median Last','High Last','Predicted Up',
-               'Regime','Gate Mult','Raw Score','Action','Confidence','Confirmed']
+               'Regime','Force Reduce','Gate Mult','Raw Score','Model Score', 'Action','Confidence','Confirmed']
     for col in columns:
         table.add_column(f"[bold green]{col}[/bold green]", justify="center")
 
@@ -75,6 +75,9 @@ def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
         table.add_row(
             format_cell('Ticker', ticker),
             format_cell('Name', ticker_name_map.get(ticker,ticker)),
+            format_cell('entry_price',fmt_price(row['entry_price'])),
+            format_cell('stop_loss',fmt_price(row['stop_loss'])),
+            format_cell('take_profit',fmt_price(row['take_profit'])),            
             position_display,
             format_cell('atr', row['atr']),
             format_cell('low_last', fmt_price(row['low'])),
@@ -82,8 +85,10 @@ def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
             format_cell('high_last', fmt_price(row['high'])),
             format_cell('predicted_up', row['predicted_up']),
             format_cell('regime', row['regime']),
+            format_cell('force_reduce', row['force_reduce']),
             format_cell('gate_mult', row['gate_mult']),
             format_cell('raw_score', row['raw_score']),
+            format_cell('model_score', row['model_score']),
             action_display,
             format_cell('confidence', row['confidence']),
             format_cell('confirmed', row['confirmed']),

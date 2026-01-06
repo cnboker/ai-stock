@@ -99,7 +99,7 @@ def update_graph(_):
             decision = decision_to_dict(result["decision"])
 
             dfs[ticker] = {**decision, "low":result["low"][-1], "median":result["median"][-1], "high":result["high"][-1]}
-            print('dfs[ticker]', dfs[ticker])
+            #print('dfs[ticker]', dfs[ticker])
             draw(result=result,fig=fig, index=index)
 
             tail = generate_tail_label(
@@ -187,4 +187,4 @@ if __name__ == "__main__":
         daemon=True
     )    
     hotload_thread.start()
-    app.run(debug=True, port=8050, host="0.0.0.0")
+    app.run(debug=True, use_reloader=False,port=8050, host="0.0.0.0")

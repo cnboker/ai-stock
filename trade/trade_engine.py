@@ -95,7 +95,7 @@ def execute_stock_decision(
     if not decision.confirmed and not decision.force_reduce:
         return {
             "ticker": ticker,
-            "position": position_mgr.get_position(ticker),
+            "position": position_mgr.get(ticker),
             "action": "HOLD",
             "confidence": decision.confidence,
             "model_score": decision.model_score,
@@ -131,7 +131,7 @@ def execute_stock_decision(
         risk_log(f"{ticker} no risk plan")
         return {
             "ticker": ticker,
-            "position": position_mgr.get_position(ticker),
+            "position": position_mgr.get(ticker),
             "action": "HOLD",
             "confidence": decision.confidence,
             "model_score": decision.model_score,

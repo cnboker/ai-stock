@@ -322,7 +322,7 @@ class PositionManager:
 
     def load_from_yaml(self, data): 
         self.positions.clear() 
-        self.cash = data.get("init_cash", 100000) 
+        self.cash = data.get("cash", 100000) 
         self.account_name = data.get("account", "") 
         for ticker, p in data.get("positions", {}).items(): 
             cost = p["size"] * p["entry_price"] 

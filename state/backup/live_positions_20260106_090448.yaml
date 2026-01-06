@@ -1,5 +1,5 @@
 account: main_account
-cash: 20000.0
+cash: 5000.0
 positions:
   sh600446:
     direction: LONG
