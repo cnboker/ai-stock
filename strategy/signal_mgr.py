@@ -1,16 +1,46 @@
 from typing import Optional
 import numpy as np
-
-from equity.equity_gate import equity_gate
-from equity.equity_regime import equity_regime
-from strategy.equity_decide import EquityDecision, equity_decide
-from strategy.regime_cooldown import regime_cooldown
+from global_state import equity_engine
+from strategy.equity_policy import TradeContext
 from strategy.equity_logger import log_equity_decision
+def make_signal(
+    low: np.ndarray,
+    median: np.ndarray,
+    high: np.ndarray,
+    latest_price: float,
+    up_thresh: float = 0.006,  # +0.6%
+    down_thresh: float = -0.006,  # -0.6%
+):
+    if len(median) == 0:
+        return "HOLD"
+
+    pred_mid = median[-1]
+    pred_low = low[-1]
+    pred_high = high[-1]
+
+    up_ratio = (pred_high - latest_price) / latest_price
+    down_ratio = (pred_low - latest_price) / latest_price
+    mid_ratio = (pred_mid - latest_price) / latest_price
+
+    if mid_ratio > up_thresh and down_ratio > -0.003:
+        return "LONG"
+
+    if mid_ratio < down_thresh and up_ratio < 0.003:
+        return "SHORT"
+
+    return "HOLD"
 
 
-RED = "\033[91m"
-GREEN = "\033[92m"
-RESET = "\033[0m"
+def compute_score(raw_signal, model_score, eq_decision: TradeContext, gate_mult=1.0):
+    if raw_signal == "LONG":
+        return +model_score * gate_mult
+    elif raw_signal == "SHORT":
+        return -model_score * gate_mult
+    elif raw_signal in ("REDUCE", "LIQUIDATE"):
+        return -eq_decision.reduce_strength * gate_mult
+    else:
+        return 0.0
+
 """
 价格预测（Chronos）
         ↓
@@ -22,21 +52,7 @@ RESET = "\033[0m"
         ↓
 信号稳定器（debouncer）
 
-"""
 
-
-class SignalManager:
-    def __init__(
-        self,
-        gater,
-        debouncer_manager,
-        min_score: float = 0.05,
-    ):
-        self.gater = gater
-        self.debouncer = debouncer_manager
-        self.min_score = min_score
-
-    '''
     你现在已经具备的能力
 
     ✔ bad 状态自动冷却
@@ -56,85 +72,64 @@ class SignalManager:
     REDUCE	主动减仓
     LIQUIDATE	强平
 
-    '''
+ 
+    信号管理器，处理 Gate / Debouncer / 最终决策
+    """
+
+class SignalManager:
+   
+    def __init__(self, gater, debouncer_manager, min_score: float = 0.05):
+        self.gater = gater
+        self.debouncer = debouncer_manager        
+        self.min_score = min_score
+
     def evaluate(
         self,
         *,
         ticker: str,
-        low: float,
-        median: float,
-        high: float,
+        low: np.ndarray,
+        median: np.ndarray,
+        high: np.ndarray,
         latest_price: float,
         close_df,
         model_score: float,
         eq_feat,
         has_position: bool,
-        atr: float = 1.0,
-    ) -> EquityDecision:
-        """
-        返回最终交易信号:
-        LONG / SHORT / HOLD / None
-        """
+        atr: float = 1.0
+    ) -> TradeContext:
 
-        # =========================================================
-        # 1️⃣ 原始 Gate（价格 + 预测结构）
-        # =========================================================
+        # =========================
+        # 1️⃣ Gate 逻辑
+        # =========================
         gate_result = self.gater.evaluate(
             lower=low,
             mid=median,
             upper=high,
-            close_df=close_df.values,
+            close_df=close_df.values
         )
 
         if not gate_result.allow:
             raw_signal = "HOLD"
         else:
-            raw_signal = make_signal(
-                low=low,
-                median=median,
-                high=high,
-                latest_price=latest_price,
-            )
-       
-        # =========================================================
-        # 2️⃣ Equity Decision（统一层）
-        # =========================================================
-        eq_decision = equity_decide(eq_feat, has_position)
-        '''
-        防抖
-        bad 进得快，出得慢
-        good 要连续确认
-        neutral 是缓冲态
-        '''
-        regime = regime_cooldown.update(ticker, eq_decision.regime)
-        eq_decision.regime = regime
+            raw_signal = make_signal(low, median, high, latest_price)
+        print(
+            ticker,
+            "gate_allow=", gate_result.allow,
+            "raw_from_model=", raw_signal
+        )
+        # =========================
+        # 2️⃣ Equity 决策
+        # =========================
+        eq_decision, eq_raw_action = equity_engine.decide(eq_feat, has_position, ticker)
+        if eq_raw_action:
+            raw_signal = eq_raw_action
+
         gate_mult = eq_decision.gate_mult
 
-        # 行为覆盖
-        if eq_decision.action:
-            raw_signal = eq_decision.action
-        elif regime == "bad":
-            raw_signal = "HOLD"
-
-        log_equity_decision(ticker, eq_feat, eq_decision)
-
-        # =========================================================
-        # 3️⃣ Score
-        # =========================================================
-        if raw_signal == "LONG":
-            final_score = +model_score * gate_mult
-        elif raw_signal == "SHORT":
-            final_score = -model_score * gate_mult
-        elif raw_signal in ("REDUCE", "LIQUIDATE"):
-            """
-             回撤	减仓力度
-            -2%	小幅减
-            -5%	明显减
-            -8%	强制减
-            """
-            final_score = -eq_decision.reduce_strength * gate_mult
-        else:
-            final_score = 0.0
+        # =========================
+        # 3️⃣ Score 计算
+        # =========================
+        final_score = compute_score(raw_signal, model_score, eq_decision, gate_mult)
 
         # =========================================================
         # 4️⃣ 弱信号过滤（升级版）
@@ -144,90 +139,30 @@ class SignalManager:
         # 2. SHORT / REDUCE 按原逻辑
         # 3. 保留 min_score 对 HOLD 的判断
         if raw_signal not in ("REDUCE", "LIQUIDATE"):
-            if raw_signal == "LONG" and (model_score > 0.01):  # 可自定义阈值
-                pass  # 保留 LONG 信号
+            if raw_signal == "LONG" and (model_score > 0.01):
+                pass
             elif abs(final_score) < self.min_score:
                 final_score = 0.0
 
-
-        # =========================================================
-        # 5️⃣ Debounce（最终裁决）
-        # =========================================================
-        """
-        raw_signal	含义
-        > 0	LONG（强度 = 数值）
-        < 0	SHORT / REDUCE
-        = 0	HOLD
-        """
+        # =========================
+        # 4️⃣ Debouncer
+        # =========================
         final_action, confidence = self.debouncer.update(ticker, final_score, atr=atr)
         confirmed = final_action != "HOLD" and confidence > 0
 
-        # =========================================================
-        # 6️⃣ 统一封装 EquityDecision
-        # =========================================================
-        return EquityDecision(
+        # =========================
+        # 5️⃣ 返回统一 TradeContext
+        # =========================
+        log_equity_decision(ticker, eq_feat, eq_decision)
+
+        return TradeContext(
             action=final_action,
             confidence=confidence,
-            regime=regime,
-
+            regime=eq_decision.regime,
             gate_mult=gate_mult,
             force_reduce=eq_decision.force_reduce,
             reduce_strength=eq_decision.reduce_strength,
-
-            raw_score=final_score,            
-
-            confirmed=confirmed,            
-
+            raw_score=final_score,
+            confirmed=confirmed,
             reason=f"raw={raw_signal}, score={final_score:.3f}"
         )
-
-
-def make_signal(
-    low: np.ndarray,
-    median: np.ndarray,
-    high: np.ndarray,
-    latest_price: float,
-    up_thresh: float = 0.006,  # +0.6%
-    down_thresh: float = -0.006,  # -0.6%
-):
-    """
-    根据 Chronos 预测生成交易信号
-    返回: "LONG" | "SHORT" | "HOLD"
-    """
-
-    if len(median) == 0:
-        return "HOLD"
-
-    # 使用最后一步预测
-    pred_mid = median[-1]
-    pred_low = low[-1]
-    pred_high = high[-1]
-
-    # 相对涨跌
-    up_ratio = (pred_high - latest_price) / latest_price
-    down_ratio = (pred_low - latest_price) / latest_price
-    mid_ratio = (pred_mid - latest_price) / latest_price
-
-    # ======== 多条件过滤，防止假信号 ========
-
-    # 做多条件：
-    if mid_ratio > up_thresh and down_ratio > -0.003:  # 下方风险受控
-        return "LONG"
-
-    # 做空条件：
-    if mid_ratio < down_thresh and up_ratio < 0.003:  # 上方风险受控
-        return "SHORT"
-
-    return "HOLD"
-
-
-def print_signal(ticker, signal):
-    if signal == "LONG":
-        print(f"{RED}{ticker} 实盘信号: {signal}{RESET}")
-    elif signal == "SHORT":
-        print(f"{GREEN}{ticker} 实盘信号: {signal}{RESET}")
-    elif signal == "REDUCE":
-        print(f"{ticker} 实盘信号: ⚠️ REDUCE")
-
-    else:
-        print(f"{ticker} 实盘信号: {signal}")

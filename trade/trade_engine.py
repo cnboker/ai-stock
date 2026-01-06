@@ -1,17 +1,17 @@
 from venv import logger
 
 from pandas import DataFrame
+from equity import equity_engine
 from infra.core.context import TradingContext
-from log import order_log_1, risk_log, signal_log
+from log import signal_log,risk_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
-from strategy.equity_decide import EquityDecision
+from strategy.equity_policy import TradeContext
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
 from risk.budget_manager import budget_mgr
-from position.PositionPolicy import position_policy
 from strategy.signal_mgr import SignalManager
-from trade.execute_equity import execute_equity_decision
+from trade.equity_executor import execute_equity_action
 
 """
     Chronos 区间
@@ -68,12 +68,12 @@ def execute_stock_decision(
     # ===== 2️⃣ 模型预测 + 信号处理 =====
     signal_mgr = SignalManager(
         gater=gater,
-        debouncer_manager=debouncer_manager,
+        debouncer_manager=debouncer_manager,        
         min_score=0.08,
     )    
     has_position = position_mgr.get(ticker) is not None
 
-    decision: EquityDecision = signal_mgr.evaluate(
+    decision: TradeContext = signal_mgr.evaluate(
         ticker=ticker,
         low=pre_result.low,
         median=pre_result.median,
@@ -141,7 +141,7 @@ def execute_stock_decision(
         }
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====
-    ret_dict = execute_equity_decision(
+    ret_dict = execute_equity_action(
         decision=decision,
         position_mgr=position_mgr,
         ticker=ticker,

@@ -8,7 +8,7 @@ from infra.core.runtime import RunMode
 from plot.trade_monitor import live_stock_table
 from position.live_position_loader import live_positions_hot_load
 from predict.prediction_store import load_history
-from trade.execute_equity import decision_to_dict
+from trade.equity_executor import decision_to_dict
 from trade.processor import execute_stock_analysis
 from plot.draw import draw_current_prediction, draw_prediction_band, draw_realtime_price, update_xaxes, update_yaxes
 from plot.annotation import generate_tail_label
@@ -20,7 +20,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 from dash import Dash, dcc, html, Input, Output, callback, no_update
 
 # ========================== 项目内模块 ==========================
-from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC, ALL_TICKERS
+from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC
 from predict.time_utils import is_market_break
 from data.loader import load_index_df
 from plot.base import build_update_text, create_base_figure, finalize_figure
@@ -72,8 +72,8 @@ app.layout = html.Div(
 
 def update_graph(_):
 
-    # if is_market_break():
-    #     return no_update, no_update
+    if is_market_break():
+        return no_update, no_update
 
     period = TICKER_PERIOD
     hs300_df = load_index_df(period)

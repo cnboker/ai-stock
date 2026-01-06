@@ -8,6 +8,13 @@ bad → 熔断 / 禁开新仓
 neutral → 正常
 
 good → 放大仓位 / 放宽止盈
+
+EquityRecorder 是一个 账户级别的回测/实盘 equity 曲线记录器
+
+dd = 当前总资产回撤
+
+slope = 总资产曲线的趋势斜率
+
 '''
 
 def equity_regime(eq_feat):

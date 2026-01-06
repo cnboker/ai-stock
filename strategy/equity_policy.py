@@ -94,20 +94,21 @@ from strategy.signal_debouncer import debouncer_manager
 
 '''
 @dataclass
-class EquityDecision:
-    action:str
-    regime: str              # good / neutral / bad
-    gate_mult: float         # 仓位放大/压制
-    reduce_strength: float   # 0~1
-    force_reduce: bool = False      # 是否强制减仓
+class TradeContext:
+    action:str                # ->执行意图  
+    regime: str              # good / neutral / bad 资金/->风险状态
+    gate_mult: float         # 仓位放大/压制 ->风控调制
+    reduce_strength: float   # 0~1 执行参数
+    force_reduce: bool = False      # 是否强制减仓 ->强制约束
    
     # ===== 信号语义层（新增）=====
-    confidence: float = 0.0     # 事件强度（来自 debouncer）
-    raw_score: float = 0.0      # 连续 score（模型 × gate × equity）
+    confidence: float = 0.0     # 事件强度（来自 debouncer）->信号质量
+    raw_score: float = 0.0      # 连续 score（模型 × gate × equity）->模型派生
     model_score: float = 0.0
-    confirmed: bool = False    # 是否通过 debouncer
+    confirmed: bool = False    # 是否通过 debouncer ->稳定器结果
     reason: str = ""            # 触发原因（日志 / 回测用）
     atr: float = 0.0
+
 #分级减仓 / 强平策略
 def reduce_policy(drawdown: float):
     """
@@ -127,10 +128,10 @@ def reduce_policy(drawdown: float):
     return None, 0.0
 
 #统一 Equity 决策入口
-def equity_decide(eq_feat, has_position: bool) -> EquityDecision:
+def decide_equity_policy(eq_feat, has_position: bool) -> TradeContext:
     # ========= 默认值 =========
     if eq_feat is None or eq_feat.empty:
-        return EquityDecision(
+        return TradeContext(
             action="HOLD",
             regime="neutral",
             gate_mult=1.0,
@@ -153,7 +154,7 @@ def equity_decide(eq_feat, has_position: bool) -> EquityDecision:
         action, reduce_strength = reduce_policy(dd)
 
 
-    return EquityDecision(
+    return TradeContext(
         regime=regime,
         gate_mult=gate_mult,
         action=action,
@@ -167,7 +168,7 @@ def decision_from_score(
     score: float,
     atr: float,
     regime: str,
-) -> EquityDecision:
+) -> TradeContext:
     """
     把模型 score + debouncer 输出，转成唯一交易决策对象
     """
@@ -201,7 +202,7 @@ def decision_from_score(
     else:
         reason = f"signal_confirmed_{action.lower()}"
 
-    return EquityDecision(
+    return TradeContext(
         action=action,
         regime=regime,
         gate_mult=gate_mult,

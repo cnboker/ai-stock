@@ -74,7 +74,7 @@ class PositionManager:
         return price
 
     # ==================================================
-    # 交易入口（供 execute_equity_decision 调用）
+    # 交易入口（供 execute_equity_action 调用）
     # ==================================================
     def open_or_add(
         self,

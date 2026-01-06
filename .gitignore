@@ -7,3 +7,4 @@ __pycache__/
 data/prediction_history.pkl
 data/equity.csv
 logs
+state/backup

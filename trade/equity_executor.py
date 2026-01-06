@@ -1,5 +1,5 @@
 import pandas as pd
-from strategy.equity_decide import EquityDecision
+from strategy.equity_policy import TradeContext
 
 '''
 典型触发场景:decision.force_reduce
@@ -10,9 +10,9 @@ from strategy.equity_decide import EquityDecision
 异常事件	股票停牌、数据异常、行情异常	系统检测到异常，立刻减仓或清仓
 策略切换	新的市场 regime 切换，当前策略不适用	强制降低仓位或平掉不安全的仓位
 '''
-def execute_equity_decision(
+def execute_equity_action(
     *,
-    decision: EquityDecision,
+    decision: TradeContext,
     position_mgr,
     ticker: str,
     last_price: float,
