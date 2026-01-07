@@ -5,7 +5,7 @@ from pathlib import Path
 def dump_abnormal_predictions(
     results,
     csv_path="pre_result_abnormal.csv",
-    model_score_threshold=0.1,
+    model_score_threshold=0.35,
 ):
     """
     导出可能导致未下单的 PredictionResult：
@@ -30,7 +30,7 @@ def dump_abnormal_predictions(
             "predicted_up",
             #"gate_allow",
             "regime",
-            "gate_mult",
+            #"gate_mult",
             "raw_score",            
             "action",
             "confidence"
@@ -57,11 +57,11 @@ def dump_abnormal_predictions(
 
             # 是否预测向上（但可能被策略过滤）
             predicted_up = high_last > median_last > low_last
-            regime = decision.regime
-            gate_mult = decision.gate_mult
-            raw_score = decision.raw_score
-            action = decision.action
-            confidence = decision.confidence
+            regime = decision['regime']
+            #gate_mult = decision['gate_mult']
+            raw_score = decision['raw_score']
+            action = decision['action']
+            confidence = decision['confidence']
             # 只导出“可能导致不下单”的情况
             if atr_is_zero or model_score_low:
                 writer.writerow([
@@ -75,7 +75,7 @@ def dump_abnormal_predictions(
                     high_last,
                     predicted_up,
                     regime,
-                    gate_mult,
+                    #gate_mult,
                     raw_score,
                     action,
                     confidence

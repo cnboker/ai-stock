@@ -16,7 +16,6 @@ def execute_stock_analysis(
     """
     只处理交易逻辑，不涉及 UI 绘图
     """
-    tradeIntent = session.tradeIntent
     period = session.period
     hs300_df = session.hs300_df
     eq_feat = session.eq_feat

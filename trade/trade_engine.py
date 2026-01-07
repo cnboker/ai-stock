@@ -14,7 +14,7 @@ from strategy.signal_mgr import SignalManager
 from trade.equity_executor import execute_equity_action
 from strategy.equity_policy import TradeIntent
 from config.settings import ticker_name_map
-from global_state import position_mgr
+
 """
     Chronos 区间
     ↓
@@ -62,6 +62,7 @@ def execute_stock_decision(
     """ 
     name = ticker_name_map.get(ticker,ticker)    
     tradeIntent = session.tradeIntent
+    position_mgr = session.position_mgr
     # ===== 1️⃣ 最新价格 =====
     price = float(close_df.iloc[-1])
     position_mgr.update_price(ticker, price)
@@ -100,6 +101,7 @@ def execute_stock_decision(
             "confidence": decision.confidence,
             "model_score": decision.model_score,
             "atr": decision.atr,
+            "regime": decision.regime,
             "predicted_up": getattr(decision, "predicted_up", False),
             "raw_score": getattr(decision, "raw_score", 0),
         }
@@ -135,6 +137,7 @@ def execute_stock_decision(
             "action": "HOLD",
             "confidence": decision.confidence,
             "model_score": decision.model_score,
+            "regime": decision.regime,
             "atr": decision.atr,
             "predicted_up": getattr(decision, "predicted_up", False),
             "raw_score": getattr(decision, "raw_score", 0),

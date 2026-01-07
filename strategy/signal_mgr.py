@@ -1,7 +1,8 @@
 from typing import Optional
 import numpy as np
-from global_state import equity_engine
+from log import get_logger
 from strategy.equity_policy import TradeIntent
+from dataclasses import replace
 
 def make_signal(
     low: np.ndarray,
@@ -30,16 +31,43 @@ def make_signal(
 
     return "HOLD"
 
+'''
+HOLD 不再是 0
 
-def compute_score(raw_signal, model_score, eq_decision: TradeIntent, gate_mult=1.0):
+model_score 永远生效
+
+gate_mult 自然降权
+
+raw_score 不会全灭
+'''
+def compute_score(
+    *,
+    raw_signal: str,
+    model_score: float,
+    gate_mult: float = 1.0,
+    hold_penalty: float = 0.3,
+) -> float:
+    """
+    返回 [-1, 1] 的连续 score
+    """
+
+    # ---------- 方向 ----------
     if raw_signal == "LONG":
-        return +model_score * gate_mult
+        direction = +1.0
     elif raw_signal == "SHORT":
-        return -model_score * gate_mult
-    elif raw_signal in ("REDUCE", "LIQUIDATE"):
-        return -eq_decision.reduce_strength * gate_mult
+        direction = -1.0
+    elif raw_signal == "HOLD":
+        direction = +1.0   # 有预测方向，但弱
+        model_score *= hold_penalty
     else:
         return 0.0
+
+    # ---------- 强度 ----------
+    score = direction * model_score * gate_mult
+    score =  float(np.clip(score, -1.0, 1.0))
+
+    return score
+
 
 """
 价格预测（Chronos）
@@ -78,7 +106,7 @@ def compute_score(raw_signal, model_score, eq_decision: TradeIntent, gate_mult=1
 
 class SignalManager:
    
-    def __init__(self, gater, debouncer_manager, min_score: float = 0.05):
+    def __init__(self, gater, debouncer_manager, min_score: float = 0.01):
         self.gater = gater
         self.debouncer = debouncer_manager        
         self.min_score = min_score
@@ -128,37 +156,50 @@ class SignalManager:
         # =========================
         # 3️⃣ Score 计算
         # =========================
-        final_score = compute_score(raw_signal, model_score, eq_decision, gate_mult)
+        # 1️⃣ 计算原始分数
+        raw_score_before_filter = compute_score(
+            raw_signal=raw_signal,
+            model_score=model_score,
+            gate_mult=gate_mult
+        )
 
-        # =========================================================
-        # 4️⃣ 弱信号过滤（升级版）
-        # =========================================================
-        # 规则：
-        # 1. LONG 趋势允许，即便 score < min_score
-        # 2. SHORT / REDUCE 按原逻辑
-        # 3. 保留 min_score 对 HOLD 的判断
+
+        # 弱信号过滤（升级版）
+        final_score = raw_score_before_filter
         if raw_signal not in ("REDUCE", "LIQUIDATE"):
-            if raw_signal == "LONG" and (model_score > 0.01):
-                pass
-            elif abs(final_score) < self.min_score:
+            if raw_signal == "LONG":
+                if model_score > 0.01:
+                    # 微弱 LONG 信号保留
+                    pass
+                else:
+                    final_score = 0.0
+            elif raw_signal == "SHORT":
+                # 可根据需要保留微弱 SHORT，这里按 min_score 过滤
+                if abs(final_score) < self.min_score:
+                    final_score = 0.0
+            else:
+                # HOLD 一律置零
                 final_score = 0.0
 
-        # =========================
-        # 4️⃣ Debouncer
-        # =========================
+        # 3️⃣ 去抖动 Debouncer
         final_action, confidence = self.debouncer.update(ticker, final_score, atr=atr)
         confirmed = final_action != "HOLD" and confidence > 0
 
+        # 4️⃣ 打印调试日志
+        get_logger("signal").info(
+            f"[SIGNAL DEBUG] {ticker}: raw_signal={raw_signal}, "
+            f"compute_score={raw_score_before_filter:.6f}, "
+            f"after_weak_filter={final_score:.6f}, "
+            f"final_action={final_action}, confidence={confidence:.3f}"
+        )
 
-        return TradeIntent(
+        # 5️⃣ 返回更新后的决策
+        return replace(
+            eq_decision,
             action=final_action,
-            raw_action = eq_decision.raw_action, #未执行减仓策略的时候的action
             confidence=confidence,
-            regime=eq_decision.regime,
             gate_mult=gate_mult,
-            force_reduce=eq_decision.force_reduce,
-            reduce_strength=eq_decision.reduce_strength,
             raw_score=final_score,
             confirmed=confirmed,
-            reason=f"raw={raw_signal}, score={final_score:.3f}"
+            reason=f"raw={raw_signal}, compute_score={raw_score_before_filter:.3f}, final_score={final_score:.3f}"
         )

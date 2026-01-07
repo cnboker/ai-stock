@@ -12,7 +12,8 @@ from equity.equity_factory import create_equity_recorder
 from data.loader import load_index_df
 from simulator.anysis import dump_abnormal_predictions
 from dataclasses import dataclass
-
+from equity.equity_features import equity_features
+from global_state import equity_engine
 @dataclass
 class EvalResult:
     prediction: PredictionResult
@@ -32,17 +33,22 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
         raise ValueError(f"{ticker} 无历史数据")
 
     hs300_df = load_index_df(period)
-    
-    context = TradingSession(
+    eq_recorder = create_equity_recorder(RunMode.SIM, ticker)
+    eq_feat = equity_features(eq_recorder.to_series())   
+    position_mgr = create_position_manager(10000, RunMode.SIM)
+    eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
+
+    session = TradingSession(
         run_mode=RunMode.SIM,
-        position_mgr=create_position_manager(10000, RunMode.SIM),
-        eq_recorder=create_equity_recorder(RunMode.SIM, ticker),
-        ticker=ticker,
+        position_mgr= position_mgr,
+        eq_recorder= eq_recorder,   
         period=period,
-        hs300_df=hs300_df
+        hs300_df=hs300_df,
+        eq_feat= eq_feat,
+        tradeIntent=eq_decision,
     )
     
-    eq_feat = context.eq_feat
+    eq_feat = session.eq_feat
     # 当天数据
     df_today = df_all[df_all.index.date == trade_day.date()]
     df_history = df_all[df_all.index.date < trade_day.date()]
@@ -50,7 +56,7 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
     if df_today.empty:
         raise ValueError(f"{ticker} {trade_date} 当天无数据")
 
-    print(f"[SIM] 开始回放 {ticker} {trade_date} 共 {len(df_today)} 根 3min")
+    #print(f"[SIM] 开始回放 {ticker} {trade_date} 共 {len(df_today)} 根 3min")
    
     results = []
     for i in range(len(df_today)):
@@ -71,16 +77,17 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
         
         # ===== 实盘核心逻辑（完全复用）=====
         decision = execute_stock_decision(
+            ticker = ticker,
             close_df=df_slice["close"],
             pre_result=pre_result,
-            context=context
+            session=session
         )
         result = EvalResult(
             prediction=pre_result,
             decision=decision
         )
         results.append(result)
-        context.eq_recorder._save_disk()
+        session.eq_recorder._save_disk()
 
     
     dump_abnormal_predictions(results)

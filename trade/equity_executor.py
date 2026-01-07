@@ -86,6 +86,7 @@ def execute_equity_action(
         "atr": getattr(decision, "atr", 0),
         "predicted_up": getattr(decision, "predicted_up", False),
         "raw_score": getattr(decision, "raw_score", 0),
+        "regime": decision.regime
     }
 
 def decision_to_dict(decision):

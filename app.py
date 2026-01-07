@@ -6,7 +6,9 @@ from global_state import equity_engine
 from infra.core.context import TradingSession
 from infra.core.runtime import RunMode
 from plot.trade_monitor import live_stock_table
-from position.live_position_loader import live_positions_hot_load
+from position.live_position_loader import (
+    live_positions_hot_load,
+)
 from predict.prediction_store import load_history
 from trade.equity_executor import decision_to_dict
 from trade.processor import execute_stock_analysis
@@ -33,12 +35,16 @@ from data.loader import load_index_df
 from plot.base import build_update_text, create_base_figure, finalize_figure
 
 # app.py
-from global_state import position_mgr, eq_recorder, state_lock
+from global_state import state_lock
 from position.live_position_loader import live_positions_hot_load
+from position.position_factory import create_position_manager
+from equity.equity_factory import create_equity_recorder
 
 # ========================== Dash App ==========================
 app = Dash(__name__, title="Chronos 实时预测")
 # ====== 全局状态（只初始化一次） ======
+position_mgr = create_position_manager(0, RunMode.LIVE)
+eq_recorder = create_equity_recorder(RunMode.LIVE)
 
 app.layout = html.Div(
     [
@@ -99,6 +105,8 @@ def update_graph(_):
         hs300_df=hs300_df,
         eq_feat=eq_feat,
         tradeIntent=eq_decision,
+        position_mgr=position_mgr,
+        eq_recorder=eq_recorder,
     )
     for index, (ticker, p) in enumerate(positions):
         try:
@@ -196,8 +204,15 @@ if __name__ == "__main__":
     load_history()
     stop_event = threading.Event()
 
+   
     hotload_thread = threading.Thread(
-        target=live_positions_hot_load, args=(stop_event,), daemon=True
+        target=live_positions_hot_load,
+        args=(
+            position_mgr,
+            stop_event,
+        ),
+        daemon=True,
     )
     hotload_thread.start()
+
     app.run(debug=True, use_reloader=False, port=8050, host="0.0.0.0")

@@ -41,7 +41,8 @@ class PredictionGate:
         # 1. 空间
         hist_vol = np.std(close_df[-self.vol_window :]) + 1e-6
         width = np.mean(upper - lower)
-        space_score = np.tanh(width / (hist_vol * self.min_width_ratio))
+        #space_score = np.tanh(width / (hist_vol * self.min_width_ratio))
+        space_score = np.clip(width / hist_vol, 0, 1)
 
         # 2. 覆盖（用 proxy）
         coverage = np.mean((y_proxy >= lower) & (y_proxy <= upper))
@@ -50,7 +51,9 @@ class PredictionGate:
         # 3. 方向
         pred_trend = np.sign(mid[-1] - mid[0])
         true_trend = np.sign(y_proxy[-1] - close_df[-1])
-        direction_score = 1.0 if pred_trend == true_trend else 0.0
+        #direction_score = 1.0 if pred_trend == true_trend else 0.0
+        direction_score = np.tanh((mid[-1] - close_df[-1]) / hist_vol)
+        direction_score = (direction_score + 1) / 2  # 映射到 0~1
 
         score = 0.4 * space_score + 0.4 * coverage_score + 0.2 * direction_score
 
@@ -88,7 +91,7 @@ class PredictionGate:
 
         #print("score", score)
 
-        allow = score >= self.score_threshold
+        allow = score >= self.score_threshold* 0.8
         reason = "OK" if allow else "LOW_OPERATIONAL_SCORE"
      
         gate_result = GateResult(
@@ -109,4 +112,4 @@ class PredictionGate:
         )
         return gate_result
 
-gater = PredictionGate(score_threshold=0.6)
+gater = PredictionGate(score_threshold=0.35)
