@@ -2,23 +2,14 @@
 from dataclasses import dataclass, field
 from typing import Optional
 from infra.core.runtime import RunMode
-from equity.equity_features import equity_features
-from position.position_manager import PositionManager
-from equity.equity_recorder import EquityRecorder
 from pandas import DataFrame
-from config.settings import ticker_name_map
+
+from strategy.equity_policy import TradeIntent
 
 @dataclass
-class TradingContext:
+class TradingSession:
     run_mode: RunMode
-    position_mgr: PositionManager
-    eq_recorder: EquityRecorder
     period: str
     hs300_df: DataFrame    
     eq_feat: Optional[DataFrame] = field(default=None)
-
-    def __post_init__(self):
-        # 自动计算 eq_feat，如果没有传入        
-        if self.eq_feat is None and self.eq_recorder is not None:
-            self.eq_feat = equity_features(self.eq_recorder.to_series())
-
+    tradeIntent:Optional[TradeIntent] = field(default=None)

@@ -2,7 +2,7 @@ from venv import logger
 
 from pandas import DataFrame
 from equity import equity_engine
-from infra.core.context import TradingContext
+from infra.core.context import TradingSession
 from log import signal_log,risk_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
@@ -14,6 +14,7 @@ from strategy.signal_mgr import SignalManager
 from trade.equity_executor import execute_equity_action
 from strategy.equity_policy import TradeIntent
 from config.settings import ticker_name_map
+from global_state import position_mgr
 """
     Chronos 区间
     ↓
@@ -53,16 +54,14 @@ def execute_stock_decision(
     ticker:str,
     close_df: DataFrame,
     pre_result: PredictionResult,    
-    context: TradingContext,
-    tradeIntent:TradeIntent
+    session: TradingSession    
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
     返回 dict，用于动态表格显示
     """ 
-    name = ticker_name_map.get(ticker,ticker)
-    position_mgr = context.position_mgr
-
+    name = ticker_name_map.get(ticker,ticker)    
+    tradeIntent = session.tradeIntent
     # ===== 1️⃣ 最新价格 =====
     price = float(close_df.iloc[-1])
     position_mgr.update_price(ticker, price)
@@ -83,6 +82,7 @@ def execute_stock_decision(
         close_df=close_df,
         model_score=pre_result.model_score,
         eq_decision= tradeIntent,
+        has_position=position_mgr.has_position(ticker=ticker),
         atr=pre_result.atr
     )
 

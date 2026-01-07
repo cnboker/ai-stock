@@ -3,7 +3,7 @@ import threading
 
 import pandas as pd
 from global_state import equity_engine
-from infra.core.context import TradingContext
+from infra.core.context import TradingSession
 from infra.core.runtime import RunMode
 from plot.trade_monitor import live_stock_table
 from position.live_position_loader import live_positions_hot_load
@@ -18,6 +18,7 @@ from plot.draw import (
     update_yaxes,
 )
 from plot.annotation import generate_tail_label
+from equity.equity_features import equity_features
 
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
@@ -89,19 +90,20 @@ def update_graph(_):
     with state_lock:
         positions = list(position_mgr.positions.items())
     dfs = {}
-    context = TradingContext(
+    eq_feat = equity_features(eq_recorder.to_series())
+    eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
+    equity_engine.log_equity_decision(eq_feat, eq_decision)
+    session = TradingSession(
         run_mode=RunMode.LIVE,
-        position_mgr=position_mgr,
-        eq_recorder=eq_recorder,
         period=period,
         hs300_df=hs300_df,
+        eq_feat=eq_feat,
+        tradeIntent=eq_decision,
     )
-    eq_decision = equity_engine.decide(context.eq_feat, position_mgr.has_any_position())
-    equity_engine.log_equity_decision(context.eq_feat, eq_decision)
     for index, (ticker, p) in enumerate(positions):
         try:
-            result = execute_stock_analysis(ticker,context, eq_decision)
-            
+            result = execute_stock_analysis(ticker, session)
+
             decision = decision_to_dict(result["decision"])
 
             dfs[ticker] = {
@@ -110,9 +112,9 @@ def update_graph(_):
                 "median": result["median"][-1],
                 "high": result["high"][-1],
             }
-            #print('dfs[ticker]', dfs[ticker])
+            # print('dfs[ticker]', dfs[ticker])
             draw(result=result, fig=fig, index=index)
-            
+
             tail = generate_tail_label(
                 result["future_index"],
                 result["median"],

@@ -5,7 +5,7 @@ from predict.chronos_predict import run_prediction
 from predict.predict_result import PredictionResult
 from strategy.equity_policy import TradeIntent
 from trade.trade_engine import execute_stock_decision
-from infra.core.context import TradingContext
+from infra.core.context import TradingSession
 from infra.core.runtime import RunMode
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
@@ -33,7 +33,7 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
 
     hs300_df = load_index_df(period)
     
-    context = TradingContext(
+    context = TradingSession(
         run_mode=RunMode.SIM,
         position_mgr=create_position_manager(10000, RunMode.SIM),
         eq_recorder=create_equity_recorder(RunMode.SIM, ticker),

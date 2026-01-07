@@ -94,6 +94,7 @@ class SignalManager:
         close_df,
         model_score: float,
         eq_decision: TradeIntent,
+        has_position:bool,
         atr: float = 1.0
     ) -> TradeIntent:
 
@@ -117,9 +118,9 @@ class SignalManager:
             "raw_from_model=", raw_signal
         )
         # =========================
-        # 2️⃣ Equity 决策
+        # 2️⃣ 当前股票有仓位执行减仓决策
         # =========================        
-        if eq_decision.action:
+        if eq_decision.action and has_position:
             raw_signal = eq_decision.action
 
         gate_mult = eq_decision.gate_mult
@@ -151,6 +152,7 @@ class SignalManager:
 
         return TradeIntent(
             action=final_action,
+            raw_action = eq_decision.raw_action, #未执行减仓策略的时候的action
             confidence=confidence,
             regime=eq_decision.regime,
             gate_mult=gate_mult,
