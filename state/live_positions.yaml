@@ -29,3 +29,10 @@ positions:
     size: 11
     stop_loss: 10.5
     take_profit: 12
+  sz159908:
+    direction: LONG
+    entry_price: 0
+    open_time: null
+    size: 0
+    stop_loss: null
+    take_profit: null

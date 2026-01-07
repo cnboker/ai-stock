@@ -20,6 +20,8 @@ def create_annotation(prediction_tails):
         ("x2", "y2"),  # 第2只：右上
         ("x3", "y3"),  # 第3只：左下
         ("x4", "y4"),  # 第4只：右下
+        ("x5", "y5"),  # 第4只：右下
+        ("x6", "y6"),  # 第4只：右下
     ]
 
     for i, tail in enumerate(prediction_tails):

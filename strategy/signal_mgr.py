@@ -1,8 +1,8 @@
 from typing import Optional
 import numpy as np
 from global_state import equity_engine
-from strategy.equity_policy import TradeContext
-from strategy.equity_logger import log_equity_decision
+from strategy.equity_policy import TradeIntent
+
 def make_signal(
     low: np.ndarray,
     median: np.ndarray,
@@ -31,7 +31,7 @@ def make_signal(
     return "HOLD"
 
 
-def compute_score(raw_signal, model_score, eq_decision: TradeContext, gate_mult=1.0):
+def compute_score(raw_signal, model_score, eq_decision: TradeIntent, gate_mult=1.0):
     if raw_signal == "LONG":
         return +model_score * gate_mult
     elif raw_signal == "SHORT":
@@ -93,10 +93,9 @@ class SignalManager:
         latest_price: float,
         close_df,
         model_score: float,
-        eq_feat,
-        has_position: bool,
+        eq_decision: TradeIntent,
         atr: float = 1.0
-    ) -> TradeContext:
+    ) -> TradeIntent:
 
         # =========================
         # 1️⃣ Gate 逻辑
@@ -119,10 +118,9 @@ class SignalManager:
         )
         # =========================
         # 2️⃣ Equity 决策
-        # =========================
-        eq_decision, eq_raw_action = equity_engine.decide(eq_feat, has_position, ticker)
-        if eq_raw_action:
-            raw_signal = eq_raw_action
+        # =========================        
+        if eq_decision.action:
+            raw_signal = eq_decision.action
 
         gate_mult = eq_decision.gate_mult
 
@@ -150,12 +148,8 @@ class SignalManager:
         final_action, confidence = self.debouncer.update(ticker, final_score, atr=atr)
         confirmed = final_action != "HOLD" and confidence > 0
 
-        # =========================
-        # 5️⃣ 返回统一 TradeContext
-        # =========================
-        log_equity_decision(ticker, eq_feat, eq_decision)
 
-        return TradeContext(
+        return TradeIntent(
             action=final_action,
             confidence=confidence,
             regime=eq_decision.regime,

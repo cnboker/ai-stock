@@ -3,36 +3,36 @@ import pandas as pd
 from data.loader import load_stock_df
 from predict.chronos_predict import run_prediction
 from predict.time_utils import build_future_index
+from strategy.equity_policy import TradeIntent
 from trade.trade_engine import execute_stock_decision
 from infra.core.context import TradingContext
 from predict.prediction_store import update_prediction_history
+from config.settings import ticker_name_map
 
 
-def execute_stock_analysis(context:TradingContext):
+def execute_stock_analysis(
+    ticker: str, context: TradingContext, tradeIntent: TradeIntent
+):
     """
     只处理交易逻辑，不涉及 UI 绘图
     """
-    ticker = context.ticker
     period = context.period
     hs300_df = context.hs300_df
-    eq_feat =context.eq_feat
-    name = context.name
+    eq_feat = context.eq_feat
     df = load_stock_df(ticker, period)
 
     # 模型预测
     pre_result = run_prediction(
-        df=df,
-        hs300_df=hs300_df,
-        ticker=ticker,
-        period=period,
-        eq_feat=eq_feat
+        df=df, hs300_df=hs300_df, ticker=ticker, period=period, eq_feat=eq_feat
     )
- 
-        # 执行交易决策
+
+    # 执行交易决策
     decision = execute_stock_decision(
+        ticker=ticker,
         close_df=df["close"],
         pre_result=pre_result,
-        context=context
+        context=context,
+        tradeIntent=tradeIntent,
     )
 
     future_index = build_future_index(df, period)
@@ -41,7 +41,7 @@ def execute_stock_analysis(context:TradingContext):
 
     return {
         "ticker": ticker,
-        "name": name,
+        "name": ticker_name_map.get(ticker, ticker),
         "df": df,
         "low": pre_result.low,
         "median": pre_result.median,
@@ -50,7 +50,5 @@ def execute_stock_analysis(context:TradingContext):
         "future_index": future_index,
         "history_pred": history_pred,
         "last_price": df["close"].iloc[-1],
-        "decision":decision
+        "decision": decision,
     }
-
-

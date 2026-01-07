@@ -1,5 +1,5 @@
 import pandas as pd
-from strategy.equity_policy import TradeContext
+from strategy.equity_policy import TradeIntent
 
 '''
 典型触发场景:decision.force_reduce
@@ -12,7 +12,7 @@ from strategy.equity_policy import TradeContext
 '''
 def execute_equity_action(
     *,
-    decision: TradeContext,
+    decision: TradeIntent,
     position_mgr,
     ticker: str,
     last_price: float,

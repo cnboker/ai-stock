@@ -2,7 +2,7 @@ import os
 import threading
 
 import pandas as pd
-
+from global_state import equity_engine
 from infra.core.context import TradingContext
 from infra.core.runtime import RunMode
 from plot.trade_monitor import live_stock_table
@@ -10,7 +10,13 @@ from position.live_position_loader import live_positions_hot_load
 from predict.prediction_store import load_history
 from trade.equity_executor import decision_to_dict
 from trade.processor import execute_stock_analysis
-from plot.draw import draw_current_prediction, draw_prediction_band, draw_realtime_price, update_xaxes, update_yaxes
+from plot.draw import (
+    draw_current_prediction,
+    draw_prediction_band,
+    draw_realtime_price,
+    update_xaxes,
+    update_yaxes,
+)
 from plot.annotation import generate_tail_label
 
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
@@ -24,6 +30,7 @@ from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC
 from predict.time_utils import is_market_break
 from data.loader import load_index_df
 from plot.base import build_update_text, create_base_figure, finalize_figure
+
 # app.py
 from global_state import position_mgr, eq_recorder, state_lock
 from position.live_position_loader import live_positions_hot_load
@@ -63,17 +70,16 @@ app.layout = html.Div(
     },
 )
 
+
 # ========================== 主回调（极薄） ==========================
 @app.callback(
     Output("live-graph", "figure"),
     Output("last-update", "children"),
     Input("interval", "n_intervals"),
 )
-
 def update_graph(_):
-
-    if is_market_break():
-        return no_update, no_update
+    # if is_market_break():
+    #     return no_update, no_update
 
     period = TICKER_PERIOD
     hs300_df = load_index_df(period)
@@ -83,25 +89,30 @@ def update_graph(_):
     with state_lock:
         positions = list(position_mgr.positions.items())
     dfs = {}
+    context = TradingContext(
+        run_mode=RunMode.LIVE,
+        position_mgr=position_mgr,
+        eq_recorder=eq_recorder,
+        period=period,
+        hs300_df=hs300_df,
+    )
+    eq_decision = equity_engine.decide(context.eq_feat, position_mgr.has_any_position())
+    equity_engine.log_equity_decision(context.eq_feat, eq_decision)
     for index, (ticker, p) in enumerate(positions):
         try:
-            context = TradingContext(
-                run_mode=RunMode.LIVE,
-                position_mgr=position_mgr,
-                eq_recorder=eq_recorder,
-                ticker=ticker,
-                period=period,
-                hs300_df=hs300_df,
-            )
-
-            result = execute_stock_analysis(context)
-            #print('result',result)
+            result = execute_stock_analysis(ticker,context, eq_decision)
+            
             decision = decision_to_dict(result["decision"])
 
-            dfs[ticker] = {**decision, "low":result["low"][-1], "median":result["median"][-1], "high":result["high"][-1]}
+            dfs[ticker] = {
+                **decision,
+                "low": result["low"][-1],
+                "median": result["median"][-1],
+                "high": result["high"][-1],
+            }
             #print('dfs[ticker]', dfs[ticker])
-            draw(result=result,fig=fig, index=index)
-
+            draw(result=result, fig=fig, index=index)
+            
             tail = generate_tail_label(
                 result["future_index"],
                 result["median"],
@@ -126,7 +137,8 @@ def update_graph(_):
     finalize_figure(fig, prediction_tails)
     return fig, build_update_text()
 
-def draw(result,fig,index):
+
+def draw(result, fig, index):
     draw_prediction_band(fig, result["history_pred"], index, result["name"])
     draw_realtime_price(fig, result["df"], index, result["name"])
     draw_current_prediction(
@@ -141,6 +153,7 @@ def draw(result,fig,index):
 
     update_yaxes(fig, result["last_price"], index)
     update_xaxes(fig)
+
 
 # ========================== 客户端 hover 联动（保持你原来的高级体验） ==========================
 app.clientside_callback(
@@ -182,9 +195,7 @@ if __name__ == "__main__":
     stop_event = threading.Event()
 
     hotload_thread = threading.Thread(
-        target=live_positions_hot_load,
-        args=(stop_event,),
-        daemon=True
-    )    
+        target=live_positions_hot_load, args=(stop_event,), daemon=True
+    )
     hotload_thread.start()
-    app.run(debug=True, use_reloader=False,port=8050, host="0.0.0.0")
+    app.run(debug=True, use_reloader=False, port=8050, host="0.0.0.0")

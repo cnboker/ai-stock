@@ -6,13 +6,14 @@ from infra.core.context import TradingContext
 from log import signal_log,risk_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
-from strategy.equity_policy import TradeContext
+from strategy.equity_policy import TradeIntent
 from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
 from risk.budget_manager import budget_mgr
 from strategy.signal_mgr import SignalManager
 from trade.equity_executor import execute_equity_action
-
+from strategy.equity_policy import TradeIntent
+from config.settings import ticker_name_map
 """
     Chronos 区间
     ↓
@@ -49,16 +50,17 @@ from trade.equity_executor import execute_equity_action
 # 2️ 实盘主循环,每次行情 / 预测更新
 def execute_stock_decision(
     *,    
+    ticker:str,
     close_df: DataFrame,
     pre_result: PredictionResult,    
-    context: TradingContext
+    context: TradingContext,
+    tradeIntent:TradeIntent
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
     返回 dict，用于动态表格显示
-    """
-    ticker = context.ticker
-    name = context.name
+    """ 
+    name = ticker_name_map.get(ticker,ticker)
     position_mgr = context.position_mgr
 
     # ===== 1️⃣ 最新价格 =====
@@ -71,9 +73,8 @@ def execute_stock_decision(
         debouncer_manager=debouncer_manager,        
         min_score=0.08,
     )    
-    has_position = position_mgr.get(ticker) is not None
-
-    decision: TradeContext = signal_mgr.evaluate(
+    
+    decision: TradeIntent = signal_mgr.evaluate(
         ticker=ticker,
         low=pre_result.low,
         median=pre_result.median,
@@ -81,8 +82,7 @@ def execute_stock_decision(
         latest_price=price,
         close_df=close_df,
         model_score=pre_result.model_score,
-        eq_feat=context.eq_feat,
-        has_position=has_position,
+        eq_decision= tradeIntent,
         atr=pre_result.atr
     )
 

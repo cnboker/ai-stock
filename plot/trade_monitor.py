@@ -37,7 +37,7 @@ def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
         # ...这里和你原来的格式化逻辑一样...
         table.add_row(
             str(ticker),
-            str(row.get('name', ticker)),
+            str(row.get('name', ticker_name_map.get(ticker,ticker))),
             fmt_price(row['entry_price']),
             fmt_price(row['stop_loss']),
             fmt_price(row['take_profit']),

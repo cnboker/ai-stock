@@ -94,9 +94,9 @@ from strategy.signal_debouncer import debouncer_manager
 
 '''
 @dataclass
-class TradeContext:
-    action:str                # ->执行意图  
-    regime: str              # good / neutral / bad 资金/->风险状态
+class TradeIntent:
+    action:str                # ->最终执行动作,decide_equity_policy->cooldown_mgr.update后
+    regime: str              # good / neutral / bad 资金/->风险状态     
     gate_mult: float         # 仓位放大/压制 ->风控调制
     reduce_strength: float   # 0~1 执行参数
     force_reduce: bool = False      # 是否强制减仓 ->强制约束
@@ -108,30 +108,54 @@ class TradeContext:
     confirmed: bool = False    # 是否通过 debouncer ->稳定器结果
     reason: str = ""            # 触发原因（日志 / 回测用）
     atr: float = 0.0
+    raw_action: str | None = None  # 原始意图（新增）;decide_equity_policy执行后  
 
-#分级减仓 / 强平策略
-def reduce_policy(drawdown: float):
-    """
-    drawdown: 负数
-    """
-    dd = abs(drawdown)
-
+def drawdown_level(dd: float) -> int:
     if dd >= 0.10:
-        return "LIQUIDATE", 1.0 #强平
+        return 4
     if dd >= 0.08:
-        return "REDUCE", 1.0
+        return 3
     if dd >= 0.05:
-        return "REDUCE", 0.6
+        return 2
     if dd >= 0.02:
-        return "REDUCE", 0.3
+        return 1
+    return 0
 
-    return None, 0.0
+'''
+系统行为
+回撤	level	动作
+-1.5%	0	无
+-2.3%	1	REDUCE 0.3
+-2.1%	1	❌ 不再触发
+-3.0%	1	❌ 不再触发
+-5.4%	2	REDUCE 0.6
+-5.1%	2	❌ 不再触发
+'''
+#同一等级，只触发一次
+def reduce_policy_with_guard(drawdown, last_level):
+    dd = abs(drawdown)
+    level = drawdown_level(dd)
 
-#统一 Equity 决策入口
-def decide_equity_policy(eq_feat, has_position: bool) -> TradeContext:
-    # ========= 默认值 =========
+    if level <= last_level:
+        return last_level, None, 0.0
+
+    # 下面完全复用你原来的逻辑
+    if level == 4:
+        return 4, "LIQUIDATE", 1.0
+    if level == 3:
+        return 3, "REDUCE", 1.0
+    if level == 2:
+        return 2, "REDUCE", 0.6
+    if level == 1:
+        return 1, "REDUCE", 0.3
+
+    return last_level, None, 0.0
+
+
+
+def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeIntent:
     if eq_feat is None or eq_feat.empty:
-        return TradeContext(
+        return TradeIntent(
             action="HOLD",
             regime="neutral",
             gate_mult=1.0,
@@ -139,27 +163,36 @@ def decide_equity_policy(eq_feat, has_position: bool) -> TradeContext:
             reduce_strength=0.0,
         )
 
-    # ========= regime =========
     regime = equity_regime(eq_feat)
-
-    # ========= gate =========
     gate_mult = equity_gate(eq_feat)
 
-    # ========= reduce =========
-    action = None
+    force_reduce = False
     reduce_strength = 0.0
+    reason = ""
 
     if has_position:
         dd = eq_feat["eq_drawdown"].iloc[-1]
-        action, reduce_strength = reduce_policy(dd)
 
+        level, reduce_action, reduce_strength = reduce_policy_with_guard(
+            drawdown=dd,
+            last_level=equity_state.dd_level,
+        )
 
-    return TradeContext(
+        equity_state.dd_level = level
+
+        if reduce_action:
+            force_reduce = True
+            reason = f"eq_drawdown_level_{level}"
+
+    return TradeIntent(
+        action="HOLD",
         regime=regime,
         gate_mult=gate_mult,
-        action=action,
+        force_reduce=force_reduce,
         reduce_strength=reduce_strength,
+        reason=reason,
     )
+
 
 
 def decision_from_score(
@@ -168,7 +201,7 @@ def decision_from_score(
     score: float,
     atr: float,
     regime: str,
-) -> TradeContext:
+) -> TradeIntent:
     """
     把模型 score + debouncer 输出，转成唯一交易决策对象
     """
@@ -202,7 +235,7 @@ def decision_from_score(
     else:
         reason = f"signal_confirmed_{action.lower()}"
 
-    return TradeContext(
+    return TradeIntent(
         action=action,
         regime=regime,
         gate_mult=gate_mult,

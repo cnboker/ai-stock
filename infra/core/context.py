@@ -13,15 +13,12 @@ class TradingContext:
     run_mode: RunMode
     position_mgr: PositionManager
     eq_recorder: EquityRecorder
-    ticker: str
     period: str
-    hs300_df: DataFrame
-    name: Optional[str]= field(default=None)
+    hs300_df: DataFrame    
     eq_feat: Optional[DataFrame] = field(default=None)
 
     def __post_init__(self):
-        # 自动计算 eq_feat，如果没有传入
-        self.name = ticker_name_map.get(self.ticker, self.ticker)
+        # 自动计算 eq_feat，如果没有传入        
         if self.eq_feat is None and self.eq_recorder is not None:
             self.eq_feat = equity_features(self.eq_recorder.to_series())
 

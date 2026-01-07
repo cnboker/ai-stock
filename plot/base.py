@@ -7,10 +7,10 @@ from plot.draw import subplot_position
 
 def create_base_figure():
     """
-    创建 2×2 基础子图结构
+    创建 3×2 基础子图结构
     """
     fig = make_subplots(
-        rows=2,
+        rows=3,
         cols=2,
         shared_xaxes=True,
         vertical_spacing=0.02,

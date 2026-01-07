@@ -51,6 +51,12 @@ class PositionManager:
         pos = self.positions.get(ticker)
         return pos is not None and pos.size > 0
 
+    def has_any_position(self) -> bool:
+        for pos in self.positions.values():
+            if pos.size != 0:
+                return True
+        return False
+
     def all_positions(self) -> Dict[str, Position]:
         return self.positions
 

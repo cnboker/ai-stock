@@ -17,9 +17,10 @@ ALL_TICKERS = [
     {"code": "sh600771", "name": "广誉远"},
     {"code": "sz002137", "name": "实益达"},
     {"code": "sz000617", "name": "中油资本"},
+    {"code": "sz159908", "name": "创业板etf"}
 ]
 ticker_name_map = {t["code"]:t["name"] for t in ALL_TICKERS}
-COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc"]
+COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc","#fa66ec","#f866c0"]
 HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
 ENABLE_LIVE_PERSIST = True

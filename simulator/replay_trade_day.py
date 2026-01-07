@@ -3,7 +3,7 @@ from data.loader import load_stock_df
 from config.settings import TICKER_PERIOD
 from predict.chronos_predict import run_prediction
 from predict.predict_result import PredictionResult
-from strategy.equity_policy import TradeContext
+from strategy.equity_policy import TradeIntent
 from trade.trade_engine import execute_stock_decision
 from infra.core.context import TradingContext
 from infra.core.runtime import RunMode
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 @dataclass
 class EvalResult:
     prediction: PredictionResult
-    decision: TradeContext
+    decision: TradeIntent
 
 
 def simulate_trade_day(ticker: str, trade_date: str, period="3"):

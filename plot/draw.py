@@ -6,7 +6,7 @@ import numpy as np
 
 
 def subplot_position(index: int):
-    row = 1 if index < 2 else 2
+    row = 1 if index < 3 else 3
     col = 1 if index % 2 == 0 else 2
     return row, col
 
