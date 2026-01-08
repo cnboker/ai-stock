@@ -140,11 +140,7 @@ class SignalManager:
             raw_signal = "HOLD"
         else:
             raw_signal = make_signal(low, median, high, latest_price)
-        print(
-            ticker,
-            "gate_allow=", gate_result.allow,
-            "raw_from_model=", raw_signal
-        )
+       
         # =========================
         # 2️⃣ 当前股票有仓位执行减仓决策
         # =========================        
@@ -187,7 +183,8 @@ class SignalManager:
 
         # 4️⃣ 打印调试日志
         get_logger("signal").info(
-            f"[SIGNAL DEBUG] {ticker}: raw_signal={raw_signal}, "
+            f"[SIGNAL DEBUG] {ticker}: gate_allow= {gate_result.allow}, "
+            f"raw_signal={raw_signal}, "
             f"compute_score={raw_score_before_filter:.6f}, "
             f"after_weak_filter={final_score:.6f}, "
             f"final_action={final_action}, confidence={confidence:.3f}"

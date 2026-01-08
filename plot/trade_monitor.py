@@ -4,69 +4,98 @@ from rich.live import Live
 import pandas as pd
 import time
 from config.settings import ticker_name_map
+
 # -------------------------------
 # 阈值，可按需调整
 # -------------------------------
 THRESHOLDS = {
-    "atr": 0,                  # ATR > 0 高亮
-    "model_score": 0.5,        # 模型分数大于 0.5 高亮
-    "predicted_up": True,      # True 高亮
-    "confidence": 0.6,         # 信心度大于 0.6 高亮
-    "raw_score": 0.0,          # raw_score > 0 高亮
-    "atr_is_zero": False,      # False 高亮
+    "atr": 0,  # ATR > 0 高亮
+    "model_score": 0.5,  # 模型分数大于 0.5 高亮
+    "predicted_up": True,  # True 高亮
+    "confidence": 0.6,  # 信心度大于 0.6 高亮
+    "raw_score": 0.0,  # raw_score > 0 高亮
+    "atr_is_zero": False,  # False 高亮
 }
 console = Console()
 last_positions = {}  # 全局保存上一次持仓
-live = None          # 全局 Live 对象
+live = None  # 全局 Live 对象
+
+
 
 # -------------------------------
 # 构造表格函数
 # -------------------------------
 def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
-    table = Table(title="[bold green]⚡ 股票关键参数追踪 ⚡[/bold green]", show_lines=True, border_style="green")
+  
+    table = Table(
+        title="[bold green]⚡ 股票关键参数追踪 ⚡[/bold green]",
+        show_lines=True,
+        border_style="green",
+    )
 
-    columns = ['Ticker','Name','Entry Price','Stop Loss','Take profit','Position','ATR',
-               'Low Last','Median Last','High Last','Predicted Up',
-               'Regime','Force Reduce','Gate Mult','Raw Score','Model Score', 'Action','Confidence','Confirmed']
+    columns = [
+        "Ticker",
+        "Name",
+        "Entry Price",
+        "Stop Loss",
+        "Take profit",
+        "Position",
+        "ATR",
+        "Low Last",
+        "Median Last",
+        "High Last",
+        "Predicted Up",
+        "Regime",
+        "Force Reduce",
+        "Gate Mult",
+        "Raw Score",
+        "Model Score",
+        "Action",
+        "Confidence",
+        "Confirmed",
+    ]
     for col in columns:
         table.add_column(f"[bold green]{col}[/bold green]", justify="center")
-
+    
     # 添加行
     for _, row in df.iterrows():
-        ticker = row['ticker']
+        ticker = row["ticker"]
         # ...这里和你原来的格式化逻辑一样...
         table.add_row(
             str(ticker),
-            str(row.get('name', ticker_name_map.get(ticker,ticker))),
-            fmt_price(row['entry_price']),
-            fmt_price(row['stop_loss']),
-            fmt_price(row['take_profit']),
-            str(row['position_size']),
-            str(row['atr']),
-            fmt_price(row['low']),
-            fmt_price(row['median']),
-            fmt_price(row['high']),
-            str(row['predicted_up']),
-            str(row['regime']),
-            str(row['force_reduce']),
-            str(row['gate_mult']),
-            str(row['raw_score']),
-            str(row['model_score']),
-            str(row['action']),
-            str(row['confidence']),
-            str(row['confirmed'])
+            str(row.get("name", ticker_name_map.get(ticker, ticker))),
+            fmt_price(row["entry_price"]),
+            fmt_price(row["stop_loss"]),
+            fmt_price(row["take_profit"]),
+            str(row["position_size"]),
+            str(row["atr"]),
+            fmt_price(row["low"]),
+            fmt_price(row["median"]),
+            fmt_price(row["high"]),
+            str(row["predicted_up"]),
+            str(row["regime"]),
+            str(row["force_reduce"]),
+            str(row["gate_mult"]),
+            str(row["raw_score"]),
+            str(row["model_score"]),
+            str(row["action"]),
+            str(row["confidence"]),
+            str(row["confirmed"]),
         )
     return table
+
 
 def fmt_price(x):
     if x is None:
         return ""
     return f"{float(x):.2f}"
+
+
 # -------------------------------
 # 主函数：实时刷新表格
 # -------------------------------
 def live_stock_table(df):
-    global live, last_positions 
+    global live, last_positions
     table = make_stock_table(df, last_positions)
     if live is None:
         # 第一次创建 Live 对象
@@ -77,7 +106,8 @@ def live_stock_table(df):
         live.update(table)
 
     # 更新上次持仓
-    last_positions = {row['ticker']: row['position_size'] for _, row in df.iterrows()}
+    last_positions = {row["ticker"]: row["position_size"] for _, row in df.iterrows()}
+
 
 # -------------------------------
 # 示例用法
