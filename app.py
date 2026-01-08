@@ -85,23 +85,24 @@ app.layout = html.Div(
     Input("interval", "n_intervals"),
 )
 def update_graph(_):
-    # if is_market_break():
-    #     return no_update, no_update
+    if is_market_break():
+        return no_update, no_update
 
     period = TICKER_PERIOD
-    hs300_df = load_index_df(period)
-    fig = create_base_figure()
+    hs300_df = load_index_df(str(period))
+    
     prediction_tails = []
 
     with state_lock:
         positions = list(position_mgr.positions.items())
+    fig = create_base_figure(len(positions))
     dfs = {}
     eq_feat = equity_features(eq_recorder.to_series())
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
     equity_engine.log_equity_decision(eq_feat, eq_decision)
     session = TradingSession(
         run_mode=RunMode.LIVE,
-        period=period,
+        period=str(period),
         hs300_df=hs300_df,
         eq_feat=eq_feat,
         tradeIntent=eq_decision,
@@ -111,9 +112,9 @@ def update_graph(_):
     for index, (ticker, p) in enumerate(positions):
         try:
             result = execute_stock_analysis(ticker, session)
-
+            
             decision = decision_to_dict(result["decision"])
-
+            
             dfs[ticker] = {
                 **decision,
                 "low": result["low"][-1],
@@ -204,7 +205,6 @@ if __name__ == "__main__":
     load_history()
     stop_event = threading.Event()
 
-   
     hotload_thread = threading.Thread(
         target=live_positions_hot_load,
         args=(

@@ -1,0 +1,14 @@
+{
+  //"python.languageServer": "Pylance",
+  //"python.analysis.typeCheckingMode": "basic",
+  //"python.analysis.diagnosticMode": "workspace",
+
+  "python.analysis.indexing": true,
+  "python.analysis.exclude": [
+    "**/.venv/**",
+    "**/__pycache__/**",
+    "**/data/**",
+    "**/logs/**"
+  ],
+  "python.analysis.autoSearchPaths": false
+}

@@ -1,3 +1,4 @@
+import numpy as np
 from log import signal_log
 from typing import Optional
 from strategy.regime_cooldown import regime_cooldown
@@ -48,7 +49,7 @@ class EquityEngine:
         dd = eq_feat["eq_drawdown"].iloc[-1]
         slope = eq_feat["eq_slope"].iloc[-1]
 
-        print(        
+        signal_log(        
             f"regime={decision.regime} "
             f"dd={dd:.2%} "
             f"slope={slope:.4f} "
@@ -56,3 +57,18 @@ class EquityEngine:
             f"action={decision.action} "
             f"strength={decision.reduce_strength:.2f}"
         )
+
+    def calc_predicted_up_risk_adjusted(
+            self,
+        low: np.ndarray,
+        median: np.ndarray,
+        high: np.ndarray,
+        latest_price: float,
+    ):
+        if latest_price <= 0:
+            return 0.0
+
+        up = (median[-1] - latest_price) / latest_price
+        risk = (median[-1] - low[-1]) / latest_price
+
+        return float(up - 0.5 * risk)

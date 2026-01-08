@@ -1,9 +1,35 @@
+import numpy as np
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
 import pandas as pd
 import time
 from config.settings import ticker_name_map
+'''
+🟦 基础行情
+ticker 代码
+name 名称
+last_price 最新价
+day_low / day_high 日低 / 日高
+ATR / range 波动
+-------------------------------------------------
+🟨 模型判断
+model_mid / low / high 模型预测
+raw_score 原始分数
+regime 市场状态
+-------------------------------------------------
+🟥 风控 / Gate
+gate / cooldown gate 值
+Cooldown 是否冷却
+Weak 弱信号过滤
+Force  强制减仓
+-------------------------------------------------
+🟥 交易执行
+action BUY / SELL / HOLD
+confidence 置信度
+strength 仓位强度
+force_reduce 强制减仓
+'''
 
 # -------------------------------
 # 阈值，可按需调整
@@ -16,17 +42,18 @@ THRESHOLDS = {
     "raw_score": 0.0,  # raw_score > 0 高亮
     "atr_is_zero": False,  # False 高亮
 }
+
 console = Console()
 last_positions = {}  # 全局保存上一次持仓
 live = None  # 全局 Live 对象
+_stock_table = None
 
 
+def init_stock_table() -> Table:
+    global _stock_table
+    if _stock_table is not None:
+        return _stock_table
 
-# -------------------------------
-# 构造表格函数
-# -------------------------------
-def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
-  
     table = Table(
         title="[bold green]⚡ 股票关键参数追踪 ⚡[/bold green]",
         show_lines=True,
@@ -36,59 +63,94 @@ def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
     columns = [
         "Ticker",
         "Name",
-        "Entry Price",
-        "Stop Loss",
-        "Take profit",
-        "Position",
+        "Entry",
+        "Stop",
+        "Take",
+        "Pos",
         "ATR",
-        "Low Last",
-        "Median Last",
-        "High Last",
-        "Predicted Up",
+        "Low",
+        "Mid",
+        "High",
+        "PredUp",
         "Regime",
-        "Force Reduce",
-        "Gate Mult",
-        "Raw Score",
-        "Model Score",
+        "Force",
+        "Gate",
+        "Raw",
+        "Score",
         "Action",
-        "Confidence",
-        "Confirmed",
+        "Conf",
+        "OK",
     ]
+
     for col in columns:
-        table.add_column(f"[bold green]{col}[/bold green]", justify="center")
-    
-    # 添加行
-    for _, row in df.iterrows():
-        ticker = row["ticker"]
-        # ...这里和你原来的格式化逻辑一样...
-        table.add_row(
-            str(ticker),
-            str(row.get("name", ticker_name_map.get(ticker, ticker))),
-            fmt_price(row["entry_price"]),
-            fmt_price(row["stop_loss"]),
-            fmt_price(row["take_profit"]),
-            str(row["position_size"]),
-            str(row["atr"]),
-            fmt_price(row["low"]),
-            fmt_price(row["median"]),
-            fmt_price(row["high"]),
-            str(row["predicted_up"]),
-            str(row["regime"]),
-            str(row["force_reduce"]),
-            str(row["gate_mult"]),
-            str(row["raw_score"]),
-            str(row["model_score"]),
-            str(row["action"]),
-            str(row["confidence"]),
-            str(row["confirmed"]),
-        )
+        table.add_column(col, justify="center", no_wrap=True)
+
+    _stock_table = table
     return table
 
 
+def make_stock_table(df: pd.DataFrame, last_positions: dict) -> Table:
+    table = init_stock_table()
+    table.rows.clear()
+
+    for _, row in df.iterrows():
+        ticker = row["ticker"]
+
+        table.add_row(
+            str(ticker),
+            str(row.get("name", ticker_name_map.get(ticker, ticker))),
+            fmt_price(row.get("entry_price")),
+            fmt_price(row.get("stop_loss")),
+            fmt_price(row.get("take_profit")),
+            fmt(row.get("position_size"), 0),
+            fmt(row.get("atr")),
+            fmt_price(row.get("low")),
+            fmt_price(row.get("median")),
+            fmt_price(row.get("high")),
+            fmt(row.get("predicted_up"),n=4),
+            fmt_regime(row.get("regime")),
+            fmt_bool(row.get("force_reduce")),
+            fmt(row.get("gate_mult")),
+            fmt(row.get("raw_score")),
+            fmt(row.get("model_score")),
+            fmt_action(row.get("action")),
+            fmt(row.get("confidence")),
+            fmt_bool(row.get("confirmed")),
+        )
+
+    return table
+
 def fmt_price(x):
+    if x is None or not np.isfinite(x):
+        return "-"
+    return f"{x:.2f}"
+
+def fmt(x, n=2):
+    if x is None or not np.isfinite(x):
+        return "-"
+    return f"{x:.{n}f}"
+
+
+def fmt_bool(x):
     if x is None:
-        return ""
-    return f"{float(x):.2f}"
+        return "-"
+    return "[yellow]True[/yellow]" if x else "[dim]False[/dim]"
+
+
+def fmt_action(action):
+    return {
+        "BUY": "[bold green]BUY[/bold green]",
+        "SELL": "[bold red]SELL[/bold red]",
+        "HOLD": "[dim]HOLD[/dim]",
+    }.get(action, action)
+
+
+def fmt_regime(regime):
+    return {
+        "good": "[green]good[/green]",
+        "neutral": "[yellow]neutral[/yellow]",
+        "bad": "[red]bad[/red]",
+    }.get(regime, regime)
 
 
 # -------------------------------
@@ -107,33 +169,3 @@ def live_stock_table(df):
 
     # 更新上次持仓
     last_positions = {row["ticker"]: row["position_size"] for _, row in df.iterrows()}
-
-
-# -------------------------------
-# 示例用法
-# -------------------------------
-# if __name__ == "__main__":
-#     # 构造示例数据
-#     df = pd.DataFrame([
-#         {'ticker':'AAPL','name':'Apple','position':100,'atr':1.2,'atr_is_zero':False,
-#          'model_score':0.6,'low_last':150,'median_last':152,'high_last':155,
-#          'predicted_up':True,'regime':'good','gate_mult':1.0,'raw_score':0.05,
-#          'action':'LONG','confidence':0.7},
-#         {'ticker':'TSLA','name':'Tesla','position':50,'atr':0,'atr_is_zero':True,
-#          'model_score':0.4,'low_last':250,'median_last':255,'high_last':260,
-#          'predicted_up':False,'regime':'bad','gate_mult':0.5,'raw_score':-0.02,
-#          'action':'HOLD','confidence':0.5}
-#     ])
-
-#     # 定义获取最新 df 的函数（替换成实盘/模拟盘逻辑）
-#     def get_latest_df():
-#         # 这里可以直接返回最新 df 或每次更新 df 后返回
-#         # 示例：简单模拟持仓变化
-#         df.at[0, 'position'] += 5  # 模拟 AAPL 持仓增加
-#         df.at[0, 'action'] = 'LONG'
-#         df.at[1, 'position'] -= 5  # 模拟 TSLA 持仓减少
-#         df.at[1, 'action'] = 'SHORT'
-#         return df
-
-#     # 启动动态刷新
-#     live_stock_table(get_latest_df, refresh_sec=1)

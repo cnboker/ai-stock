@@ -75,7 +75,7 @@ def execute_equity_action(
                 reason=decision.reason,
             )
             final_action = "SHORT"
-    print('final_action',final_action, decision.action,decision.force_reduce)
+    
     # 统一返回字典
     return {
         "ticker": ticker,
@@ -84,26 +84,28 @@ def execute_equity_action(
         "confidence": getattr(decision, "confidence", 0),
         "model_score": getattr(decision, "model_score", 0),
         "atr": getattr(decision, "atr", 0),
-        "predicted_up": getattr(decision, "predicted_up", False),
+        "predicted_up": decision.predicted_up,
         "raw_score": getattr(decision, "raw_score", 0),
-        "regime": decision.regime
+        "regime": getattr(decision,"regime",0),        
+        "gate_mult":getattr(decision,"gate_mult", 0.0),
+        "confirmed": getattr(decision,"confirmed",False)
     }
 
-def decision_to_dict(decision):
+def decision_to_dict(decision:dict):
     pos = decision["position"]
     return {
-        "ticker": decision["ticker"],
+        "ticker": decision["ticker"],   
         "position_size": getattr(pos, "size", 0),
         "direction": getattr(pos, "direction", ""),
         "entry_price": getattr(pos, "entry_price", 0),
         "stop_loss": getattr(pos, "stop_loss", 0),
-        "take_profit": getattr(pos, "take_profit", 0),
+        "take_profit": getattr(pos, "take_profit", 0),       
         "action": decision.get("action"),
         "force_reduce": decision.get("force_reduce", False),
         "confidence": decision.get("confidence", 0),
         "model_score": decision.get("model_score", 0),
         "atr": decision.get("atr", 0),
-        "predicted_up": decision.get("predicted_up", False),
+        "predicted_up": float(decision.get("predicted_up", 0.0)),
         "raw_score": decision.get("raw_score", 0),
         "regime":decision.get("regime", 0),
         "gate_mult":decision.get("gate_mult", 0.0),

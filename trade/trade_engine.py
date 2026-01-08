@@ -1,7 +1,7 @@
 from venv import logger
 
-from pandas import DataFrame
-from equity import equity_engine
+from pandas import DataFrame, Series
+from global_state import equity_engine
 from infra.core.context import TradingSession
 from log import signal_log,risk_log
 from predict.predict_result import PredictionResult
@@ -52,7 +52,7 @@ from config.settings import ticker_name_map
 def execute_stock_decision(
     *,    
     ticker:str,
-    close_df: DataFrame,
+    close_df: DataFrame | Series,
     pre_result: PredictionResult,    
     session: TradingSession    
 ) -> dict:
@@ -86,10 +86,11 @@ def execute_stock_decision(
         has_position=position_mgr.has_position(ticker=ticker),
         atr=pre_result.atr
     )
+    decision.predicted_up = equity_engine.calc_predicted_up_risk_adjusted(pre_result.low,pre_result.median,pre_result.high,price)
 
     signal_log(
         f"{name}/{ticker}: {decision.action} "
-        f"(conf={decision.confidence:.2f}, reason={decision.reason})"
+        f"(regime={decision.regime} predicted_up={decision.predicted_up} conf={decision.confidence:.2f}, reason={decision.reason})"
     )
 
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 =====
@@ -102,8 +103,8 @@ def execute_stock_decision(
             "model_score": decision.model_score,
             "atr": decision.atr,
             "regime": decision.regime,
-            "predicted_up": getattr(decision, "predicted_up", False),
-            "raw_score": getattr(decision, "raw_score", 0),
+            "predicted_up": decision.predicted_up,
+            "raw_score": decision.raw_score,
         }
 
     # ===== 4️⃣ Risk + Budget =====
@@ -139,8 +140,8 @@ def execute_stock_decision(
             "model_score": decision.model_score,
             "regime": decision.regime,
             "atr": decision.atr,
-            "predicted_up": getattr(decision, "predicted_up", False),
-            "raw_score": getattr(decision, "raw_score", 0),
+            "predicted_up": decision.predicted_up,
+            "raw_score": decision.raw_score,
         }
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====

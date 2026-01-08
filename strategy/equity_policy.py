@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+import numpy as np
+
 from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
 from strategy.signal_debouncer import debouncer_manager
@@ -105,6 +107,7 @@ class TradeIntent:
     confidence: float = 0.0     # 事件强度（来自 debouncer）->信号质量
     raw_score: float = 0.0      # 连续 score（模型 × gate × equity）->模型派生
     model_score: float = 0.0
+    predicted_up: float = 0.0
     confirmed: bool = False    # 是否通过 debouncer ->稳定器结果
     reason: str = ""            # 触发原因（日志 / 回测用）
     atr: float = 0.0
@@ -120,6 +123,8 @@ def drawdown_level(dd: float) -> int:
     if dd >= 0.02:
         return 1
     return 0
+
+
 
 '''
 系统行为

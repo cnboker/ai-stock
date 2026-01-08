@@ -1,17 +1,18 @@
 from datetime import datetime, time
+import math
 import pandas as pd
 from plotly.subplots import make_subplots
 from plot.annotation import create_annotation
 from plot.draw import subplot_position
 
 
-def create_base_figure():
-    """
-    创建 3×2 基础子图结构
-    """
+def create_base_figure(ticker_count:int,cols=3):
+         
+    nrows = math.ceil(ticker_count / cols)
+
     fig = make_subplots(
-        rows=3,
-        cols=2,
+        rows=nrows,
+        cols=cols,
         shared_xaxes=True,
         vertical_spacing=0.02,
         horizontal_spacing=0.03,

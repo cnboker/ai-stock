@@ -5,10 +5,15 @@ from datetime import datetime
 import numpy as np
 
 
-def subplot_position(index: int):
-    row = 1 if index < 3 else 3
-    col = 1 if index % 2 == 0 else 2
+def subplot_position(index: int, ncols: int = 3):
+    """
+    index: 从 0 开始
+    返回: (row, col)，row / col 从 1 开始（兼容 matplotlib / plotly）
+    """
+    row = index // ncols + 1
+    col = index % ncols + 1
     return row, col
+
 
 
 # history draw
