@@ -1,10 +1,7 @@
-from dataclasses import dataclass
-
-import numpy as np
-
 from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
 from strategy.signal_debouncer import debouncer_manager
+from strategy.trade_intent import TradeIntent
 
 '''
     action: str
@@ -95,23 +92,6 @@ from strategy.signal_debouncer import debouncer_manager
         临时避险
 
 '''
-@dataclass
-class TradeIntent:
-    action:str                # ->最终执行动作,decide_equity_policy->cooldown_mgr.update后
-    regime: str              # good / neutral / bad 资金/->风险状态     
-    gate_mult: float         # 仓位放大/压制 ->风控调制
-    reduce_strength: float   # 0~1 执行参数
-    force_reduce: bool = False      # 是否强制减仓 ->强制约束
-   
-    # ===== 信号语义层（新增）=====
-    confidence: float = 0.0     # 事件强度（来自 debouncer）->信号质量
-    raw_score: float = 0.0      # 连续 score（模型 × gate × equity）->模型派生
-    model_score: float = 0.0
-    predicted_up: float = 0.0
-    confirmed: bool = False    # 是否通过 debouncer ->稳定器结果
-    reason: str = ""            # 触发原因（日志 / 回测用）
-    atr: float = 0.0
-    raw_action: str | None = None  # 原始意图（新增）;decide_equity_policy执行后  
 
 def drawdown_level(dd: float) -> int:
     if dd >= 0.10:
@@ -157,7 +137,7 @@ def reduce_policy_with_guard(drawdown, last_level):
     return last_level, None, 0.0
 
 
-
+# Equity 风控 + 状态裁决器
 def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeIntent:
     if eq_feat is None or eq_feat.empty:
         return TradeIntent(
@@ -196,6 +176,7 @@ def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeInte
         force_reduce=force_reduce,
         reduce_strength=reduce_strength,
         reason=reason,
+        has_position=has_position
     )
 
 

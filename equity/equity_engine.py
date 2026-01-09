@@ -4,15 +4,17 @@ from typing import Optional
 from strategy.regime_cooldown import regime_cooldown
 from strategy.equity_policy import decide_equity_policy
 
+
 class EquityState:
     def __init__(self):
         self.dd_level = 0
+
 
 class EquityEngine:
     """
     独立的资金/策略决策引擎
     """
-    
+
     def __init__(self, cooldown_mgr=None):
         self.cooldown_mgr = cooldown_mgr or regime_cooldown
         self.state = EquityState()
@@ -21,14 +23,14 @@ class EquityEngine:
         """
         返回 eq_decision 和 raw_action
         """
-        eq_decision = decide_equity_policy(eq_feat, has_position,self.state)
-        '''
+        eq_decision = decide_equity_policy(eq_feat, has_position, self.state)
+        """
         防抖
         bad 进得快，出得慢
         good 要连续确认
         neutral 是缓冲态
-        '''        
-        eq_decision.regime = self.cooldown_mgr.update(eq_decision.regime)
+        """
+        eq_decision.regime = self.cooldown_mgr.update(new_regime=eq_decision.regime)
 
         raw_action = eq_decision.action
 
@@ -49,7 +51,7 @@ class EquityEngine:
         dd = eq_feat["eq_drawdown"].iloc[-1]
         slope = eq_feat["eq_slope"].iloc[-1]
 
-        signal_log(        
+        signal_log(
             f"regime={decision.regime} "
             f"dd={dd:.2%} "
             f"slope={slope:.4f} "
@@ -59,7 +61,7 @@ class EquityEngine:
         )
 
     def calc_predicted_up_risk_adjusted(
-            self,
+        self,
         low: np.ndarray,
         median: np.ndarray,
         high: np.ndarray,

@@ -1,73 +1,12 @@
+from datetime import datetime
 from typing import Optional
 import numpy as np
+from pandas import DataFrame
+from equity.equity_gate import compute_gate
 from log import get_logger
-from strategy.equity_policy import TradeIntent
-from dataclasses import replace
-
-def make_signal(
-    low: np.ndarray,
-    median: np.ndarray,
-    high: np.ndarray,
-    latest_price: float,
-    up_thresh: float = 0.006,  # +0.6%
-    down_thresh: float = -0.006,  # -0.6%
-):
-    if len(median) == 0:
-        return "HOLD"
-
-    pred_mid = median[-1]
-    pred_low = low[-1]
-    pred_high = high[-1]
-
-    up_ratio = (pred_high - latest_price) / latest_price
-    down_ratio = (pred_low - latest_price) / latest_price
-    mid_ratio = (pred_mid - latest_price) / latest_price
-
-    if mid_ratio > up_thresh and down_ratio > -0.003:
-        return "LONG"
-
-    if mid_ratio < down_thresh and up_ratio < 0.003:
-        return "SHORT"
-
-    return "HOLD"
-
-'''
-HOLD 不再是 0
-
-model_score 永远生效
-
-gate_mult 自然降权
-
-raw_score 不会全灭
-'''
-def compute_score(
-    *,
-    raw_signal: str,
-    model_score: float,
-    gate_mult: float = 1.0,
-    hold_penalty: float = 0.3,
-) -> float:
-    """
-    返回 [-1, 1] 的连续 score
-    """
-
-    # ---------- 方向 ----------
-    if raw_signal == "LONG":
-        direction = +1.0
-    elif raw_signal == "SHORT":
-        direction = -1.0
-    elif raw_signal == "HOLD":
-        direction = +1.0   # 有预测方向，但弱
-        model_score *= hold_penalty
-    else:
-        return 0.0
-
-    # ---------- 强度 ----------
-    score = direction * model_score * gate_mult
-    score =  float(np.clip(score, -1.0, 1.0))
-
-    return score
-
+from strategy.decision_context import DecisionContext
+from strategy.hold_reason import decide_good_hold_reason
+from strategy.trade_intent import TradeIntent
 
 """
 价格预测（Chronos）
@@ -104,99 +43,75 @@ def compute_score(
     信号管理器，处理 Gate / Debouncer / 最终决策
     """
 
+
 class SignalManager:
-   
-    def __init__(self, gater, debouncer_manager, min_score: float = 0.01):
-        self.gater = gater
-        self.debouncer = debouncer_manager        
+    def __init__(self, debouncer, min_score: float = 0.01):
+        self.debouncer = debouncer
         self.min_score = min_score
 
-    def evaluate(
-        self,
-        *,
-        ticker: str,
-        low: np.ndarray,
-        median: np.ndarray,
-        high: np.ndarray,
-        latest_price: float,
-        close_df,
-        model_score: float,
-        eq_decision: TradeIntent,
-        has_position:bool,
-        atr: float = 1.0
-    ) -> TradeIntent:
+    def evaluate(self, ctx: DecisionContext) -> TradeIntent:
+        # =========================
+        # 1️⃣ 弱信号过滤（不碰 REDUCE / LIQUIDATE）
+        # =========================
+        score = ctx.raw_score
+
+        if ctx.raw_signal not in ("REDUCE", "LIQUIDATE"):
+            if abs(score) < self.min_score:
+                score = 0.0
+
+            if ctx.raw_signal == "HOLD":
+                score = 0.0
 
         # =========================
-        # 1️⃣ Gate 逻辑
+        # 2️⃣ 去抖动确认
         # =========================
-        gate_result = self.gater.evaluate(
-            lower=low,
-            mid=median,
-            upper=high,
-            close_df=close_df.values
+        action, confidence, state = self.debouncer.update(
+            ctx.ticker, score, atr=ctx.atr
         )
 
-        if not gate_result.allow:
-            raw_signal = "HOLD"
-        else:
-            raw_signal = make_signal(low, median, high, latest_price)
-       
+        confirmed = action != "HOLD" and confidence > 0
+        good_hold_reason = None
+        good_hold_detail = {}
+
+        if (
+            ctx.regime == "good"
+            and action == "HOLD"
+            and ctx.raw_signal != "HOLD"
+        ):
+            good_hold_reason, good_hold_detail = decide_good_hold_reason(ctx)
+
+        force_reduce = ctx.raw_signal in ("REDUCE", "LIQUIDATE")
+
         # =========================
-        # 2️⃣ 当前股票有仓位执行减仓决策
-        # =========================        
-        if eq_decision.action and has_position:
-            raw_signal = eq_decision.action
-
-        gate_mult = eq_decision.gate_mult
-
+        # 3️⃣ 构造 TradeIntent
         # =========================
-        # 3️⃣ Score 计算
-        # =========================
-        # 1️⃣ 计算原始分数
-        raw_score_before_filter = compute_score(
-            raw_signal=raw_signal,
-            model_score=model_score,
-            gate_mult=gate_mult
-        )
-
-
-        # 弱信号过滤（升级版）
-        final_score = raw_score_before_filter
-        if raw_signal not in ("REDUCE", "LIQUIDATE"):
-            if raw_signal == "LONG":
-                if model_score > 0.01:
-                    # 微弱 LONG 信号保留
-                    pass
-                else:
-                    final_score = 0.0
-            elif raw_signal == "SHORT":
-                # 可根据需要保留微弱 SHORT，这里按 min_score 过滤
-                if abs(final_score) < self.min_score:
-                    final_score = 0.0
-            else:
-                # HOLD 一律置零
-                final_score = 0.0
-
-        # 3️⃣ 去抖动 Debouncer
-        final_action, confidence = self.debouncer.update(ticker, final_score, atr=atr)
-        confirmed = final_action != "HOLD" and confidence > 0
-
-        # 4️⃣ 打印调试日志
-        get_logger("signal").info(
-            f"[SIGNAL DEBUG] {ticker}: gate_allow= {gate_result.allow}, "
-            f"raw_signal={raw_signal}, "
-            f"compute_score={raw_score_before_filter:.6f}, "
-            f"after_weak_filter={final_score:.6f}, "
-            f"final_action={final_action}, confidence={confidence:.3f}"
-        )
-
-        # 5️⃣ 返回更新后的决策
-        return replace(
-            eq_decision,
-            action=final_action,
+        intent = TradeIntent(            
+            action=action,
             confidence=confidence,
-            gate_mult=gate_mult,
-            raw_score=final_score,
             confirmed=confirmed,
-            reason=f"raw={raw_signal}, compute_score={raw_score_before_filter:.3f}, final_score={final_score:.3f}"
+            raw_action=ctx.raw_signal,
+            raw_score=ctx.raw_score,
+            model_score=ctx.model_score,
+            predicted_up=ctx.predicted_up,
+            strength=ctx.strength,
+            has_position=ctx.has_position,
+            force_reduce=force_reduce,
+            regime=ctx.regime,
+            gate_allow=ctx.gate_allow,
+            gate_mult=ctx.gate_mult,
+            reason=(
+                f"raw={ctx.raw_signal}, "
+                f"raw_score={ctx.raw_score:.3f}, "
+                f"final_score={score:.3f}"
+            ),
+            good_hold_reason=good_hold_reason,
+            good_hold_detail=good_hold_detail
         )
+
+        # =========================
+        # 4️⃣ 冷却状态标记（只读）
+        # =========================
+        intent.cooldown_active = action == "HOLD" and ctx.raw_signal != "HOLD"
+        intent.cooldown_left = max(0, state.confirm_n - state.count)
+
+        return intent

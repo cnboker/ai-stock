@@ -105,11 +105,14 @@ class PredictionGate:
         space=1.00：仓位空间充足
         coverage=1.00：信号覆盖完整
         '''
-        get_logger("gate").info(
-            f"[GATE] score={gate_result.score:.3f} "
-            f"space={gate_result.meta['space']:.2f} "
-            f"coverage={gate_result.meta['coverage']:.2f}"
-        )
+        # get_logger("gate").info(
+        #     f"[GATE] score={gate_result.score:.3f} "
+        #     f"space={gate_result.meta['space']:.2f} "
+        #     f"coverage={gate_result.meta['coverage']:.2f}"
+        # )
         return gate_result
+
+
+
 
 gater = PredictionGate(score_threshold=0.35)

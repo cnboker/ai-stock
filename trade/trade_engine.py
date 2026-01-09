@@ -1,19 +1,22 @@
 from venv import logger
 
+import numpy as np
 from pandas import DataFrame, Series
 from global_state import equity_engine
 from infra.core.context import TradingSession
-from log import signal_log,risk_log
+from log import signal_log, risk_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
+from strategy.decision_builder import DecisionContextBuilder
 from strategy.equity_policy import TradeIntent
-from strategy.gate import gater
 from strategy.signal_debouncer import debouncer_manager
 from risk.budget_manager import budget_mgr
 from strategy.signal_mgr import SignalManager
 from trade.equity_executor import execute_equity_action
 from strategy.equity_policy import TradeIntent
 from config.settings import ticker_name_map
+from strategy.gate import gater
+from plot.decision_debugger import DecisionDebugger
 
 """
     Chronos 区间
@@ -33,7 +36,7 @@ from config.settings import ticker_name_map
     PositionManager 决定“钱够不够”
 
 """
-'''
+"""
         模型预测
     ↓
     score 计算（连续）
@@ -46,65 +49,69 @@ from config.settings import ticker_name_map
     名称	含义	是否连续
     raw_score	模型方向 + 强度	✅ 连续
     confidence	是否触发交易事件	❌ 事件型
-'''
+"""
 
+debugger = DecisionDebugger(watch_tickers=['sz300142'])
 # 2️ 实盘主循环,每次行情 / 预测更新
 def execute_stock_decision(
-    *,    
-    ticker:str,
+    *,
+    ticker: str,
     close_df: DataFrame | Series,
-    pre_result: PredictionResult,    
-    session: TradingSession    
+    pre_result: PredictionResult,
+    session: TradingSession,
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
     返回 dict，用于动态表格显示
-    """ 
-    name = ticker_name_map.get(ticker,ticker)    
+    """
+    name = ticker_name_map.get(ticker, ticker)
     tradeIntent = session.tradeIntent
     position_mgr = session.position_mgr
     # ===== 1️⃣ 最新价格 =====
     price = float(close_df.iloc[-1])
     position_mgr.update_price(ticker, price)
-   
+
     # ===== 2️⃣ 模型预测 + 信号处理 =====
+    ctx_builder = DecisionContextBuilder(
+        equity_engine=equity_engine, gater=gater, position_mgr=position_mgr
+    )
+
     signal_mgr = SignalManager(
-        gater=gater,
-        debouncer_manager=debouncer_manager,        
+        debouncer=debouncer_manager,
         min_score=0.08,
-    )    
-    
-    decision: TradeIntent = signal_mgr.evaluate(
+    )
+    low, median, high, atr = pre_result.low, pre_result.median, pre_result.high, pre_result.atr
+    predicted_up = equity_engine.calc_predicted_up_risk_adjusted(
+        low, median, high, price
+    )
+
+    model_score = float(np.clip(predicted_up, -1.0, 1.0))
+
+    ctx = ctx_builder.build(
         ticker=ticker,
-        low=pre_result.low,
-        median=pre_result.median,
-        high=pre_result.high,
+        low=low,
+        median=median,
+        high=high,
         latest_price=price,
-        close_df=close_df,
-        model_score=pre_result.model_score,
-        eq_decision= tradeIntent,
-        has_position=position_mgr.has_position(ticker=ticker),
-        atr=pre_result.atr
+        atr=atr,
+        model_score=model_score,
+        eq_feat=session.eq_feat,
+        close_df=close_df        
     )
-    decision.predicted_up = equity_engine.calc_predicted_up_risk_adjusted(pre_result.low,pre_result.median,pre_result.high,price)
+       
+    debugger.update(ctx)
+    intent = signal_mgr.evaluate(ctx)
 
-    signal_log(
-        f"{name}/{ticker}: {decision.action} "
-        f"(regime={decision.regime} predicted_up={decision.predicted_up} conf={decision.confidence:.2f}, reason={decision.reason})"
-    )
-
+    # signal_log(f"{name}/{ticker}: {intent.action} ")
+    # signal_log(intent)
+    pos_dict = position_mgr.pos_to_dict(ticker=ticker)
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 =====
-    if not decision.confirmed and not decision.force_reduce:
+    if not intent.confirmed and not intent.force_reduce:
         return {
             "ticker": ticker,
-            "position": position_mgr.get(ticker),
+            **pos_dict,
+            **intent.__dict__,
             "action": "HOLD",
-            "confidence": decision.confidence,
-            "model_score": decision.model_score,
-            "atr": decision.atr,
-            "regime": decision.regime,
-            "predicted_up": decision.predicted_up,
-            "raw_score": decision.raw_score,
         }
 
     # ===== 4️⃣ Risk + Budget =====
@@ -114,13 +121,13 @@ def execute_stock_decision(
 
     signal_capital = budget_mgr.get_budget(
         ticker=ticker,
-        gate_score=decision.gate_mult,
+        gate_score=intent.gate_mult,
         available_cash=position_mgr.available_cash,
         equity=position_mgr.equity,
         positions_value=position_value,
     )
 
-    risk_log(f"{ticker} budget={signal_capital:.2f} gate={decision.gate_mult:.2f}")
+    risk_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
 
     plan = risk_mgr.evaluate(
         last_price=price,
@@ -134,19 +141,14 @@ def execute_stock_decision(
         risk_log(f"{ticker} no risk plan")
         return {
             "ticker": ticker,
-            "position": position_mgr.get(ticker),
+            **pos_dict,
+            **intent.__dict__,
             "action": "HOLD",
-            "confidence": decision.confidence,
-            "model_score": decision.model_score,
-            "regime": decision.regime,
-            "atr": decision.atr,
-            "predicted_up": decision.predicted_up,
-            "raw_score": decision.raw_score,
         }
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====
     ret_dict = execute_equity_action(
-        decision=decision,
+        decision=intent,
         position_mgr=position_mgr,
         ticker=ticker,
         last_price=price,

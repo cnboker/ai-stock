@@ -47,6 +47,18 @@ class PositionManager:
     def get(self, ticker: str) -> Optional[Position]:
         return self.positions.get(ticker)
 
+    def pos_to_dict(self, ticker: str) -> dict:
+        pos = self.get(ticker=ticker)
+        if pos is None:
+            return {}
+        return {
+            "position_size": getattr(pos, "size", 0),
+            "direction": getattr(pos, "direction", ""),
+            "entry_price": getattr(pos, "entry_price", 0),
+            "stop_loss": getattr(pos, "stop_loss", 0),
+            "take_profit": getattr(pos, "take_profit", 0),
+        }
+
     def has_position(self, ticker: str) -> bool:
         pos = self.positions.get(ticker)
         return pos is not None and pos.size > 0
@@ -189,9 +201,9 @@ class PositionManager:
             return
 
         # 加权成本
-        pos.entry_price = (
-            pos.entry_price * pos.size + price * size
-        ) / (pos.size + size)
+        pos.entry_price = (pos.entry_price * pos.size + price * size) / (
+            pos.size + size
+        )
         pos.size += size
         self.cash -= cost
 
@@ -326,21 +338,22 @@ class PositionManager:
             self,
         )
 
-    def load_from_yaml(self, data): 
-        self.positions.clear() 
-        self.cash = data.get("cash", 100000) 
-        self.account_name = data.get("account", "") 
-        for ticker, p in data.get("positions", {}).items(): 
-            cost = p["size"] * p["entry_price"] 
-            self.cash -= cost 
-            self.positions[ticker] = Position( 
-                ticker=ticker, 
-                direction=p["direction"], 
-                size=p["size"], 
-                entry_price=p["entry_price"], 
-                stop_loss=p["stop_loss"], 
-                take_profit=p["take_profit"], )
+    def load_from_yaml(self, data):
+        self.positions.clear()
+        self.cash = data.get("cash", 100000)
+        self.account_name = data.get("account", "")
+        for ticker, p in data.get("positions", {}).items():
+            cost = p["size"] * p["entry_price"]
+            self.cash -= cost
+            self.positions[ticker] = Position(
+                ticker=ticker,
+                direction=p["direction"],
+                size=p["size"],
+                entry_price=p["entry_price"],
+                stop_loss=p["stop_loss"],
+                take_profit=p["take_profit"],
+            )
 
-    def clear(self): 
-        self.positions.clear() 
+    def clear(self):
+        self.positions.clear()
         self.trade_log.clear()

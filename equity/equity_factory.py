@@ -10,7 +10,7 @@ def create_equity_recorder(
     if run_mode == RunMode.LIVE:
         path = "data/live/equity.csv"
     else:
-        path = f"data/sim/{ticker}_{trade_date}_equity.csv"
+        path = f"data/sim/equity.csv"
 
     eq_recorder = EquityRecorder(path=path)
     eq_recorder._load_disk()

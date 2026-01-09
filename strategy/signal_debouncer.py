@@ -15,6 +15,15 @@
     趋势跟随 / 套利	0.05~0.1	确保信号强，滑点影响低
 '''
 
+from dataclasses import dataclass
+
+@dataclass
+class DebounceState:
+    bucket: str
+    count: int
+    confirm_n: int
+    confirmed: bool
+
 SCORE_ACTION_MAP = [
     {"min_score": 0.01, "action": "LONG"},  # 原来 0.3 改成 0.01
     {"min_score": 0.0, "action": "HOLD"},
@@ -37,34 +46,45 @@ class SignalDebouncer:
         self.last_bucket = None
         self.count = 0
         self.last_confirmed_bucket = None
+        self.state = None   # ⭐ 新增
 
     def update(self, score: float, atr: float = 1.0):
-        """
-        动态 confirm_n 随波动率调整
-        atr: 当前波动率指标
-        """
         bucket = score_to_action(score)
-
-        # 动态确认次数：波动越大，确认越慢
         confirm_n = max(1, int(self.base_confirm_n * (atr / 1.0)))
 
-        # REDUCE / SHORT / LONG 处理
+        confirmed = False
+
         if bucket == "REDUCE":
             self.last_confirmed_bucket = "REDUCE"
-            return "REDUCE", abs(score)  # confidence 用 score 强度
+            confirmed = True
+            action = "REDUCE"
+            confidence = abs(score)
 
-        if bucket == self.last_bucket:
-            self.count += 1
         else:
-            self.last_bucket = bucket
-            self.count = 1
+            if bucket == self.last_bucket:
+                self.count += 1
+            else:
+                self.last_bucket = bucket
+                self.count = 1
 
-        if self.count >= confirm_n:
-            if bucket != self.last_confirmed_bucket:
+            if self.count >= confirm_n and bucket != self.last_confirmed_bucket:
                 self.last_confirmed_bucket = bucket
-                return bucket, abs(score)
+                confirmed = True
+                action = bucket
+                confidence = abs(score)
+            else:
+                action = "HOLD"
+                confidence = 0.0
 
-        return "HOLD", 0.0
+        # ⭐ 关键：记录状态
+        self.state = DebounceState(
+            bucket=bucket,
+            count=self.count,
+            confirm_n=confirm_n,
+            confirmed=confirmed,
+        )
+
+        return action, confidence
 
 
 class DebouncerManager:
@@ -75,8 +95,11 @@ class DebouncerManager:
     def update(self, ticker, final_score, atr: float):
         if ticker not in self.debouncers:
             self.debouncers[ticker] = SignalDebouncer(self.confirm_n)
-        final_action, confidence = self.debouncers[ticker].update(final_score, atr=atr)
-        return final_action, confidence
+
+        action, confidence = self.debouncers[ticker].update(final_score, atr)
+        state = self.debouncers[ticker].state
+        return action, confidence, state
+
 
 
 # 模块级单例

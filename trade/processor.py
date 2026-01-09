@@ -1,4 +1,5 @@
 # trade/processor.py
+from datetime import datetime
 import pandas as pd
 from data.loader import load_stock_df
 from predict.chronos_predict import run_prediction
@@ -20,7 +21,8 @@ def execute_stock_analysis(
     hs300_df = session.hs300_df
     eq_feat = session.eq_feat
     df = load_stock_df(ticker, period)
-
+    prices_today = df.loc[df.index.date == datetime.now.date(), "close"].to_numpy()
+    session.prices_today = prices_today
     # 模型预测
     pre_result = run_prediction(
         df=df, hs300_df=hs300_df, ticker=ticker, period=period, eq_feat=eq_feat

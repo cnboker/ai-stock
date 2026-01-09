@@ -1,6 +1,8 @@
 # core/context.py
 from dataclasses import dataclass, field
 from typing import Optional
+import numpy as np
+from numpy import ndarray
 from infra.core.runtime import RunMode
 from pandas import DataFrame
 from position.position_manager import PositionManager
@@ -16,3 +18,4 @@ class TradingSession:
     eq_recorder: EquityRecorder
     eq_feat: Optional[DataFrame] = field(default=None)
     tradeIntent:Optional[TradeIntent] = field(default=None)
+    prices_today: ndarray = field(default_factory=lambda: np.empty(0))

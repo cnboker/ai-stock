@@ -10,7 +10,6 @@ from position.live_position_loader import (
     live_positions_hot_load,
 )
 from predict.prediction_store import load_history
-from trade.equity_executor import decision_to_dict
 from trade.processor import execute_stock_analysis
 from plot.draw import (
     draw_current_prediction,
@@ -85,8 +84,8 @@ app.layout = html.Div(
     Input("interval", "n_intervals"),
 )
 def update_graph(_):
-    if is_market_break():
-        return no_update, no_update
+    # if is_market_break():
+    #     return no_update, no_update
 
     period = TICKER_PERIOD
     hs300_df = load_index_df(str(period))
@@ -113,7 +112,7 @@ def update_graph(_):
         try:
             result = execute_stock_analysis(ticker, session)
             
-            decision = decision_to_dict(result["decision"])
+            decision = result["decision"]
             
             dfs[ticker] = {
                 **decision,
@@ -121,7 +120,7 @@ def update_graph(_):
                 "median": result["median"][-1],
                 "high": result["high"][-1],
             }
-            # print('dfs[ticker]', dfs[ticker])
+           
             draw(result=result, fig=fig, index=index)
 
             tail = generate_tail_label(
@@ -139,7 +138,7 @@ def update_graph(_):
 
     # ===== 更新动态表格 =====
     df = pd.DataFrame(list(dfs.values()))
-    live_stock_table(df)
+    #live_stock_table(df)
 
     # ===== 更新 equity 记录 =====
     eq_recorder.add(position_mgr.equity)
