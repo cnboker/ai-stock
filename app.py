@@ -84,8 +84,8 @@ app.layout = html.Div(
     Input("interval", "n_intervals"),
 )
 def update_graph(_):
-    # if is_market_break():
-    #     return no_update, no_update
+    if is_market_break():
+        return no_update, no_update
 
     period = TICKER_PERIOD
     hs300_df = load_index_df(str(period))

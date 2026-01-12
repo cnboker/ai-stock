@@ -52,6 +52,7 @@ class DecisionDebugger:
 
     # ===== transform =====
     def _ctx_to_row(self, ctx):
+        flip = self.compute_flip_score(ctx)
         return {
             "time": datetime.now().strftime("%H:%M:%S"),
             "ticker": ctx.ticker,
@@ -75,7 +76,58 @@ class DecisionDebugger:
             "add": "Y" if ctx.allow_add else "-",
             "raw_sig": ctx.raw_signal,
             "raw_score": f"{ctx.raw_score:+.4f}",
+            "flip": Text(str(flip), style=self.flip_style(flip)),
         }
+
+    '''
+    效果语义是：
+    🔴 0–1：别看
+
+    🟡 2：底部区
+
+    🟠 3：盯着
+
+    🔵 4：准备动
+
+    🟢 5：已翻
+    '''
+    def flip_style(self,flip: int) -> str:
+        if flip <= 1:
+            return "red"
+        if flip == 2:
+            return "yellow"
+        if flip == 3:
+            return "bright_yellow"
+        if flip == 4:
+            return "cyan"
+        return "green"
+
+
+    def compute_flip_score(self,ctx) -> int:
+        score = 0
+
+        # 0 → 1：slope 修复（最早信号）
+        if ctx.slope > -0.3:
+            score += 1
+
+        # 1 → 2：下跌性价比消失（SHORT 消失）
+        if ctx.raw_signal != "SHORT" and ctx.predicted_up < 0:
+            score += 1
+
+        # 2 → 3：风险模型回到中性
+        if ctx.gate_mult < 1.0:
+            score += 1
+
+        # 3 → 4：模型内部开始“犹豫”
+        if ctx.model_score > ctx.predicted_up:
+            score += 1
+
+        # 4 → 5：PredUp 翻正（最终确认）
+        if ctx.predicted_up > 0:
+            score += 1
+
+        return min(score, 5)
+
 
     # ===== render =====
     def _build_table(self) -> Table:
@@ -102,6 +154,7 @@ class DecisionDebugger:
             "Add",
             "RawSig",
             "RawScore",
+            "Flip"
         ]
 
         for c in cols:
@@ -129,6 +182,7 @@ class DecisionDebugger:
                 r["add"],
                 r["raw_sig"],
                 r["raw_score"],
+                r["flip"]
             )
 
         return table
