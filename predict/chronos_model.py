@@ -1,16 +1,15 @@
 # predict/chronos_model.py
 from functools import lru_cache
-import torch
+from model_torch import is_torch_available
 from chronos import Chronos2Pipeline, ChronosPipeline
 
 
 def get_device():
-    """
-    自动选择设备
-    """
-    if torch.cuda.is_available():
-        return "cuda"
-    return "cpu"
+    if not is_torch_available():
+        return "cpu"
+
+    import torch
+    return "cuda" if torch.cuda.is_available() else "cpu"
 #cache
 @lru_cache(maxsize=2)
 def load_chronos_model(

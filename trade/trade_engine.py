@@ -51,7 +51,8 @@ from plot.decision_debugger import DecisionDebugger
     confidence	是否触发交易事件	❌ 事件型
 """
 
-debugger = DecisionDebugger(watch_tickers=['sz300142'])
+#debugger = DecisionDebugger(watch_tickers=['sz300142'])
+debugger = DecisionDebugger()
 # 2️ 实盘主循环,每次行情 / 预测更新
 def execute_stock_decision(
     *,

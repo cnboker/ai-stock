@@ -1,14 +1,13 @@
 import numpy as np
 import pandas as pd
-import torch
+from model_torch import is_torch_available,optional_inference_mode
 from config.settings import MODEL_NAME
 from predict.chronos_model import load_chronos_model
 from predict.predict_result import PredictionResult
 from predict.price_alpha import chronos2_to_large_style
 from predict.time_utils import calc_atr
 
-
-@torch.inference_mode()
+@optional_inference_mode()
 def run_prediction(
     df: pd.DataFrame,
     hs300_df: pd.DataFrame | None,
@@ -112,7 +111,9 @@ def run_prediction(
     # print(low, median, high)
     # 显存清理（只在 CUDA）
     del pred
-    if torch.cuda.is_available():
+    if is_torch_available():
+        import torch
+        torch.cuda.is_available()
         torch.cuda.empty_cache()
 
     latest_price = df["close"].iloc[-1]

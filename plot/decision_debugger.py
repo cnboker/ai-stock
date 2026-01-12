@@ -9,7 +9,7 @@ from datetime import datetime
 class DecisionDebugger:
     def __init__(
         self,
-        max_rows: int = 300,
+        max_rows: int = 50,
         refresh_hz: int = 4,
         watch_tickers: set[str] | None = None,
     ):
@@ -107,7 +107,7 @@ class DecisionDebugger:
         for c in cols:
             table.add_column(c, no_wrap=True)
 
-        for r in self.rows:
+        for r in reversed(self.rows):
             table.add_row(
                 r["time"],
                 r["ticker"],

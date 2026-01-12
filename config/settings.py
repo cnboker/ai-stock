@@ -1,6 +1,6 @@
 # config.py
 import os
-import torch
+from model_torch import is_torch_available
 
 # ================= 环境变量（必须最早） =================
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
@@ -25,6 +25,10 @@ HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
 ENABLE_LIVE_PERSIST = True
 # ================= CUDA 优化 =================
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
-torch.backends.cudnn.benchmark = True
+
+if is_torch_available():
+    import torch
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.backends.cudnn.benchmark = True
+
