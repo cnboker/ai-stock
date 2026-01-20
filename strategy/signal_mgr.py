@@ -1,12 +1,7 @@
-from datetime import datetime
-from typing import Optional
-import numpy as np
-from pandas import DataFrame
-from equity.equity_gate import compute_gate
-from log import get_logger
 from strategy.decision_context import DecisionContext
 from strategy.hold_reason import decide_good_hold_reason
 from strategy.trade_intent import TradeIntent
+from log import signal_log
 
 """
 价格预测（Chronos）
@@ -61,7 +56,7 @@ class SignalManager:
 
             if ctx.raw_signal == "HOLD":
                 score = 0.0
-
+        signal_log(f"ctx.raw_signal={ctx.raw_signal}")
         # =========================
         # 2️⃣ 去抖动确认
         # =========================

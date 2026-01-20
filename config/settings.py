@@ -23,6 +23,7 @@ ticker_name_map = {t["code"]:t["name"] for t in ALL_TICKERS}
 COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc","#fa66ec","#f866c0"]
 HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
+MODEL_NAME = "chronos-t5-large"
 ENABLE_LIVE_PERSIST = True
 # ================= CUDA 优化 =================
 

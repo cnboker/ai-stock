@@ -65,8 +65,6 @@ def execute_stock_decision(
     每次行情/预测更新，执行单只股票的交易决策
     返回 dict，用于动态表格显示
     """
-    name = ticker_name_map.get(ticker, ticker)
-    tradeIntent = session.tradeIntent
     position_mgr = session.position_mgr
     # ===== 1️⃣ 最新价格 =====
     price = float(close_df.iloc[-1])
@@ -99,7 +97,7 @@ def execute_stock_decision(
         eq_feat=session.eq_feat,
         close_df=close_df        
     )
-       
+    #signal_log(ctx)
     debugger.update(ctx)
     intent = signal_mgr.evaluate(ctx)
 

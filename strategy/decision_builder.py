@@ -2,8 +2,7 @@ import numpy as np
 from strategy.decision_context import DecisionContext
 from strategy.slope import compute_slope
 from strategy.strength import compute_strength
-from strategy.regime_manager import EquityRegimeManager
-from datetime import datetime, timedelta
+from log import signal_log
 from strategy.slope import corrected_slope
 def make_signal(
     low: np.ndarray,
@@ -125,10 +124,10 @@ class DecisionContextBuilder:
             eq_feat=eq_feat,
             has_position=self.position_mgr.has_position(ticker),
         )
-
+        
         if eq_decision.action and self.position_mgr.has_position(ticker):
             raw_signal = eq_decision.action
-
+        #signal_log(eq_decision)
         # =========================
         # 4️⃣ Gate / slope / strength
         # =========================
