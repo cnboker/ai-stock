@@ -214,4 +214,4 @@ if __name__ == "__main__":
     )
     hotload_thread.start()
 
-    app.run(debug=True, use_reloader=False, port=8050, host="0.0.0.0")
+    app.run(debug=True, use_reloader=False, port=8050, host="localhost")

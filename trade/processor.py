@@ -25,7 +25,7 @@ def execute_stock_analysis(
     pre_result = run_prediction(
         df=df, hs300_df=hs300_df, ticker=ticker, period=period, eq_feat=eq_feat
     )
-
+   
     # 执行交易决策
     decision = execute_stock_decision(
         ticker=ticker,
@@ -33,7 +33,7 @@ def execute_stock_analysis(
         pre_result=pre_result,
         session=session        
     )
-
+    print('decision',decision)
     future_index = build_future_index(df, period)
 
     history_pred = update_prediction_history(ticker, future_index, pre_result)

@@ -55,7 +55,7 @@ class EquityEngine:
             f"regime={decision.regime} "
             f"dd={dd:.2%} "
             f"slope={slope:.4f} "
-            f"gate={decision.gate_mult:.2f} "
+            f"={decision.gate_mult:.2f} "
             f"action={decision.action} "
             f"strength={decision.reduce_strength:.2f}"
         )
