@@ -96,7 +96,8 @@ class DecisionContextBuilder:
         atr: float,
         model_score: float,
         eq_feat,
-        close_df        
+        close_df,
+        eq_decision        
     ) -> DecisionContext:
 
         # =========================
@@ -117,13 +118,13 @@ class DecisionContextBuilder:
         else:
             raw_signal = "HOLD"
 
-        # =========================
-        # 3️⃣ Equity 决策
-        # =========================
-        eq_decision = self.equity_engine.decide(
-            eq_feat=eq_feat,
-            has_position=self.position_mgr.has_position(ticker),
-        )
+        # # =========================
+        # # 3️⃣ Equity 决策
+        # # =========================
+        # eq_decision = self.equity_engine.decide(
+        #     eq_feat=eq_feat,
+        #     has_position=self.position_mgr.has_position(ticker),
+        # )
         
         if eq_decision.action and self.position_mgr.has_position(ticker):
             raw_signal = eq_decision.action

@@ -18,6 +18,7 @@ class EquityEngine:
     def __init__(self, cooldown_mgr=None):
         self.cooldown_mgr = cooldown_mgr or regime_cooldown
         self.state = EquityState()
+        self.state.dd_level = 0 
 
     def decide(self, eq_feat, has_position):
         """

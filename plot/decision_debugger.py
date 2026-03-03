@@ -74,7 +74,7 @@ class DecisionDebugger:
             "pos": "Y" if ctx.has_position else "-",
             "size": f"{ctx.position_size:.2f}" if ctx.has_position else "-",
             "add": "Y" if ctx.allow_add else "-",
-            "raw_sig": ctx.raw_signal,
+            "raw_sig": "Y" if ctx.raw_signal else "-",
             "raw_score": f"{ctx.raw_score:+.4f}",
             "flip": Text(str(flip), style=self.flip_style(flip)),
         }

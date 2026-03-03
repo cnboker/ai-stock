@@ -33,7 +33,7 @@ def execute_stock_analysis(
         pre_result=pre_result,
         session=session        
     )
-    print('decision',decision)
+    #print('decision',decision)
     future_index = build_future_index(df, period)
 
     history_pred = update_prediction_history(ticker, future_index, pre_result)

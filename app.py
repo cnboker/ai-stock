@@ -96,6 +96,10 @@ def update_graph(_):
         positions = list(position_mgr.positions.items())
     fig = create_base_figure(len(positions))
     dfs = {}
+
+    # ===== 更新 equity 记录 =====
+    eq_recorder.add(position_mgr.equity)
+
     eq_feat = equity_features(eq_recorder.to_series())
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
     equity_engine.log_equity_decision(eq_feat, eq_decision)
@@ -139,9 +143,6 @@ def update_graph(_):
     # ===== 更新动态表格 =====
     df = pd.DataFrame(list(dfs.values()))
     #live_stock_table(df)
-
-    # ===== 更新 equity 记录 =====
-    eq_recorder.add(position_mgr.equity)
 
     # ===== 绘图最终处理 =====
     finalize_figure(fig, prediction_tails)

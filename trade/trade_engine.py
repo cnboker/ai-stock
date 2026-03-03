@@ -96,12 +96,15 @@ def execute_stock_decision(
         atr=atr,
         model_score=model_score,
         eq_feat=session.eq_feat,
-        close_df=close_df        
+        close_df=close_df,       
+        eq_decision=session.tradeIntent
     )
     signal_log(ctx)
-    debugger.update(ctx)
-    intent = signal_mgr.evaluate(ctx)
 
+    debugger.update(ctx)
+
+    intent = signal_mgr.evaluate(ctx)
+   
     signal_log(f"{ticker}: {intent.action} ")
     signal_log(intent)
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
@@ -119,7 +122,7 @@ def execute_stock_decision(
     low_v = float(pre_result.low[-1])
     high_v = float(pre_result.high[-1])
     position_value = position_mgr.position_value()
-
+   
     signal_capital = budget_mgr.get_budget(
         ticker=ticker,
         gate_score=intent.gate_mult,

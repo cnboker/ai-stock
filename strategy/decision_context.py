@@ -3,6 +3,8 @@ from dataclasses import dataclass, asdict
 from typing import Dict, Any
 import json
 
+import numpy as np
+
 class GoodHoldReason(Enum):
     NONE = auto()
 
@@ -17,7 +19,7 @@ class GoodHoldReason(Enum):
     TREND_DECAY = auto()
 
 
-@dataclass(frozen=True)
+@dataclass
 class DecisionContext:
     # ===== 标识 =====
     ticker: str
@@ -69,3 +71,12 @@ class DecisionContext:
 
     def to_json(self, *, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
+
+    def __post_init__(self):
+        for k, v in self.__dict__.items():
+            if isinstance(v, np.bool_):
+                setattr(self, k, bool(v))
+            elif isinstance(v, np.floating):
+                setattr(self, k, float(v))
+            elif isinstance(v, np.integer):
+                setattr(self, k, int(v))

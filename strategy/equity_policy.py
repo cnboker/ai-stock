@@ -121,24 +121,24 @@ def reduce_policy_with_guard(drawdown, last_level):
     dd = abs(drawdown)
     level = drawdown_level(dd)
 
+    # 没升级 → 什么都不做
     if level <= last_level:
-        return last_level, None, 0.0
+        return last_level, False, 0.0
 
-    # 下面完全复用你原来的逻辑
-    if level == 4:
-        return 4, "LIQUIDATE", 1.0
-    if level == 3:
-        return 3, "REDUCE", 1.0
-    if level == 2:
-        return 2, "REDUCE", 0.6
-    if level == 1:
-        return 1, "REDUCE", 0.3
+    # 升级
+    strength_map = {
+        1: 0.3,
+        2: 0.6,
+        3: 1.0,
+        4: 1.0,
+    }
 
-    return last_level, None, 0.0
+    return level, True, strength_map.get(level, 0.0)
 
 
 # Equity 风控 + 状态裁决器
 def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeIntent:
+    
     if eq_feat is None or eq_feat.empty:
         return TradeIntent(
             action="HOLD",
@@ -160,9 +160,7 @@ def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeInte
             drawdown=dd,
             last_level=equity_state.dd_level,
         )
-
        
-
         if reduce_action:
             equity_state.dd_level = level
             action = reduce_action  # 🔥 关键：直接变成真实动作
