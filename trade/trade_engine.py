@@ -77,9 +77,10 @@ def execute_stock_decision(
 
     signal_mgr = SignalManager(
         debouncer=debouncer_manager,
-        min_score=0.08,
+        min_score=0.03,
     )
     low, median, high, atr = pre_result.low, pre_result.median, pre_result.high, pre_result.atr
+    
     predicted_up = equity_engine.calc_predicted_up_risk_adjusted(
         low, median, high, price
     )
@@ -97,12 +98,12 @@ def execute_stock_decision(
         eq_feat=session.eq_feat,
         close_df=close_df        
     )
-    #signal_log(ctx)
+    signal_log(ctx)
     debugger.update(ctx)
     intent = signal_mgr.evaluate(ctx)
 
-    # signal_log(f"{name}/{ticker}: {intent.action} ")
-    # signal_log(intent)
+    signal_log(f"{ticker}: {intent.action} ")
+    signal_log(intent)
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 =====
     if not intent.confirmed and not intent.force_reduce:
@@ -110,6 +111,7 @@ def execute_stock_decision(
             "ticker": ticker,
             **pos_dict,
             **intent.__dict__,
+            "atr": ctx.atr,   # ✅ 强制覆盖
             "action": "HOLD",
         }
 

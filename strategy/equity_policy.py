@@ -94,13 +94,13 @@ from strategy.trade_intent import TradeIntent
 '''
 
 def drawdown_level(dd: float) -> int:
-    if dd >= 0.10:
-        return 4
     if dd >= 0.08:
+        return 4
+    if dd >= 0.06:
         return 3
-    if dd >= 0.05:
+    if dd >= 0.03:
         return 2
-    if dd >= 0.02:
+    if dd >= 0.01:
         return 1
     return 0
 
@@ -144,14 +144,12 @@ def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeInte
             action="HOLD",
             regime="neutral",
             gate_mult=1.0,
-            force_reduce=False,
-            reduce_strength=0.0,
         )
 
     regime = equity_regime(eq_feat)
     gate_mult = equity_gate(eq_feat)
 
-    force_reduce = False
+    action = "HOLD"
     reduce_strength = 0.0
     reason = ""
 
@@ -163,22 +161,21 @@ def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeInte
             last_level=equity_state.dd_level,
         )
 
-        equity_state.dd_level = level
+       
 
         if reduce_action:
-            force_reduce = True
+            equity_state.dd_level = level
+            action = reduce_action  # 🔥 关键：直接变成真实动作
             reason = f"eq_drawdown_level_{level}"
 
     return TradeIntent(
-        action="HOLD",
+        action=action,
         regime=regime,
         gate_mult=gate_mult,
-        force_reduce=force_reduce,
         reduce_strength=reduce_strength,
         reason=reason,
-        has_position=has_position
+        has_position=has_position,
     )
-
 
 
 def decision_from_score(

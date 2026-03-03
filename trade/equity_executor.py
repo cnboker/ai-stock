@@ -26,6 +26,7 @@ def execute_equity_action(
     # 默认 action 为 HOLD
     final_action = "HOLD"
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
+    
     if decision.action == "LIQUIDATE":
         position_mgr.close(
             ticker=ticker,
@@ -83,5 +84,6 @@ def execute_equity_action(
         "ticker": ticker,
         **pos_dict,
         **decision.__dict__,
+        "atr": decision.atr, 
         "action": final_action,
     }

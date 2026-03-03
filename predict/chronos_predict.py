@@ -125,6 +125,7 @@ def run_prediction(
     )
 
     atr = calc_atr(df)
+    
     #print('model_score', model_score)
     return PredictionResult(
         low = low,
