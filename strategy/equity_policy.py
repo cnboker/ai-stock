@@ -156,14 +156,14 @@ def decide_equity_policy(eq_feat, has_position: bool, equity_state) -> TradeInte
     if has_position:
         dd = eq_feat["eq_drawdown"].iloc[-1]
 
-        level, reduce_action, reduce_strength = reduce_policy_with_guard(
+        level, should_reduce, reduce_strength = reduce_policy_with_guard(
             drawdown=dd,
             last_level=equity_state.dd_level,
         )
        
-        if reduce_action:
+        if should_reduce:
             equity_state.dd_level = level
-            action = reduce_action  # 🔥 关键：直接变成真实动作
+            action = "REDUCE"   # ✅ 这里必须是字符串
             reason = f"eq_drawdown_level_{level}"
 
     return TradeIntent(

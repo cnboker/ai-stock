@@ -58,7 +58,8 @@ class DecisionContext:
 
     # ===== 策略阈值（事实，不是逻辑）=====
     slope_decay_thresh: float = 0.0
-
+    
+    reduce_strength: float = 0.0
     # =========================
     # JSON / Dict
     # =========================

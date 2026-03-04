@@ -45,42 +45,53 @@ class SignalManager:
         self.min_score = min_score
 
     def evaluate(self, ctx: DecisionContext) -> TradeIntent:
-        # =========================
-        # 1️⃣ 弱信号过滤（不碰 REDUCE / LIQUIDATE）
-        # =========================
         score = ctx.raw_score
 
-        if ctx.raw_signal not in ("REDUCE", "LIQUIDATE"):
-            if abs(score) < self.min_score:
-                score = 0.0
-
-            if ctx.raw_signal == "HOLD":
-                score = 0.0
-        signal_log(f"ctx.raw_signal={ctx.raw_signal}")
         # =========================
-        # 2️⃣ 去抖动确认
+        # 0️⃣ 风控优先级最高（直接 bypass debounce）
+        # =========================
+        if ctx.raw_signal in ("REDUCE", "LIQUIDATE"):
+            signal_log("bypass debounce for force reduce")
+
+            return TradeIntent(
+                action=ctx.raw_signal,
+                confidence=1.0,
+                confirmed=True,
+                raw_action=ctx.raw_signal,
+                raw_score=ctx.raw_score,
+                model_score=ctx.model_score,
+                predicted_up=ctx.predicted_up,
+                strength=ctx.strength,
+                has_position=ctx.has_position,
+                force_reduce=True,
+                reduce_strength=ctx.reduce_strength or 1.0,
+                regime=ctx.regime,
+                gate_allow=ctx.gate_allow,
+                gate_mult=ctx.gate_mult,
+                reason="force_reduce_bypass_debounce"
+            )
+
+        # =========================
+        # 1️⃣ 弱信号过滤（只处理非强制信号）
+        # =========================
+        if abs(score) < self.min_score:
+            score = 0.0
+
+        if ctx.raw_signal == "HOLD":
+            score = 0.0
+
+        signal_log(f"ctx.raw_signal={ctx.raw_signal}")
+
+        # =========================
+        # 2️⃣ Debounce
         # =========================
         action, confidence, state = self.debouncer.update(
             ctx.ticker, score, atr=ctx.atr
         )
 
         confirmed = action != "HOLD" and confidence > 0
-        good_hold_reason = None
-        good_hold_detail = {}
 
-        if (
-            ctx.regime == "good"
-            and action == "HOLD"
-            and ctx.raw_signal != "HOLD"
-        ):
-            good_hold_reason, good_hold_detail = decide_good_hold_reason(ctx)
-
-        force_reduce = ctx.raw_signal in ("REDUCE", "LIQUIDATE")
-
-        # =========================
-        # 3️⃣ 构造 TradeIntent
-        # =========================
-        intent = TradeIntent(            
+        intent = TradeIntent(
             action=action,
             confidence=confidence,
             confirmed=confirmed,
@@ -90,7 +101,8 @@ class SignalManager:
             predicted_up=ctx.predicted_up,
             strength=ctx.strength,
             has_position=ctx.has_position,
-            force_reduce=force_reduce,
+            force_reduce=False,
+            reduce_strength=confidence,
             regime=ctx.regime,
             gate_allow=ctx.gate_allow,
             gate_mult=ctx.gate_mult,
@@ -99,13 +111,8 @@ class SignalManager:
                 f"raw_score={ctx.raw_score:.3f}, "
                 f"final_score={score:.3f}"
             ),
-            good_hold_reason=good_hold_reason,
-            good_hold_detail=good_hold_detail
         )
 
-        # =========================
-        # 4️⃣ 冷却状态标记（只读）
-        # =========================
         intent.cooldown_active = action == "HOLD" and ctx.raw_signal != "HOLD"
         intent.cooldown_left = max(0, state.confirm_n - state.count)
 

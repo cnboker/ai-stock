@@ -101,7 +101,7 @@ def execute_stock_decision(
     )
     signal_log(ctx)
 
-    debugger.update(ctx)
+    #debugger.update(ctx)
 
     intent = signal_mgr.evaluate(ctx)
    
