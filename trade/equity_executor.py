@@ -10,23 +10,25 @@ from strategy.equity_policy import TradeIntent
 异常事件	股票停牌、数据异常、行情异常	系统检测到异常，立刻减仓或清仓
 策略切换	新的市场 regime 切换，当前策略不适用	强制降低仓位或平掉不安全的仓位
 """
-
-
 def execute_equity_action(
     *,
     decision: TradeIntent,
     position_mgr,
     ticker: str,
     last_price: float,
+    plan=None,
 ):
     """
     唯一允许修改仓位的入口
-    返回: dict, 用于动态表格显示
+    plan: RiskManager.evaluate() 结果，用于控制仓位/止损/止盈
+    返回 dict, 用于动态表格显示
     """
-    # 默认 action 为 HOLD
+
     final_action = "HOLD"
-    pos_dict = position_mgr.pos_to_dict(ticker=ticker)
-    
+
+    # ====================
+    # 1️⃣ 强制清仓
+    # ====================
     if decision.action == "LIQUIDATE":
         position_mgr.close(
             ticker=ticker,
@@ -35,55 +37,72 @@ def execute_equity_action(
         )
         final_action = "LIQUIDATE"
 
-    # 含义：强制减仓，不管当前信号如何。
-
+    # ====================
+    # 2️⃣ 强制减仓
+    # ====================
     elif decision.force_reduce:
+        reduce_strength = decision.reduce_strength or 0.3
+        if plan is not None:
+            # plan.size 可用于控制减仓数量（可按比例或者直接覆盖）
+            reduce_size = plan.size if plan.size > 0 else reduce_strength
+        else:
+            reduce_size = reduce_strength
+
         position_mgr.reduce(
             ticker=ticker,
-            strength=decision.reduce_strength,
+            strength=reduce_size,
             price=last_price,
             reason=decision.reason,
         )
         final_action = "REDUCE"
 
-    # 非确认信号 → 不交易
+    # ====================
+    # 3️⃣ 非确认信号 → 不交易
+    # ====================
     elif not decision.confirmed:
         final_action = "HOLD"
 
-    # 执行动作
+    # ====================
+    # 4️⃣ 正常交易
+    # ====================
     else:
         if decision.action == "LONG":
-            position_mgr.open_or_add(
-                ticker=ticker,
-                strength=decision.confidence * decision.gate_mult,
-                price=last_price,
-                reason=decision.reason,
-            )
+            if plan is not None and plan.size > 0:
+                position_mgr.open_or_add(
+                    ticker=ticker,
+                    size=plan.size,
+                    stop_loss=plan.stop_loss,
+                    take_profit=plan.take_profit,
+                    price=last_price,
+                    reason=decision.reason,
+                )
+            else:
+                # fallback：原先用 strength 控制仓位
+                position_mgr.open_or_add(
+                    ticker=ticker,
+                    strength=decision.confidence * decision.gate_mult,
+                    price=last_price,
+                    reason=decision.reason,
+                )
             final_action = "LONG"
 
         elif decision.action == "REDUCE":
+            reduce_size = plan.size if (plan is not None and plan.size > 0) else (decision.reduce_strength or 0.3)
             position_mgr.reduce(
                 ticker=ticker,
-                strength=decision.reduce_strength,
+                strength=reduce_size,
                 price=last_price,
                 reason=decision.reason,
             )
             final_action = "REDUCE"
 
-        elif decision.action == "SHORT":
-            position_mgr.open_short(
-                ticker=ticker,
-                strength=decision.confidence * decision.gate_mult,
-                price=last_price,
-                reason=decision.reason,
-            )
-            final_action = "SHORT"
+    # 交易完成后更新仓位信息
+    pos_dict = position_mgr.pos_to_dict(ticker=ticker)
 
-    # 统一返回字典
     return {
         "ticker": ticker,
         **pos_dict,
         **decision.__dict__,
-        "atr": decision.atr, 
+        "atr": decision.atr,
         "action": final_action,
     }

@@ -14,6 +14,7 @@ from simulator.anysis import dump_abnormal_predictions
 from dataclasses import dataclass
 from equity.equity_features import equity_features
 from global_state import equity_engine
+
 @dataclass
 class EvalResult:
     prediction: PredictionResult

@@ -78,8 +78,8 @@ def run_prediction(
                 "eq_slope": eq_feat_aligned["eq_slope"].values,
                 # ===== 权重增强（重复通道）=====
                 # 重复列 = 多通道 = 更高 attention
-                "eq_ret_r1": eq_feat_aligned["eq_ret"].values,
-                "eq_ret_z_r1": eq_feat_aligned["eq_ret_z"].values,
+                #"eq_ret_r1": eq_feat_aligned["eq_ret"].values,
+                #"eq_ret_z_r1": eq_feat_aligned["eq_ret_z"].values,
             }
         )
 

@@ -99,14 +99,14 @@ def execute_stock_decision(
         close_df=close_df,       
         eq_decision=session.tradeIntent
     )
-    signal_log(ctx)
+    # signal_log(ctx)
 
     #debugger.update(ctx)
 
     intent = signal_mgr.evaluate(ctx)
    
-    signal_log(f"{ticker}: {intent.action} ")
-    signal_log(intent)
+    #signal_log(f"{ticker}: {intent.action} ")
+    #signal_log(intent)
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 =====
     if not intent.confirmed and not intent.force_reduce:
@@ -156,6 +156,7 @@ def execute_stock_decision(
         position_mgr=position_mgr,
         ticker=ticker,
         last_price=price,
+        plan=plan,
     )
 
     # 返回用于动态表格显示的 dict

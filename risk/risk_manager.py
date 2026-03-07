@@ -35,7 +35,8 @@ class RiskManager:
         self.atr_take_mult = atr_take_mult
         self.lot_size = lot_size
 
-    # ===================== 主入口 =====================
+    # 交易可行性评估器
+    # AI信号 → RiskManager.evaluate → TradePlan → PositionManager执行
     def evaluate(
         self,
         last_price: float,
@@ -44,74 +45,74 @@ class RiskManager:
         atr: float,
         capital: float,
     ) -> TradePlan:
+
         try:
+
             if atr <= 0:
-                return TradePlan(allow_trade=False, reason="ATR 无效")
-            sl_chronos = chronos_low
-            sl_atr = last_price - self.atr_stop_mult * atr
+                return TradePlan(False, "ATR 无效")
+
+            atr_price = last_price * atr
+
+            # ---------- stop candidates ----------
+            sl_chronos = chronos_low if chronos_low < last_price else last_price
+            sl_atr = last_price - self.atr_stop_mult * atr_price
 
             stop_loss = min(sl_chronos, sl_atr)
 
-            # 止损上下限保护
-            stop_loss = max(
-                stop_loss,
-                last_price * (1 - self.max_stop_pct),
-            )
-            stop_loss = min(
-                stop_loss,
-                last_price * (1 - self.min_stop_pct),
-            )
+            # ---------- clamp stop ----------
+            min_stop = last_price * (1 - self.max_stop_pct)
+            max_stop = last_price * (1 - self.min_stop_pct)
 
-            # ---------- 止盈候选 ----------
-            tp_chronos = chronos_high
-            tp_atr = last_price + self.atr_take_mult * atr
+            stop_loss = max(min(stop_loss, max_stop), min_stop)
+
+            # ---------- take candidates ----------
+            tp_chronos = chronos_high if chronos_high > last_price else last_price
+            tp_atr = last_price + self.atr_take_mult * atr_price
             tp_min = last_price * (1 + self.min_take_pct)
 
             take_profit = max(tp_chronos, tp_atr, tp_min)
 
-            # ---------- 风险回报比 ----------
+            # ---------- max tp protection ----------
+            max_take_pct = 0.25
+            take_profit = min(take_profit, last_price * (1 + max_take_pct))
+
+            # ---------- RR ----------
             risk = last_price - stop_loss
             reward = take_profit - last_price
 
             if risk <= 0 or reward <= 0:
-                return TradePlan(
-                    allow_trade=False,
-                    reason="无效风险结构",
-                )
+                return TradePlan(False, "无效风险结构")
 
             rr = reward / risk
 
             if rr < self.min_rr:
-                return TradePlan(
-                    allow_trade=False,
-                    reason=f"RR 不足 ({rr:.2f})",
-                    expected_rr=rr,
-                )
+                return TradePlan(False, f"RR 不足 ({rr:.2f})", expected_rr=rr)
 
-            # ---------- 仓位计算 ----------
-            size = self._calc_size(
-                capital=capital,
-                risk_amount=capital * self.risk_per_trade,
-                per_share_risk=risk,
-            )
+            # ---------- size ----------
+            risk_amount = capital * self.risk_per_trade
+
+            raw_size = risk_amount / risk
+
+            size = int(raw_size // self.lot_size) * self.lot_size
+
+            max_size_by_cash = int(capital / last_price // self.lot_size) * self.lot_size
+
+            size = min(size, max_size_by_cash)
 
             if size <= 0:
-                return TradePlan(
-                    allow_trade=False,
-                    reason="仓位为 0（风险过大）",
-                )
+                return TradePlan(False, "仓位为 0")
 
             return TradePlan(
-                allow_trade=True,
+                True,
                 size=size,
                 stop_loss=round(stop_loss, 2),
                 take_profit=round(take_profit, 2),
                 expected_rr=round(rr, 2),
             )
-        except (TypeError, ValueError):
-            return TradePlan(allow_trade=False, reason="参数类型错误")
-    
-        # ---------- 止损候选 ----------
+
+        except Exception:
+            return TradePlan(False, "风险计算异常")
+            # ---------- 止损候选 ----------
 
     # ===================== 内部工具 =====================
     def _calc_size(self, capital, risk_amount, per_share_risk):

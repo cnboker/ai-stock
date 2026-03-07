@@ -98,16 +98,96 @@ class PositionManager:
         self,
         *,
         ticker: str,
-        strength: float,
+        strength: float = 0.0,
         price: float,
         reason: str,
         contract_size: int = 1,
-    ):
+        size: int = None,
+        stop_loss: float = None,
+        take_profit: float = None,
+        ):
+        """
+        打开新仓或加仓
+        支持两种方式：
+        1️⃣ 直接传 size → 精确仓位
+        2️⃣ 传 strength → 按 equity * strength 自动计算仓位
+        stop_loss / take_profit 可直接指定
+        """
+
         pos = self.positions.get(ticker)
         if pos:
-            self._add(ticker, strength, price, reason)
+            # ==== 加仓 ====
+            add_size = 0
+            if size is not None:
+                add_size = size
+            elif strength > 0:
+                add_size = self._calc_add_size(pos, strength, price)
+
+            if add_size <= 0:
+                return
+
+            cost = add_size * price * pos.contract_size
+            if cost > self.cash:
+                order_log(f"{ticker} ADD rejected (cash insufficient)")
+                return
+
+            # 加权平均成本
+            pos.entry_price = (pos.entry_price * pos.size + price * add_size) / (pos.size + add_size)
+            pos.size += add_size
+            self.cash -= cost
+
+            # 更新止损止盈
+            if stop_loss is not None:
+                pos.stop_loss = stop_loss
+            if take_profit is not None:
+                pos.take_profit = take_profit
+
+            self._record(
+                symbol=ticker,
+                action="ADD",
+                size=add_size,
+                price=price,
+                value=cost,
+                reason=reason,
+            )
+
         else:
-            self._open(ticker, strength, price, reason, contract_size)
+            # ==== 开新仓 ====
+            open_size = 0
+            if size is not None:
+                open_size = size
+            elif strength > 0:
+                open_size = self._calc_open_size(strength, price, contract_size)
+
+            if open_size <= 0:
+                return
+
+            cost = open_size * price * contract_size
+            if cost > self.cash:
+                order_log(f"{ticker} OPEN rejected (cash insufficient)")
+                return
+
+            pos = Position(
+                ticker=ticker,
+                direction="LONG",
+                size=open_size,
+                entry_price=price,
+                open_time=datetime.now(),
+                contract_size=contract_size,
+                stop_loss=stop_loss,
+                take_profit=take_profit,
+            )
+            self.positions[ticker] = pos
+            self.cash -= cost
+
+            self._record(
+                symbol=ticker,
+                action="OPEN",
+                size=open_size,
+                price=price,
+                value=cost,
+                reason=reason,
+            )
 
     def open_short(
         self,
@@ -218,20 +298,37 @@ class PositionManager:
 
     def _reduce(
         self,
+        *,
         ticker: str,
-        strength: float,
-        price: float,
-        reason: str,
+        strength: float = None,
+        price: float = None,
+        reason: str = "",
+        size: int = None,  # 新增参数，用于精确减仓
     ):
+        """
+        减仓逻辑
+        size 优先级最高：直接减指定数量
+        strength 次之：按比例减仓
+        """
         pos = self.positions.get(ticker)
         if not pos:
             return
 
-        ratio = min(max(strength, 0.0), 1.0)
-        reduce_size = int(pos.size * ratio)
+        # ===== 1️⃣ 优先使用精确 size =====
+        if size is not None and size > 0:
+            reduce_size = min(size, pos.size)
+        elif strength is not None:
+            # strength ∈ [0, 1] 表示减仓比例
+            ratio = min(max(strength, 0.0), 1.0)
+            reduce_size = int(pos.size * ratio)
+        else:
+            # 默认减 30%
+            reduce_size = int(pos.size * 0.3)
+
         if reduce_size <= 0:
             return
 
+        # ===== 2️⃣ 执行减仓 =====
         pos.size -= reduce_size
         cash_back = reduce_size * price * pos.contract_size
         self.cash += cash_back
@@ -245,30 +342,31 @@ class PositionManager:
             reason=reason,
         )
 
+        # ===== 3️⃣ 仓位清空时移除 =====
         if pos.size <= 0:
             del self.positions[ticker]
 
-    def _close(
-        self,
-        ticker: str,
-        price: float,
-        reason: str,
-    ):
-        pos = self.positions.pop(ticker, None)
-        if not pos:
-            return
+        def _close(
+            self,
+            ticker: str,
+            price: float,
+            reason: str,
+        ):
+            pos = self.positions.pop(ticker, None)
+            if not pos:
+                return
 
-        value = pos.size * price * pos.contract_size
-        self.cash += value
+            value = pos.size * price * pos.contract_size
+            self.cash += value
 
-        self._record(
-            symbol=ticker,
-            action="CLOSE",
-            size=pos.size,
-            price=price,
-            value=value,
-            reason=reason,
-        )
+            self._record(
+                symbol=ticker,
+                action="CLOSE",
+                size=pos.size,
+                price=price,
+                value=value,
+                reason=reason,
+            )
 
     # ==================================================
     # Size 计算（模拟 / 实盘统一入口）
