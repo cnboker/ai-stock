@@ -80,7 +80,7 @@ class SignalManager:
         if ctx.raw_signal == "HOLD":
             score = 0.0
 
-        signal_log(f"ctx.raw_signal={ctx.raw_signal}")
+        #signal_log(f"ctx.raw_signal={ctx.raw_signal},raw_score={ctx.raw_score},")
 
         # =========================
         # 2️⃣ Debounce

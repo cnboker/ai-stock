@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import numpy as np
 
@@ -14,7 +16,7 @@ from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
 
 from global_state import equity_engine
-
+from simulator.snapshot import prediction_to_csv,decision_to_csv, plot_prediction
 
 class BacktestRunner:
 
@@ -37,10 +39,10 @@ class BacktestRunner:
         # ===== session (只创建一次) =====
 
         self.eq_recorder = create_equity_recorder(RunMode.SIM, ticker)
-        self.position_mgr = create_position_manager(10000, RunMode.SIM)
+        self.position_mgr = create_position_manager(100000, RunMode.SIM)
 
         eq_feat = equity_features(self.eq_recorder.to_series())
-
+        self.eq_recorder.add(self.position_mgr.equity)
         eq_decision = equity_engine.decide(
             eq_feat,
             self.position_mgr.has_any_position()
@@ -58,6 +60,9 @@ class BacktestRunner:
 
         self.equity_curve = []
 
+    def show(self):
+        plot_prediction(self.ticker, self.period,self.df_all["close"])
+
     def run(self):
 
         trade_days = (
@@ -71,6 +76,21 @@ class BacktestRunner:
 
         start_price = None
         end_price = None
+        save_dir = "outputs"
+        pre_csv_path = os.path.join(
+            save_dir,
+            f"{self.ticker}_{self.period}_prediction.csv"
+        )
+        decision_csv_path = os.path.join(
+            save_dir,
+            f"{self.ticker}_{self.period}_dicision.csv"
+        )
+
+        # 如果文件存在就删除
+        if os.path.exists(pre_csv_path):
+            os.remove(pre_csv_path)
+        if os.path.exists(decision_csv_path):
+            os.remove(decision_csv_path)
 
         for trade_day in trade_days:
 
@@ -88,6 +108,7 @@ class BacktestRunner:
             print(f'equity ->{equity}')
             self.equity_curve.append(equity)
 
+        plot_prediction(self.ticker, self.period,self.df_all["close"])
         self._report(start_price, end_price)
 
     def _simulate_day(self, trade_day):
@@ -98,7 +119,8 @@ class BacktestRunner:
         df_history = self.df_all[self.df_all.index.date < trade_day.date()]
 
         for i in range(len(df_today)):
-
+            #update equity
+            self.eq_recorder.add(self.position_mgr.equity)
             df_slice = df_today.iloc[: i + 1]
             df_combined = pd.concat([df_history, df_slice])
 
@@ -108,14 +130,17 @@ class BacktestRunner:
                 ticker=self.ticker,
                 period=self.period,
                 eq_feat=self.session.eq_feat
-            )
-
-            execute_stock_decision(
+            )            
+          
+           
+            decision = execute_stock_decision(
                 ticker=self.ticker,
                 close_df=df_slice["close"],
                 pre_result=pre_result,
                 session=self.session
             )
+            prediction_to_csv(self.ticker, self.period, pre_result, df_combined['close'], decision)
+            #decision_to_csv(self.ticker,self.period, decision)
 
     def _report(self, start_price, end_price):
 

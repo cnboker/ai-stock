@@ -51,15 +51,17 @@ from plot.decision_debugger import DecisionDebugger
     confidence	是否触发交易事件	❌ 事件型
 """
 
-#debugger = DecisionDebugger(watch_tickers=['sz300142'])
+# debugger = DecisionDebugger(watch_tickers=['sz300142'])
 debugger = DecisionDebugger()
+
+
 # 2️ 实盘主循环,每次行情 / 预测更新
 def execute_stock_decision(
     *,
     ticker: str,
     close_df: DataFrame | Series,
     pre_result: PredictionResult,
-    session: TradingSession,
+    session: TradingSession,    
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
@@ -79,13 +81,13 @@ def execute_stock_decision(
         debouncer=debouncer_manager,
         min_score=0.03,
     )
-    low, median, high, atr = pre_result.low, pre_result.median, pre_result.high, pre_result.atr
-    
-    predicted_up = equity_engine.calc_predicted_up_risk_adjusted(
-        low, median, high, price
-    )
-
-    model_score = float(np.clip(predicted_up, -1.0, 1.0))
+    low, median, high, atr, model_score = (
+        pre_result.low,
+        pre_result.median,
+        pre_result.high,
+        pre_result.atr,
+        pre_result.model_score
+    )  
 
     ctx = ctx_builder.build(
         ticker=ticker,
@@ -96,17 +98,16 @@ def execute_stock_decision(
         atr=atr,
         model_score=model_score,
         eq_feat=session.eq_feat,
-        close_df=close_df,       
-        eq_decision=session.tradeIntent
+        close_df=close_df,
+        eq_decision=session.tradeIntent,
     )
-    # signal_log(ctx)
+    #signal_log(ctx)
 
-    #debugger.update(ctx)
+    # debugger.update(ctx)
 
     intent = signal_mgr.evaluate(ctx)
-   
-    #signal_log(f"{ticker}: {intent.action} ")
-    #signal_log(intent)
+  
+    #signal_log(ctx)        
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 =====
     if not intent.confirmed and not intent.force_reduce:
@@ -114,7 +115,7 @@ def execute_stock_decision(
             "ticker": ticker,
             **pos_dict,
             **intent.__dict__,
-            "atr": ctx.atr,   # ✅ 强制覆盖
+            "atr": ctx.atr,  # ✅ 强制覆盖
             "action": "HOLD",
         }
 
@@ -122,7 +123,7 @@ def execute_stock_decision(
     low_v = float(pre_result.low[-1])
     high_v = float(pre_result.high[-1])
     position_value = position_mgr.position_value()
-   
+
     signal_capital = budget_mgr.get_budget(
         ticker=ticker,
         gate_score=intent.gate_mult,
@@ -131,7 +132,7 @@ def execute_stock_decision(
         positions_value=position_value,
     )
 
-    risk_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
+    #risk_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
 
     plan = risk_mgr.evaluate(
         last_price=price,
@@ -140,15 +141,6 @@ def execute_stock_decision(
         atr=pre_result.atr,
         capital=signal_capital,
     )
-
-    if plan is None:
-        risk_log(f"{ticker} no risk plan")
-        return {
-            "ticker": ticker,
-            **pos_dict,
-            **intent.__dict__,
-            "action": "HOLD",
-        }
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====
     ret_dict = execute_equity_action(
@@ -159,5 +151,9 @@ def execute_stock_decision(
         plan=plan,
     )
 
+    
+    # 如果 plan 无效，可在日志标记
+    if plan is None:
+        risk_log(f"{ticker} no risk plan (cannot add position)")
     # 返回用于动态表格显示的 dict
     return ret_dict

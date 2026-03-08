@@ -1,4 +1,5 @@
 import pandas as pd
+from risk.risk_manager import TradePlan
 from strategy.equity_policy import TradeIntent
 
 """
@@ -10,13 +11,15 @@ from strategy.equity_policy import TradeIntent
 异常事件	股票停牌、数据异常、行情异常	系统检测到异常，立刻减仓或清仓
 策略切换	新的市场 regime 切换，当前策略不适用	强制降低仓位或平掉不安全的仓位
 """
+
+
 def execute_equity_action(
     *,
     decision: TradeIntent,
     position_mgr,
     ticker: str,
     last_price: float,
-    plan=None,
+    plan: TradePlan = None,
 ):
     """
     唯一允许修改仓位的入口
@@ -66,8 +69,8 @@ def execute_equity_action(
     # 4️⃣ 正常交易
     # ====================
     else:
-        if decision.action == "LONG":
-            if plan is not None and plan.size > 0:
+        if decision.action == "LONG" and plan.allow_trade:
+            if plan.size > 0:
                 position_mgr.open_or_add(
                     ticker=ticker,
                     size=plan.size,
@@ -87,7 +90,11 @@ def execute_equity_action(
             final_action = "LONG"
 
         elif decision.action == "REDUCE":
-            reduce_size = plan.size if (plan is not None and plan.size > 0) else (decision.reduce_strength or 0.3)
+            reduce_size = (
+                plan.size
+                if (plan is not None and plan.size > 0)
+                else (decision.reduce_strength or 0.3)
+            )
             position_mgr.reduce(
                 ticker=ticker,
                 strength=reduce_size,

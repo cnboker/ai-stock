@@ -71,7 +71,13 @@ class EquityEngine:
         if latest_price <= 0:
             return 0.0
 
-        up = (median[-1] - latest_price) / latest_price
-        risk = (median[-1] - low[-1]) / latest_price
+        if len(low) == 0 or len(median) == 0:
+            return 0.0
 
-        return float(up - 0.5 * risk)
+        pred = median[-1]
+        low_pred = low[-1]
+
+        up = (pred - latest_price) / latest_price
+        risk = max(0.0, (latest_price - low_pred) / latest_price)
+
+        return float(up - 0.1 * risk)

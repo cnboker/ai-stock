@@ -1,6 +1,6 @@
 from equity.equity_recorder import EquityRecorder
 from infra.core.runtime import RunMode
-
+import os
 
 def create_equity_recorder(
     run_mode: RunMode,
@@ -11,7 +11,9 @@ def create_equity_recorder(
         path = "data/live/equity.csv"
     else:
         path = f"data/sim/equity.csv"
-
+        if os.path.exists(path):
+            os.remove(path)
+            
     eq_recorder = EquityRecorder(path=path)
     eq_recorder._load_disk()
     return eq_recorder

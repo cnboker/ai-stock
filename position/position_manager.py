@@ -31,8 +31,7 @@ class PositionManager:
 
         # ===== 记录 =====
         self.trade_log: List[dict] = []
-        self.last_action_ts: Dict[str, float] = {}
-
+        self.last_action_ts: Dict[str, float] = {}        
     # ==================================================
     # 基础状态
     # ==================================================
@@ -78,7 +77,29 @@ class PositionManager:
             price = self.price_cache.get(sym, pos.entry_price)
             total += pos.size * price * pos.contract_size
         return total
+    
+     # 检查止损止盈
+    def check_stop_take(self, ticker: str, price: float) -> str | None:
+        pos = self.positions.get(ticker)
+        if not pos:
+            return None
 
+        # LONG 仓位
+        if pos.direction == "LONG":
+            if pos.stop_loss is not None and price <= pos.stop_loss:
+                return "STOP_LOSS"
+            if pos.take_profit is not None and price >= pos.take_profit:
+                return "TAKE_PROFIT"
+
+        # SHORT 仓位
+        elif pos.direction == "SHORT":
+            if pos.stop_loss is not None and price >= pos.stop_loss:
+                return "STOP_LOSS"
+            if pos.take_profit is not None and price <= pos.take_profit:
+                return "TAKE_PROFIT"
+
+        return None
+   
     # ==================================================
     # 行情
     # ==================================================
@@ -101,7 +122,7 @@ class PositionManager:
         strength: float = 0.0,
         price: float,
         reason: str,
-        contract_size: int = 1,
+        contract_size: int = 100,
         size: int = None,
         stop_loss: float = None,
         take_profit: float = None,
@@ -206,7 +227,7 @@ class PositionManager:
         ticker: str,
         strength: float,
         price: float,
-        reason: str,
+        reason: str
     ):
         self._reduce(ticker, strength, price, reason)
 
@@ -228,7 +249,7 @@ class PositionManager:
         strength: float,
         price: float,
         reason: str,
-        contract_size: int,
+        contract_size: int=100,
     ):
         size = self._calc_open_size(strength, price, contract_size)
         if size <= 0:
@@ -297,13 +318,12 @@ class PositionManager:
         )
 
     def _reduce(
-        self,
-        *,
+        self,        
         ticker: str,
         strength: float = None,
         price: float = None,
         reason: str = "",
-        size: int = None,  # 新增参数，用于精确减仓
+        size: int = 0,  # 新增参数，用于精确减仓
     ):
         """
         减仓逻辑
@@ -346,7 +366,7 @@ class PositionManager:
         if pos.size <= 0:
             del self.positions[ticker]
 
-        def _close(
+    def _close(
             self,
             ticker: str,
             price: float,
@@ -375,7 +395,7 @@ class PositionManager:
         self,
         strength: float,
         price: float,
-        contract_size: int,
+        contract_size: int=100,
     ) -> int:
         """
         strength ∈ (0, 1] 表示占用 equity 比例

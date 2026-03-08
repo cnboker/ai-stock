@@ -4,33 +4,17 @@ from strategy.slope import compute_slope
 from strategy.strength import compute_strength
 from log import signal_log
 from strategy.slope import corrected_slope
-def make_signal(
-    low: np.ndarray,
-    median: np.ndarray,
-    high: np.ndarray,
-    latest_price: float,
-    up_thresh: float = 0.006,  # +0.6%
-    down_thresh: float = -0.006,  # -0.6%
-):
-    if len(median) == 0:
-        return "HOLD"
 
-    pred_mid = median[-1]
-    pred_low = low[-1]
-    pred_high = high[-1]
 
-    up_ratio = (pred_high - latest_price) / latest_price
-    down_ratio = (pred_low - latest_price) / latest_price
-    mid_ratio = (pred_mid - latest_price) / latest_price
+def make_signal(predicted_up, slope, model_score):
 
-    if mid_ratio > up_thresh and down_ratio > -0.003:
+    if model_score > 0.56 and predicted_up > 0.004 and slope > 0.1:
         return "LONG"
 
-    if mid_ratio < down_thresh and up_ratio < 0.003:
+    if model_score < 0.44 and predicted_up < -0.004 and slope < -0.1:
         return "SHORT"
 
     return "HOLD"
-
 
 """
 HOLD 不再是 0
@@ -50,26 +34,22 @@ def compute_score(
     gate_mult: float = 1.0,
     hold_penalty: float = 0.3,
 ) -> float:
-    """
-    返回 [-1, 1] 的连续 score
-    """
-
-    # ---------- 方向 ----------
+    model_score = abs(model_score)
     if raw_signal == "LONG":
-        direction = +1.0
+        direction = 1.0
+
     elif raw_signal == "SHORT":
         direction = -1.0
+
     elif raw_signal == "HOLD":
-        direction = +1.0  # 有预测方向，但弱
+        direction = 0.0
         model_score *= hold_penalty
+
     else:
         return 0.0
 
-    # ---------- 强度 ----------
     score = direction * model_score * gate_mult
-    score = float(np.clip(score, -1.0, 1.0))
-
-    return score
+    return float(np.clip(score, -1.0, 1.0))
 
 
 class DecisionContextBuilder:
@@ -84,7 +64,6 @@ class DecisionContextBuilder:
         self.gater = gater
         self.position_mgr = position_mgr
 
-
     def build(
         self,
         *,
@@ -97,7 +76,7 @@ class DecisionContextBuilder:
         model_score: float,
         eq_feat,
         close_df,
-        eq_decision        
+        eq_decision,
     ) -> DecisionContext:
 
         # =========================
@@ -109,39 +88,35 @@ class DecisionContextBuilder:
             upper=high,
             close_df=close_df.values,
         )
-
+        
+        predicted_up = self.equity_engine.calc_predicted_up_risk_adjusted(
+            low, median, high, latest_price
+        )
+       
+        slope_raw = compute_slope(
+            predicted_up=predicted_up,
+            horizon=1,
+        )
+        # 价格在涨 → 但 slope / model 仍然系统性偏空 → 这是模型结构问题,这个做短期修正
+        slope = corrected_slope(slope_raw, close_df.values[-10:])
+        if median[-1]> latest_price:
+            print(f"med:{median[-1]}, price={latest_price}, pre_up={predicted_up}, slope={slope}")
         # =========================
         # 2️⃣ 原始信号
         # =========================
         if gate_result.allow:
-            raw_signal = make_signal(low, median, high, latest_price)
+            raw_signal = make_signal(predicted_up, slope, model_score)
         else:
             raw_signal = "HOLD"
-
-        # # =========================
-        # # 3️⃣ Equity 决策
-        # # =========================
-        # eq_decision = self.equity_engine.decide(
-        #     eq_feat=eq_feat,
-        #     has_position=self.position_mgr.has_position(ticker),
-        # )
-        
-        if eq_decision.action and self.position_mgr.has_position(ticker):
+        has_position = self.position_mgr.has_position(ticker)
+        if eq_decision.action and has_position:
             raw_signal = eq_decision.action
-        #signal_log(eq_decision)
+
         # =========================
         # 4️⃣ Gate / slope / strength
         # =========================
         gate_mult = eq_decision.gate_mult
 
-        slope_raw = compute_slope(
-            predicted_up=self.equity_engine.calc_predicted_up_risk_adjusted(
-                low, median, high, latest_price
-            ),
-            horizon=1,
-        )
-        #价格在涨 → 但 slope / model 仍然系统性偏空 → 这是模型结构问题,这个做短期修正
-        slope = corrected_slope(slope_raw, close_df.values[-10:]) 
         strength = compute_strength(
             slope=slope,
             gate=gate_mult,
@@ -159,14 +134,33 @@ class DecisionContextBuilder:
         # =========================
         # 6️⃣ 仓位 / 回撤
         # =========================
-        has_position = self.position_mgr.has_position(ticker)
-        allow_add = not has_position
 
-        row = eq_feat.iloc[-1]
-        dd = float(row["eq_drawdown"])
+        allow_add = not has_position
+        dd = 0
+        if not eq_feat.empty:
+            row = eq_feat.iloc[-1]
+            dd = float(row["eq_drawdown"])
         cool_mgr = self.equity_engine.cooldown_mgr
+        if strength > 0.7 and gate_result.allow:
+            new_regime = "good"
+        elif strength < 0.2:
+            new_regime = "bad"
+        else:
+            new_regime = "neutral"
+        regime = cool_mgr.update(new_regime)
+        # signal_log(
+        #     f"regime_update new={new_regime} "
+        #     f"regime={cool_mgr.regime} "
+        #     f"good={cool_mgr.good_count}/{cool_mgr.good_confirm}"
+        # )
+
         pos = self.position_mgr.get(ticker)
         position_size = pos.size if pos else 0.0
+
+        action_signal = self.position_mgr.check_stop_take(ticker, latest_price)
+        if action_signal:
+            raw_signal = "LIQUIDATE"
+
         return DecisionContext(
             # ===== 标识 =====
             ticker=ticker,
@@ -180,12 +174,12 @@ class DecisionContextBuilder:
             ),
             # ===== Gate / 动量 =====
             gate_allow=gate_result.allow,
-            position_size= position_size,
+            position_size=position_size,
             gate_mult=gate_mult,
             slope=slope,
             strength=strength,
             # ===== Regime / 确认态 =====
-            regime=eq_decision.regime,
+            regime=regime,
             good_count=cool_mgr.good_count,  # ✅ 来自 regime 管理器
             good_confirm_need=cool_mgr.good_confirm,  # ✅ 策略配置
             # ===== 冷却 =====

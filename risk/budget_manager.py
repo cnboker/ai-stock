@@ -31,7 +31,7 @@ class BudgetManager:
         equity: float,
         positions_value: float,
     ) -> float:
-        print(f"ticker:{ticker}, gate_score:{gate_score},available_cash:{available_cash},equity:{equity},positions_value:{positions_value}")
+        #print(f"ticker:{ticker}, gate_score:{gate_score},available_cash:{available_cash},equity:{equity},positions_value:{positions_value}")
         """
         返回本次信号可用资金
         """
@@ -47,7 +47,7 @@ class BudgetManager:
         max_allowed = equity * (1 - self.max_drawdown_pct) - positions_value
         max_allowed = max(max_allowed, 0)
         max_signal_cap = min(max_signal_cap, max_allowed)
-        print(f'max_signal_cap:{max_signal_cap}')
+        #print(f'max_signal_cap:{max_signal_cap}')
         # ---------------- 单票限制 ----------------
         max_signal_cap = min(max_signal_cap, equity * self.single_position_limit)
 

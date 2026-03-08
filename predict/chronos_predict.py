@@ -41,7 +41,7 @@ def run_prediction(
         hs300_series = recent_df["close"].values
 
     # ========== Chronos 要求的“完美时间索引” ==========
-    freq = "5min" if period == "5" else "15min"
+    freq = f"{period}min"
     perfect_index = pd.date_range(
         start=recent_df.index[0],
         periods=history_len,
@@ -117,37 +117,43 @@ def run_prediction(
         torch.cuda.empty_cache()
 
     latest_price = df["close"].iloc[-1]
-    model_score = model_score_from_quantiles(
+    atr = calc_atr(df)
+    model_score = model_score_from_quantiles_trend(
         low=low,
         median=median,
         high=high,
         latest_price=latest_price,
-    )
-
-    atr = calc_atr(df)
+        atr=atr
+    )    
     
-    #print('model_score', model_score)
     return PredictionResult(
         low = low,
         median = median,
         high = high,
         model_score = model_score,
-        atr=atr
+        atr=atr,
+        price = latest_price
     )
     #return low, median, high, model_score
 
-
-def model_score_from_quantiles(low: np.ndarray, median: np.ndarray, high: np.ndarray, latest_price: float) -> np.ndarray:
+def model_score_from_quantiles_trend(low, median, high, latest_price, atr):
     """
-    返回 [0, 1] 的 model_score，支持 array
+    基于趋势和 ATR 改进 model_score
     """
     low = np.asarray(low)
     median = np.asarray(median)
     high = np.asarray(high)
 
-    width = (high - low) / np.maximum(np.abs(median), 1e-6)
-    deviation = np.abs(median - latest_price) / np.maximum(np.abs(median), 1e-6)
-    score = deviation / (width + 1e-6)
+    # 最近预测斜率
+    slope = median[-1] - median[0]
 
-    score_float = float(np.clip(np.mean(score), 0.0, 1.0))
+    # 最新价格偏离 median
+    deviation = (latest_price - median[-1]) / (atr + 1e-6)
+
+    # 趋势加偏离，正值支持 LONG，负值支持 SHORT
+    score = slope * 0.6 + deviation * 0.4
+
+    # clip 0~1
+    score_float = float(np.clip((score + 1) / 2, 0.0, 1.0))
     return score_float
+

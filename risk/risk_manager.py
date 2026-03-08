@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from log import signal_log
+
 
 @dataclass
 class TradePlan:
@@ -53,7 +55,7 @@ class RiskManager:
 
             atr_price = last_price * atr
 
-            # ---------- stop candidates ----------
+         # ---------- stop candidates ----------
             sl_chronos = chronos_low if chronos_low < last_price else last_price
             sl_atr = last_price - self.atr_stop_mult * atr_price
 
@@ -64,6 +66,9 @@ class RiskManager:
             max_stop = last_price * (1 - self.min_stop_pct)
 
             stop_loss = max(min(stop_loss, max_stop), min_stop)
+
+            # 确保 stop 在 price 下方
+            stop_loss = min(stop_loss, last_price * 0.999)
 
             # ---------- take candidates ----------
             tp_chronos = chronos_high if chronos_high > last_price else last_price
@@ -85,44 +90,44 @@ class RiskManager:
 
             rr = reward / risk
 
+            # RR 上限保护
+            max_rr = 3.5
+            if rr > max_rr:
+                take_profit = last_price + risk * max_rr
+                reward = take_profit - last_price
+                rr = reward / risk
+
+            # RR 过滤
             if rr < self.min_rr:
                 return TradePlan(False, f"RR 不足 ({rr:.2f})", expected_rr=rr)
-
             # ---------- size ----------
-            risk_amount = capital * self.risk_per_trade
+            available_cash = capital  # 本次最大可用资金
+            risk_per_share = last_price - stop_loss
+            max_shares = int(available_cash / last_price)  # 资金限制
+            risk_shares = int((available_cash * self.risk_per_trade) / risk_per_share)  # 风险限制
+            actual_shares = (risk_shares // self.lot_size)             
+            signal_log(f"max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss},take_profit={take_profit}, expected_rr={round(rr, 2)}")
 
-            raw_size = risk_amount / risk
-
-            size = int(raw_size // self.lot_size) * self.lot_size
-
-            max_size_by_cash = int(capital / last_price // self.lot_size) * self.lot_size
-
-            size = min(size, max_size_by_cash)
-
-            if size <= 0:
+            if actual_shares <= 0:
                 return TradePlan(False, "仓位为 0")
-
             return TradePlan(
                 True,
-                size=size,
+                size=actual_shares,
                 stop_loss=round(stop_loss, 2),
                 take_profit=round(take_profit, 2),
                 expected_rr=round(rr, 2),
             )
 
         except Exception:
+            import traceback
+            traceback.print_exc()
             return TradePlan(False, "风险计算异常")
             # ---------- 止损候选 ----------
 
-    # ===================== 内部工具 =====================
-    def _calc_size(self, capital, risk_amount, per_share_risk):
-        raw_size = risk_amount / per_share_risk
-        size = int(raw_size // self.lot_size) * self.lot_size
-        return max(size, 0)
 
 
 risk_mgr = RiskManager(
-    risk_per_trade=0.01,  # 单笔最多亏 1%
+    risk_per_trade=0.02,  # 单笔最多亏 1%
     min_rr=1.5,  # 最低风险回报比
     min_stop_pct=0.01,  # 最小止损 1%
     max_stop_pct=0.03,  # 最大止损 3%
