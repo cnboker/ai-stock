@@ -25,7 +25,7 @@ def load_chronos_model(
     device = get_device()
     model_path = f"{base_path}/{model_name}"
 
-    print(f"[Chronos] loading {model_name} on {device}")
+    #print(f"[Chronos] loading {model_name} on {device}")
 
     # Chronos-2
     if model_name == "chronos-2":

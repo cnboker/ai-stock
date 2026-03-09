@@ -101,16 +101,18 @@ def execute_stock_decision(
         close_df=close_df,
         eq_decision=session.tradeIntent,
     )
+
+    if ctx.raw_signal == "SHORT":
+        return None
     #signal_log(ctx)
 
     # debugger.update(ctx)
 
     intent = signal_mgr.evaluate(ctx)
-  
-    #signal_log(ctx)        
+
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
-    # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 =====
-    if not intent.confirmed and not intent.force_reduce:
+    # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 + 有仓位=====
+    if not intent.confirmed and not intent.force_reduce :
         return {
             "ticker": ticker,
             **pos_dict,
@@ -118,29 +120,31 @@ def execute_stock_decision(
             "atr": ctx.atr,  # ✅ 强制覆盖
             "action": "HOLD",
         }
-
     # ===== 4️⃣ Risk + Budget =====
-    low_v = float(pre_result.low[-1])
-    high_v = float(pre_result.high[-1])
-    position_value = position_mgr.position_value()
+    plan = None
+    if not position_mgr.has_position(ticker):
+        low_v = float(pre_result.low[-1])
+        high_v = float(pre_result.high[-1])
+        position_value = position_mgr.position_value()
 
-    signal_capital = budget_mgr.get_budget(
-        ticker=ticker,
-        gate_score=intent.gate_mult,
-        available_cash=position_mgr.available_cash,
-        equity=position_mgr.equity,
-        positions_value=position_value,
-    )
+        signal_capital = budget_mgr.get_budget(
+            ticker=ticker,
+            gate_score=intent.gate_mult,
+            available_cash=position_mgr.available_cash,
+            equity=position_mgr.equity,
+            positions_value=position_value,
+        )
 
-    #risk_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
+        signal_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
 
-    plan = risk_mgr.evaluate(
-        last_price=price,
-        chronos_low=low_v,
-        chronos_high=high_v,
-        atr=pre_result.atr,
-        capital=signal_capital,
-    )
+        plan = risk_mgr.evaluate(
+            last_price=price,
+            chronos_low=low_v,
+            chronos_high=high_v,
+            atr=pre_result.atr,
+            capital=signal_capital,
+        )
+        signal_log(f"plan={plan}")
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====
     ret_dict = execute_equity_action(
@@ -151,9 +155,5 @@ def execute_stock_decision(
         plan=plan,
     )
 
-    
-    # 如果 plan 无效，可在日志标记
-    if plan is None:
-        risk_log(f"{ticker} no risk plan (cannot add position)")
     # 返回用于动态表格显示的 dict
     return ret_dict

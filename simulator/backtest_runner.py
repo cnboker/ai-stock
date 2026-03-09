@@ -30,12 +30,14 @@ class BacktestRunner:
             ticker=ticker,
             period=period,
         ).sort_index()
+        cutoff = pd.Timestamp.now() - pd.Timedelta(days=2)
+        self.df_all = self.df_all[self.df_all.index < cutoff]
 
         if self.df_all.empty:
             raise ValueError("无股票数据")
 
-        self.hs300_df = load_index_df(period)
-
+        self.hs300_df = load_index_df(period)        
+        self.hs300_df = self.hs300_df[self.hs300_df.index < cutoff]
         # ===== session (只创建一次) =====
 
         self.eq_recorder = create_equity_recorder(RunMode.SIM, ticker)
@@ -71,9 +73,7 @@ class BacktestRunner:
             .tail(self.days)
             .tolist()
         )
-
-        print("回测日期:", trade_days)
-
+    
         start_price = None
         end_price = None
         save_dir = "outputs"
@@ -105,11 +105,12 @@ class BacktestRunner:
 
             #equity = self.eq_recorder.current_equity
             equity = self.eq_recorder.to_series().iloc[-1]
-            print(f'equity ->{equity}')
+            #print(f'equity ->{equity}')
             self.equity_curve.append(equity)
 
-        plot_prediction(self.ticker, self.period,self.df_all["close"])
         self._report(start_price, end_price)
+        plot_prediction(self.ticker, self.period,self.df_all["close"])
+        
 
     def _simulate_day(self, trade_day):
 
@@ -131,15 +132,15 @@ class BacktestRunner:
                 period=self.period,
                 eq_feat=self.session.eq_feat
             )            
-          
-           
+                     
             decision = execute_stock_decision(
                 ticker=self.ticker,
                 close_df=df_slice["close"],
                 pre_result=pre_result,
                 session=self.session
             )
-            prediction_to_csv(self.ticker, self.period, pre_result, df_combined['close'], decision)
+            if decision  is not None:
+                prediction_to_csv(self.ticker, self.period, pre_result, df_combined['close'], decision)
             #decision_to_csv(self.ticker,self.period, decision)
 
     def _report(self, start_price, end_price):

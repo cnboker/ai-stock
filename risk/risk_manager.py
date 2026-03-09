@@ -21,8 +21,8 @@ class RiskManager:
         self,
         risk_per_trade=0.01,  # 单笔最多亏 1%
         min_rr=1.5,  # 最小风险回报比
-        min_stop_pct=0.01,  # 最小止损 1%
-        max_stop_pct=0.03,  # 最大止损 3%
+        min_stop_pct=0.02,  # 最小止损 1%
+        max_stop_pct=0.08,  # 最大止损 3%
         min_take_pct=0.01,  # 最小止盈 1%
         atr_stop_mult=1.2,  # ATR 止损倍数
         atr_take_mult=2.0,  # ATR 止盈倍数
@@ -53,13 +53,15 @@ class RiskManager:
             if atr <= 0:
                 return TradePlan(False, "ATR 无效")
 
-            atr_price = last_price * atr
+          # ---------- ATR ----------
+            atr_price = atr
 
-         # ---------- stop candidates ----------
+            # ---------- stop candidates ----------
             sl_chronos = chronos_low if chronos_low < last_price else last_price
             sl_atr = last_price - self.atr_stop_mult * atr_price
 
-            stop_loss = min(sl_chronos, sl_atr)
+            # 用更紧的止损
+            stop_loss = max(sl_chronos, sl_atr)
 
             # ---------- clamp stop ----------
             min_stop = last_price * (1 - self.max_stop_pct)
@@ -67,10 +69,7 @@ class RiskManager:
 
             stop_loss = max(min(stop_loss, max_stop), min_stop)
 
-            # 确保 stop 在 price 下方
-            stop_loss = min(stop_loss, last_price * 0.999)
-
-            # ---------- take candidates ----------
+            # ---------- take ----------
             tp_chronos = chronos_high if chronos_high > last_price else last_price
             tp_atr = last_price + self.atr_take_mult * atr_price
             tp_min = last_price * (1 + self.min_take_pct)
@@ -91,7 +90,7 @@ class RiskManager:
             rr = reward / risk
 
             # RR 上限保护
-            max_rr = 3.5
+            max_rr = 2.5
             if rr > max_rr:
                 take_profit = last_price + risk * max_rr
                 reward = take_profit - last_price
@@ -103,10 +102,14 @@ class RiskManager:
             # ---------- size ----------
             available_cash = capital  # 本次最大可用资金
             risk_per_share = last_price - stop_loss
-            max_shares = int(available_cash / last_price)  # 资金限制
-            risk_shares = int((available_cash * self.risk_per_trade) / risk_per_share)  # 风险限制
-            actual_shares = (risk_shares // self.lot_size)             
-            signal_log(f"max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss},take_profit={take_profit}, expected_rr={round(rr, 2)}")
+
+            max_shares = int(available_cash / last_price)
+            risk_shares = int((available_cash * self.risk_per_trade) / risk_per_share)
+
+            allowed_shares = min(max_shares, risk_shares)
+
+            actual_shares = allowed_shares // self.lot_size          
+            signal_log(f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss},take_profit={take_profit}, expected_rr={round(rr, 2)}")
 
             if actual_shares <= 0:
                 return TradePlan(False, "仓位为 0")

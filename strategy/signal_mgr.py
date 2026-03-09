@@ -46,7 +46,8 @@ class SignalManager:
 
     def evaluate(self, ctx: DecisionContext) -> TradeIntent:
         score = ctx.raw_score
-
+        # if ctx.regime == "bad":
+        #     return TradeIntent(confirmed=False, reason="bad regime")
         # =========================
         # 0️⃣ 风控优先级最高（直接 bypass debounce）
         # =========================

@@ -8,10 +8,10 @@ from strategy.slope import corrected_slope
 
 def make_signal(predicted_up, slope, model_score):
 
-    if model_score > 0.56 and predicted_up > 0.004 and slope > 0.1:
+    if model_score > 0.5 and predicted_up > 0 and slope > 0:
         return "LONG"
 
-    if model_score < 0.44 and predicted_up < -0.004 and slope < -0.1:
+    if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
         return "SHORT"
 
     return "HOLD"
@@ -99,8 +99,7 @@ class DecisionContextBuilder:
         )
         # 价格在涨 → 但 slope / model 仍然系统性偏空 → 这是模型结构问题,这个做短期修正
         slope = corrected_slope(slope_raw, close_df.values[-10:])
-        if median[-1]> latest_price:
-            print(f"med:{median[-1]}, price={latest_price}, pre_up={predicted_up}, slope={slope}")
+     
         # =========================
         # 2️⃣ 原始信号
         # =========================
@@ -112,6 +111,7 @@ class DecisionContextBuilder:
         if eq_decision.action and has_position:
             raw_signal = eq_decision.action
 
+    
         # =========================
         # 4️⃣ Gate / slope / strength
         # =========================
@@ -159,9 +159,11 @@ class DecisionContextBuilder:
 
         action_signal = self.position_mgr.check_stop_take(ticker, latest_price)
         if action_signal:
+            signal_log(f"LIQUIDATE: price={latest_price}, date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}")
             raw_signal = "LIQUIDATE"
 
-        return DecisionContext(
+  
+        ctx = DecisionContext(
             # ===== 标识 =====
             ticker=ticker,
             # ===== 市场 =====
@@ -192,3 +194,8 @@ class DecisionContextBuilder:
             raw_signal=raw_signal,
             raw_score=raw_score,
         )
+
+        if raw_signal == "LONG":
+            signal_log(f"LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, {median[-1]}, price={latest_price}, pre_up={predicted_up}, slope={slope} model_score={model_score}")
+            signal_log(ctx)
+        return ctx
