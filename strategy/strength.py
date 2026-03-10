@@ -8,16 +8,17 @@ def compute_strength(
     alpha: float = 1.5,
     max_strength: float = 1.0,
 ):
-    """
-    strength ∈ [0, max_strength]
-    """
 
-    # 没方向 or gate 太小
-    if abs(slope) < 0.05 or gate < 0.2:
+    if gate < 0.2:
         return 0.0
 
-    # slope → 非线性强度
-    slope_strength = abs(slope) ** alpha
+    # 只允许上涨
+    slope_pos = max(0.0, slope)
+
+    if slope_pos < 0.05:
+        return 0.0
+
+    slope_strength = slope_pos ** alpha
 
     strength = gate * slope_strength
 

@@ -29,21 +29,29 @@ def corrected_slope(
     prices: np.ndarray,
     k: int = 5,
     alpha: float = 0.7,
+    scale: float = 3.0,
 ):
     """
-    slope_raw: 你现在算出来的 slope
-    prices: 最新价格数组（tick 或 close）
-    k: 用最近 k 个点
-    alpha: 原 slope 保留权重
+    slope_raw : 原始 slope
+    prices    : 最近价格
+    k         : 短期窗口
+    alpha     : slope 权重
+    scale     : 去饱和尺度
     """
 
-    if len(prices) < k + 1:
-        return slope_raw
+    # --- 去饱和 ---
+    slope_norm = slope_raw / (abs(slope_raw) + scale)
 
+    if len(prices) < k + 1:
+        return slope_norm
+
+    # --- 短期动量 ---
     recent_ret = (prices[-1] - prices[-k]) / prices[-k]
 
-    # 映射到 slope 量纲（避免过大）
-    recent_dir = np.tanh(recent_ret * 50)
+    # 轻度压缩
+    recent_dir = np.tanh(recent_ret * 3)
 
-    slope_fixed = alpha * slope_raw + (1 - alpha) * recent_dir
-    return slope_fixed
+    # --- 融合 ---
+    slope_fixed = alpha * slope_norm + (1 - alpha) * recent_dir
+
+    return float(np.clip(slope_fixed, -1.0, 1.0))

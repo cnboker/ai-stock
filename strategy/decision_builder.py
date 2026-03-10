@@ -38,7 +38,7 @@ class DecisionContextBuilder:
             return "LONG"
 
         if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
-            return "SHORT"
+            return "HOLD" #不能做空, "SHORT"
 
         return "HOLD"
 
@@ -100,8 +100,8 @@ class DecisionContextBuilder:
             horizon=1,
         )
         # 价格在涨 → 但 slope / model 仍然系统性偏空 → 这是模型结构问题,这个做短期修正
-        slope = corrected_slope(slope_raw, close_df.values[-10:])
-
+        #slope = corrected_slope(slope_raw, close_df.values[-10:])
+        slope = slope_raw
         # =========================
         # 2️⃣ 原始信号
         # =========================
@@ -135,9 +135,9 @@ class DecisionContextBuilder:
         # ========= Signal regime =========
         signal_regime = "neutral"
 
-        if strength > 0.7 and gate_result.allow:
+        if slope > 0.4 and model_score > 0.55 and gate_result.allow:
             signal_regime = "good"
-        elif strength < 0.2:
+        elif slope < -0.4:
             signal_regime = "bad"
 
         equity_regime = eq_decision.regime
@@ -159,7 +159,7 @@ class DecisionContextBuilder:
             )
             raw_signal = "LIQUIDATE"
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
-
+        signal_log(f"symbol={ticker} slope={slope} model_score={model_score} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} ")
         ctx = DecisionContext(
             # ===== 标识 =====
             ticker=ticker,
