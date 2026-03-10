@@ -7,7 +7,7 @@ from infra.core.runtime import RunMode
 from pandas import DataFrame
 from position.position_manager import PositionManager
 from equity.equity_recorder import EquityRecorder
-from strategy.equity_policy import TradeIntent
+from strategy.trade_intent import TradeIntent
 
 @dataclass
 class TradingSession:

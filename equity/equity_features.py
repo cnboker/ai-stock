@@ -4,6 +4,7 @@ import pandas as pd
 def zscore(s: pd.Series, win: int):
     return (s - s.rolling(win).mean()) / (s.rolling(win).std() + 1e-8)
 
+#生成 eq_feat
 def equity_features(eq)-> pd.DataFrame:
     # 基础检查：如果数据长度不足以支撑最大的窗口 (50)，直接返回空表
     # 这能避免 rolling 产生全 NaN 导致的后续逻辑崩溃

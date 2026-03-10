@@ -1,6 +1,6 @@
 import pandas as pd
 from risk.risk_manager import TradePlan
-from strategy.equity_policy import TradeIntent
+from strategy.trade_intent import TradeIntent
 
 """
 典型触发场景:decision.force_reduce

@@ -3,7 +3,7 @@ from data.loader import load_stock_df
 from config.settings import TICKER_PERIOD
 from predict.chronos_predict import run_prediction
 from predict.predict_result import PredictionResult
-from strategy.equity_policy import TradeIntent
+from strategy.trade_intent import TradeIntent
 from trade.trade_engine import execute_stock_decision
 from infra.core.context import TradingSession
 from infra.core.runtime import RunMode

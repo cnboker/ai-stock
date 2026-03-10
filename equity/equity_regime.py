@@ -17,7 +17,11 @@ slope = 总资产曲线的趋势斜率
 
 '''
 
+#判断状态,Equity Regime（资金状态）
+
 def equity_regime(eq_feat):
+    if eq_feat is None or eq_feat.empty:
+        return "neutral"
     """
     返回: good / neutral / bad
     """

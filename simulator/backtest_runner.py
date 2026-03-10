@@ -30,7 +30,7 @@ class BacktestRunner:
             ticker=ticker,
             period=period,
         ).sort_index()
-        cutoff = pd.Timestamp.now() - pd.Timedelta(days=2)
+        cutoff = pd.Timestamp.now() - pd.Timedelta(days=1)
         self.df_all = self.df_all[self.df_all.index < cutoff]
 
         if self.df_all.empty:
@@ -66,7 +66,6 @@ class BacktestRunner:
         plot_prediction(self.ticker, self.period,self.df_all["close"])
 
     def run(self):
-
         trade_days = (
             pd.Series(self.df_all.index.date)
             .drop_duplicates()

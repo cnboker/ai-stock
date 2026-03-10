@@ -4,7 +4,6 @@ import pandas as pd
 from data.loader import load_stock_df
 from predict.chronos_predict import run_prediction
 from predict.time_utils import build_future_index
-from strategy.equity_policy import TradeIntent
 from trade.trade_engine import execute_stock_decision
 from infra.core.context import TradingSession
 from predict.prediction_store import update_prediction_history

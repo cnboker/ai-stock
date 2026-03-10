@@ -1,5 +1,3 @@
-from venv import logger
-
 import numpy as np
 from pandas import DataFrame, Series
 from global_state import equity_engine
@@ -8,13 +6,10 @@ from log import signal_log, risk_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
 from strategy.decision_builder import DecisionContextBuilder
-from strategy.equity_policy import TradeIntent
 from strategy.signal_debouncer import debouncer_manager
 from risk.budget_manager import budget_mgr
 from strategy.signal_mgr import SignalManager
 from trade.equity_executor import execute_equity_action
-from strategy.equity_policy import TradeIntent
-from config.settings import ticker_name_map
 from strategy.gate import gater
 from plot.decision_debugger import DecisionDebugger
 

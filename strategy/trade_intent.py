@@ -6,7 +6,7 @@ from strategy.decision_context import GoodHoldReason
 @dataclass
 class TradeIntent:    
     #===== 决策结果层 =====
-    action:str                # ->最终执行动作,decide_equity_policy->cooldown_mgr.update后， cooldown 之后的最终动作
+    action:str                # ->最终执行动作,EquityEngine.decide->cooldown_mgr.update后， cooldown 之后的最终动作
     raw_action: str | None = None  # 原始意图（新增）;decide_equity_policy执行后  
 
     ## ===== 市场 / 风控状态 =====

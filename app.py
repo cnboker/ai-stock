@@ -102,7 +102,7 @@ def update_graph(_):
 
     eq_feat = equity_features(eq_recorder.to_series())
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
-    equity_engine.log_equity_decision(eq_feat, eq_decision)
+
     session = TradingSession(
         run_mode=RunMode.LIVE,
         period=str(period),
