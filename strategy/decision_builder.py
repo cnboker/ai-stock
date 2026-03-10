@@ -6,6 +6,7 @@ from strategy.strength import compute_strength
 from log import signal_log
 from strategy.slope import corrected_slope
 from equity.regime_cooldown import regime_cooldown
+from strategy.trade_intent import TradeIntent
 
 """
 1 Gate 判断
@@ -79,7 +80,7 @@ class DecisionContextBuilder:
         model_score: float,
         eq_feat,
         close_df,
-        eq_decision,
+        eq_decision:TradeIntent,
     ) -> DecisionContext:
 
         # =========================
@@ -187,6 +188,7 @@ class DecisionContextBuilder:
             # ===== 原始信号 =====
             raw_signal=raw_signal,
             raw_score=raw_score,
+            reduce_strength=eq_decision.reduce_strength
         )
 
         if raw_signal == "LONG":
