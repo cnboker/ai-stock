@@ -7,27 +7,7 @@ from log import signal_log
 from strategy.slope import corrected_slope
 from equity.regime_cooldown import regime_cooldown
 
-
-def make_signal(predicted_up, slope, model_score):
-
-    if model_score > 0.5 and predicted_up > 0 and slope > 0:
-        return "LONG"
-
-    if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
-        return "SHORT"
-
-    return "HOLD"
-
-
 """
-HOLD 不再是 0
-
-model_score 永远生效
-
-gate_mult 自然降权
-
-raw_score 不会全灭
-
 1 Gate 判断
 2 模型预测
 3 slope 修正
@@ -38,35 +18,7 @@ raw_score 不会全灭
 8 regime 合成
 9 position stop/take
 10 DecisionContext
-
 """
-
-
-def compute_score(
-    *,
-    raw_signal: str,
-    model_score: float,
-    gate_mult: float = 1.0,
-    hold_penalty: float = 0.3,
-) -> float:
-    model_score = abs(model_score)
-    if raw_signal == "LONG":
-        direction = 1.0
-
-    elif raw_signal == "SHORT":
-        direction = -1.0
-
-    elif raw_signal == "HOLD":
-        direction = 0.0
-        model_score *= hold_penalty
-
-    else:
-        return 0.0
-
-    score = direction * model_score * gate_mult
-    return float(np.clip(score, -1.0, 1.0))
-
-
 class DecisionContextBuilder:
     def __init__(
         self,
@@ -78,6 +30,42 @@ class DecisionContextBuilder:
         self.equity_engine = equity_engine
         self.gater = gater
         self.position_mgr = position_mgr
+
+    def make_signal(self,predicted_up, slope, model_score):
+
+        if model_score > 0.5 and predicted_up > 0 and slope > 0:
+            return "LONG"
+
+        if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
+            return "SHORT"
+
+        return "HOLD"
+
+
+    def compute_score(
+        self,
+        *,
+        raw_signal: str,
+        model_score: float,
+        gate_mult: float = 1.0,
+        hold_penalty: float = 0.3,
+    ) -> float:
+        model_score = abs(model_score)
+        if raw_signal == "LONG":
+            direction = 1.0
+
+        elif raw_signal == "SHORT":
+            direction = -1.0
+
+        elif raw_signal == "HOLD":
+            direction = 0.0
+            model_score *= hold_penalty
+
+        else:
+            return 0.0
+
+        score = direction * model_score * gate_mult
+        return float(np.clip(score, -1.0, 1.0))
 
     def build(
         self,
@@ -117,7 +105,7 @@ class DecisionContextBuilder:
         # 2️⃣ 原始信号
         # =========================
         if gate_result.allow:
-            raw_signal = make_signal(predicted_up, slope, model_score)
+            raw_signal = self.make_signal(predicted_up, slope, model_score)
         else:
             raw_signal = "HOLD"
         has_position = self.position_mgr.has_position(ticker)
@@ -137,7 +125,7 @@ class DecisionContextBuilder:
         # =========================
         # 5️⃣ raw_score
         # =========================
-        raw_score = compute_score(
+        raw_score = self.compute_score(
             raw_signal=raw_signal,
             model_score=model_score,
             gate_mult=gate_mult,
@@ -207,3 +195,5 @@ class DecisionContextBuilder:
             )
             signal_log(ctx)
         return ctx
+
+

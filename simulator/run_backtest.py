@@ -5,7 +5,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data
 
 runner = BacktestRunner(
     ticker="sh600938",
-    days=60,
+    days=30,
     period="60" #30 minutes
 )
 
