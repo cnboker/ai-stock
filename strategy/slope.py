@@ -1,28 +1,19 @@
 import numpy as np
 
-
-def compute_slope(
-    predicted_up: float,
-    *,
-    horizon: int = 1,
-    slope_scale: float = 0.01,
-):
-    """
-    slope ∈ [-1, 1]
-    predicted_up: 预测涨跌幅（如 +0.005 = +0.5%）
-    horizon: 预测跨度（bar 数）
-    """
-
-    if predicted_up is None:
+def compute_slope(prices, window=20):
+   
+    if len(prices) < window:
         return 0.0
 
-    raw_slope = predicted_up / max(1, horizon)
+    y = prices[-window:]
+    x = np.arange(window)
 
-    # tanh 压缩，避免极端值
-    slope = np.tanh(raw_slope / slope_scale)
+    slope = np.polyfit(x, y, 1)[0]
+
+    # 归一化
+    slope = slope / np.mean(y)
 
     return float(slope)
-
 
 def corrected_slope(
     slope_raw: float,

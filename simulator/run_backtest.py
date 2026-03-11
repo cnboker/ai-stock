@@ -4,9 +4,9 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")
 
 runner = BacktestRunner(
-    ticker="sh600938",
-    days=30,
-    period="60" #30 minutes
+    ticker="sz002137",
+    days=20,
+    period="15" #30 minutes
 )
 
 runner.run()

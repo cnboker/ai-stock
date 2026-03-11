@@ -20,6 +20,8 @@ from strategy.trade_intent import TradeIntent
 9 position stop/take
 10 DecisionContext
 """
+
+
 class DecisionContextBuilder:
     def __init__(
         self,
@@ -32,16 +34,15 @@ class DecisionContextBuilder:
         self.gater = gater
         self.position_mgr = position_mgr
 
-    def make_signal(self,predicted_up, slope, model_score):
+    def make_signal(self, predicted_up, slope, model_score):
 
-        if model_score > 0.5 and predicted_up > 0 and slope > 0:
+        if model_score > 0.55  and slope > 0.002:
             return "LONG"
 
         if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
-            return "HOLD" #不能做空, "SHORT"
+            return "HOLD"  # 不能做空, "SHORT"
 
         return "HOLD"
-
 
     def compute_score(
         self,
@@ -80,7 +81,7 @@ class DecisionContextBuilder:
         model_score: float,
         eq_feat,
         close_df,
-        eq_decision:TradeIntent,
+        eq_decision: TradeIntent,
     ) -> DecisionContext:
 
         # =========================
@@ -95,12 +96,9 @@ class DecisionContextBuilder:
 
         predicted_up = calc(low, median, high, latest_price)
 
-        slope_raw = compute_slope(
-            predicted_up=predicted_up,
-            horizon=1,
-        )
+        slope_raw = compute_slope(close_df.values)
         # 价格在涨 → 但 slope / model 仍然系统性偏空 → 这是模型结构问题,这个做短期修正
-        #slope = corrected_slope(slope_raw, close_df.values[-10:])
+        # slope = corrected_slope(slope_raw, close_df.values[-10:])
         slope = slope_raw
         # =========================
         # 2️⃣ 原始信号
@@ -153,13 +151,18 @@ class DecisionContextBuilder:
         position_size = pos.size if pos else 0.0
 
         action_signal = self.position_mgr.check_stop_take(ticker, latest_price)
+        liquidate_reason = None
         if action_signal:
             signal_log(
                 f"LIQUIDATE: price={latest_price}, date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}"
             )
             raw_signal = "LIQUIDATE"
+            liquidate_reason = action_signal
+
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
-        signal_log(f"symbol={ticker} slope={slope} model_score={model_score} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} ")
+        signal_log(
+            f"symbol={ticker} slope={slope} model_score={model_score} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} "
+        )
         ctx = DecisionContext(
             # ===== 标识 =====
             ticker=ticker,
@@ -184,11 +187,12 @@ class DecisionContextBuilder:
             # ===== 资金 / 仓位 =====
             dd=dd,
             has_position=has_position,
-            allow_add = (not has_position) and final_regime != "bad",
+            allow_add=(not has_position) and final_regime != "bad",
             # ===== 原始信号 =====
             raw_signal=raw_signal,
             raw_score=raw_score,
-            reduce_strength=eq_decision.reduce_strength
+            reduce_strength=eq_decision.reduce_strength,
+            liquidate_reason=liquidate_reason,
         )
 
         if raw_signal == "LONG":
@@ -197,5 +201,3 @@ class DecisionContextBuilder:
             )
             signal_log(ctx)
         return ctx
-
-

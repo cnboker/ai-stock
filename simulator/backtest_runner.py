@@ -134,7 +134,7 @@ class BacktestRunner:
                      
             decision = execute_stock_decision(
                 ticker=self.ticker,
-                close_df=df_slice["close"],
+                close_df=df_combined["close"],
                 pre_result=pre_result,
                 session=self.session
             )

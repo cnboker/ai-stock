@@ -52,8 +52,6 @@ class SignalManager:
         # 0️⃣ 风控优先级最高（直接 bypass debounce）
         # =========================
         if ctx.raw_signal in ("REDUCE", "LIQUIDATE"):
-            signal_log("bypass debounce for force reduce")
-
             return TradeIntent(
                 action=ctx.raw_signal,
                 confidence=1.0,
@@ -69,7 +67,7 @@ class SignalManager:
                 regime=ctx.regime,
                 gate_allow=ctx.gate_allow,
                 gate_mult=ctx.gate_mult,
-                reason="force_reduce_bypass_debounce"
+                reason= ctx.liquidate_reason
             )
 
         # =========================

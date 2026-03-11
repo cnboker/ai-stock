@@ -4,6 +4,13 @@ EquityRecorder     ← 记录资金曲线
 EquityFeature      ← 计算 dd / slope / zscore
       ↓
 EquityRiskEngine   ← 最终交易决策
+
+DD > -3%      risk = 1.0
+-3% ~ -6%     risk = 0.8
+-6% ~ -10%    risk = 0.6
+-10% ~ -15%   risk = 0.4
+< -15%        risk = 0.25
+不会卡死系统
 '''
 
 from equity.equity_gate import equity_gate
@@ -15,7 +22,24 @@ class EquityRiskEngine:
 
     def __init__(self, cooldown_mgr):
         self.cooldown_mgr = cooldown_mgr
-        self.dd_level = 0
+
+    def compute_risk_scale(self, dd):
+
+        dd_abs = abs(dd)
+
+        if dd_abs < 0.03:
+            return 1.0
+
+        if dd_abs < 0.06:
+            return 0.8
+
+        if dd_abs < 0.10:
+            return 0.6
+
+        if dd_abs < 0.15:
+            return 0.4
+
+        return 0.25
 
     def decide(self, eq_feat, has_position):
 
@@ -29,49 +53,60 @@ class EquityRiskEngine:
         dd = eq_feat["eq_drawdown"].iloc[-1]
         slope = eq_feat["eq_slope"].iloc[-1]
 
-        dd_abs = abs(dd)
-
         action = "HOLD"
         reduce_strength = 0.0
         reason = ""
 
-        # ===== 最大回撤保护 =====
+        # ======================
+        # 1️⃣ 风险缩放
+        # ======================
 
-        if dd_abs > 0.10:
-            action = "REDUCE"
-            reduce_strength = 1.0
-            reason = "max_drawdown"
+        risk_scale = self.compute_risk_scale(dd)
 
-        # ===== 中级回撤 =====
+        gate_mult *= risk_scale
 
-        elif dd_abs > 0.06:
-            action = "REDUCE"
-            reduce_strength = 0.6
-            reason = "drawdown_mid"
-
-        # ===== 小回撤 =====
-
-        elif dd_abs > 0.03:
-            action = "REDUCE"
-            reduce_strength = 0.3
-            reason = "drawdown_small"
-
-        # ===== slope 崩坏 =====
+        # ======================
+        # 2️⃣ slope 崩坏保护
+        # ======================
 
         if slope < -0.002:
-            action = "REDUCE"
-            reduce_strength = max(reduce_strength, 0.5)
+
+            if has_position:
+                action = "REDUCE"
+                reduce_strength = 0.5
+
+            gate_mult *= 0.7
+
             reason = "equity_slope_break"
 
-        # ===== bad regime =====
+        # ======================
+        # 3️⃣ regime 风控
+        # ======================
 
         if regime == "bad":
-            gate_mult = 0.0
+
+            # 不完全锁死
+            gate_mult *= 0.3
 
             if has_position:
                 action = "REDUCE"
                 reduce_strength = max(reduce_strength, 0.5)
-                reason = "bad_regime"
+
+            reason = "bad_regime"
+
+        # ======================
+        # 4️⃣ 极端回撤保护
+        # ======================
+
+        if abs(dd) > 0.18:
+
+            gate_mult = 0
+
+            if has_position:
+                action = "REDUCE"
+                reduce_strength = 1.0
+
+            reason = "max_drawdown"
 
         return TradeIntent(
             action=action,

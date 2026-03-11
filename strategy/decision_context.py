@@ -60,6 +60,7 @@ class DecisionContext:
     slope_decay_thresh: float = 0.0
     
     reduce_strength: float = 0.0
+    liquidate_reason: str | None = None
     # =========================
     # JSON / Dict
     # =========================

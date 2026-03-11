@@ -69,7 +69,7 @@ def execute_equity_action(
     # 4️⃣ 正常交易
     # ====================
     else:
-        if decision.action == "LONG" and plan.allow_trade:
+        if decision.action == "LONG" and plan and plan.allow_trade:
             if plan.size > 0:
                 position_mgr.open_or_add(
                     ticker=ticker,
@@ -92,7 +92,7 @@ def execute_equity_action(
         elif decision.action == "REDUCE":
             reduce_size = (
                 plan.size
-                if (plan is not None and plan.size > 0)
+                if (plan and plan.size > 0)
                 else (decision.reduce_strength or 0.3)
             )
             position_mgr.reduce(
@@ -105,7 +105,7 @@ def execute_equity_action(
 
     # 交易完成后更新仓位信息
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
-
+    
     return {
         "ticker": ticker,
         **pos_dict,

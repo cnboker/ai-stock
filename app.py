@@ -99,7 +99,6 @@ def update_graph(_):
     dfs = {}
 
     # ===== 更新 equity 记录 =====
-    eq_recorder.add(position_mgr.equity)
 
     eq_feat = equity_features(eq_recorder.to_series())
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())

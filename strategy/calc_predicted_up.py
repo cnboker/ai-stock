@@ -19,4 +19,4 @@ def calc(
         up = (pred - latest_price) / latest_price
         risk = max(0.0, (latest_price - low_pred) / latest_price)
 
-        return float(up - 0.1 * risk)
+        return float(up - 0.5 * risk)

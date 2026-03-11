@@ -1,3 +1,10 @@
 account: ''
-cash: 100296.0
-positions: {}
+cash: 90001.0
+positions:
+  sz002137:
+    direction: LONG
+    entry_price: 8.86
+    open_time: '2026-03-11T22:42:14.931458'
+    size: 11
+    stop_loss: 8.77
+    take_profit: 9.0
