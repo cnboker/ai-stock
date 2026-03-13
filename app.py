@@ -24,7 +24,7 @@ from equity.equity_features import equity_features
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
+import warnings
 from dash import Dash, dcc, html, Input, Output, callback, no_update
 
 # ========================== 项目内模块 ==========================

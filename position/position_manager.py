@@ -83,7 +83,8 @@ class PositionManager:
         pos = self.positions.get(ticker)
         if not pos:
             return None
-
+        if pos.size == 0:
+            return None
         # LONG 仓位
         if pos.direction == "LONG":
             if pos.stop_loss is not None and price <= pos.stop_loss:
@@ -372,13 +373,14 @@ class PositionManager:
             price: float,
             reason: str,
         ):
-            pos = self.positions.pop(ticker, None)
+            pos = self.positions.get(ticker)
             if not pos:
                 return
-
+            if pos.size == 0:
+                return
             value = pos.size * price * pos.contract_size
             self.cash += value
-
+            pos.size = 0
             self._record(
                 symbol=ticker,
                 action="CLOSE",

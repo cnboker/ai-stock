@@ -20,7 +20,7 @@ ALL_TICKERS = [
     {"code": "sz159908", "name": "创业板etf"}
 ]
 ticker_name_map = {t["code"]:t["name"] for t in ALL_TICKERS}
-COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc","#fa66ec","#f866c0"]
+COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc","#fa66ec","#f866c0","#a866a0","#b866b0","#c816c0","#f566c0"]
 HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
 #MODEL_NAME = "chronos-t5-large"

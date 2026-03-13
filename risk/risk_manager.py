@@ -90,7 +90,7 @@ class RiskManager:
             rr = reward / risk
 
             # RR 上限保护
-            max_rr = 2.5
+            max_rr = 3
             if rr > max_rr:
                 take_profit = last_price + risk * max_rr
                 reward = take_profit - last_price

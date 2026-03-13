@@ -22,7 +22,8 @@ def draw_prediction_band(fig, history_pred, index, name):
         return
 
     row, col = subplot_position(index)
-    color = COLORS[index]
+    #循环取颜色
+    color = COLORS[index % len(COLORS)]
 
     fig.add_trace(
         go.Scatter(
