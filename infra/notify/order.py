@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Dict, Any
-
+import os
 from config.settings import ENABLE_LIVE_PERSIST
 from infra.persistence.live_positions import persist_live_positions
 
@@ -42,4 +42,5 @@ def notify_order(event: OrderEvent,position_mgr):
         and event.action in {"OPEN", "CLOSE", "REDUCE"}
     ):
         #增加语音播报
+        os.system("data/tick.mp3")
         persist_live_positions(position_mgr)
