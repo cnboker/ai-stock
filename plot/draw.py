@@ -72,13 +72,13 @@ def hex_to_rgba(hex_color, alpha=0.25):
 def draw_realtime_price(fig, df, index, name):
     today_df = df[df.index.date == datetime.now().date()]
     row, col = subplot_position(index)
-
+    color = COLORS[index % len(COLORS)]
     fig.add_trace(
         go.Scatter(
             x=today_df.index,
             y=today_df["close"],
             mode="lines",
-            line=dict(color=COLORS[index], width=3),
+            line=dict(color=color, width=3),
             name=f"{name} 实时",
             legendgroup=name,
         ),
@@ -89,7 +89,7 @@ def draw_realtime_price(fig, df, index, name):
 
 def draw_current_prediction(fig, future_index, low, median, high, index, name):
     row, col = subplot_position(index)
-    color = COLORS[index]
+    color = COLORS[index % len(COLORS)]
 
     fig.add_trace(
         go.Scatter(

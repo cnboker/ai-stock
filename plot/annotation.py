@@ -2,12 +2,13 @@ from config.settings import COLORS
 
 # 记录用于后面打标签
 def generate_tail_label(future_index, median, high, index, name):
+    color = COLORS[index % len(COLORS)]
     return {
         "x": future_index[-1],
         "y": high[-1],
         "name": name,
         "price": median[-1],
-        "color": COLORS[index],
+        "color": color,
     }
 
 def create_annotation(prediction_tails):
@@ -22,6 +23,10 @@ def create_annotation(prediction_tails):
         ("x4", "y4"),  # 第4只：右下
         ("x5", "y5"),  # 第4只：右下
         ("x6", "y6"),  # 第4只：右下
+        ("x7", "y7"),
+        ("x8", "y8"),
+        ("x9", "y9"),
+        ("x10", "y10"),
     ]
 
     for i, tail in enumerate(prediction_tails):

@@ -41,4 +41,5 @@ def notify_order(event: OrderEvent,position_mgr):
         and event.status == "FILLED"
         and event.action in {"OPEN", "CLOSE", "REDUCE"}
     ):
+        #增加语音播报
         persist_live_positions(position_mgr)
