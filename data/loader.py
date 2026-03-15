@@ -28,7 +28,7 @@ def load_stock_df(ticker: str, period: str) -> pd.DataFrame:
 def fetch_sina_quote(symbol,minites):
     #datalen=512(30min, 3months)
     ts = int(time.time() * 1000)  # 毫秒时间戳强制避免缓存
-    url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=800"
+    url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=300"
     #print('url->',url)
     headers = {
         "Referer": "https://finance.sina.com.cn",

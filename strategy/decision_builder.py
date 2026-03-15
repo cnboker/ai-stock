@@ -36,7 +36,7 @@ class DecisionContextBuilder:
 
     def make_signal(self, predicted_up, slope, model_score):
 
-        if model_score > 0.55  and slope > 0.002:
+        if model_score > 0.5 and slope > 0:
             return "LONG"
 
         if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
@@ -150,19 +150,31 @@ class DecisionContextBuilder:
         pos = self.position_mgr.get(ticker)
         position_size = pos.size if pos else 0.0
 
-        action_signal = self.position_mgr.check_stop_take(ticker, latest_price)
+        # 更新移动止损
+        self.position_mgr.update_trailing_stop(ticker, latest_price, atr)
+
+        # 止损
         liquidate_reason = None
-        if action_signal:
-            signal_log(
-                f"LIQUIDATE: price={latest_price}, date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}"
-            )
+        if pos and pos.size > 0 and latest_price <= pos.stop_loss:
             raw_signal = "LIQUIDATE"
-            liquidate_reason = action_signal
+            liquidate_reason = "STOP LOSS"
+
+        # 止盈
+        action = self.position_mgr.check_take_profit(ticker, latest_price)
+        reduce_strength = eq_decision.reduce_strength
+        if pos and pos.size > 0 and action == "reduce_half":
+            raw_signal = "REDUCE"
+            liquidate_reason = "TAKE_PROFIT"
+            reduce_strength = 0.5
 
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
-        signal_log(
-            f"symbol={ticker} slope={slope} model_score={model_score} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} "
-        )
+        if slope > 0:
+            signal_log(
+                f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f}  "
+            )
+            # signal_log(
+            #     f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} "
+            # )
         ctx = DecisionContext(
             # ===== 标识 =====
             ticker=ticker,
@@ -191,7 +203,7 @@ class DecisionContextBuilder:
             # ===== 原始信号 =====
             raw_signal=raw_signal,
             raw_score=raw_score,
-            reduce_strength=eq_decision.reduce_strength,
+            reduce_strength=reduce_strength,
             liquidate_reason=liquidate_reason,
         )
 
@@ -199,5 +211,5 @@ class DecisionContextBuilder:
             signal_log(
                 f"LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, {median[-1]}, price={latest_price}, pre_up={predicted_up}, slope={slope} model_score={model_score}"
             )
-            signal_log(ctx)
+            # signal_log(ctx)
         return ctx

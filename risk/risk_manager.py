@@ -19,7 +19,7 @@ class TradePlan:
 class RiskManager:
     def __init__(
         self,
-        risk_per_trade=0.01,  # 单笔最多亏 1%
+        risk_per_trade=0.02,  # 单笔最多亏 1%
         min_rr=1.5,  # 最小风险回报比
         min_stop_pct=0.02,  # 最小止损 1%
         max_stop_pct=0.08,  # 最大止损 3%
@@ -54,31 +54,24 @@ class RiskManager:
                 return TradePlan(False, "ATR 无效")
 
           # ---------- ATR ----------
-            atr_price = atr
+            atr_price = atr * last_price
 
-            # ---------- stop candidates ----------
-            sl_chronos = chronos_low if chronos_low < last_price else last_price
+            sl_chronos = chronos_low
             sl_atr = last_price - self.atr_stop_mult * atr_price
 
-            # 用更紧的止损
             stop_loss = max(sl_chronos, sl_atr)
 
-            # ---------- clamp stop ----------
-            min_stop = last_price * (1 - self.max_stop_pct)
-            max_stop = last_price * (1 - self.min_stop_pct)
+            # 最小止损保护
+            min_stop = last_price * 0.99
+            max_stop = last_price * 0.94
 
-            stop_loss = max(min(stop_loss, max_stop), min_stop)
+            stop_loss = min(max(stop_loss, max_stop), min_stop)
 
             # ---------- take ----------
-            tp_chronos = chronos_high if chronos_high > last_price else last_price
             tp_atr = last_price + self.atr_take_mult * atr_price
-            tp_min = last_price * (1 + self.min_take_pct)
+            tp_chronos = chronos_high
 
-            take_profit = max(tp_chronos, tp_atr, tp_min)
-
-            # ---------- max tp protection ----------
-            max_take_pct = 0.25
-            take_profit = min(take_profit, last_price * (1 + max_take_pct))
+            take_profit = max(tp_atr, tp_chronos)
 
             # ---------- RR ----------
             risk = last_price - stop_loss
@@ -90,7 +83,7 @@ class RiskManager:
             rr = reward / risk
 
             # RR 上限保护
-            max_rr = 3
+            max_rr = 3.5
             if rr > max_rr:
                 take_profit = last_price + risk * max_rr
                 reward = take_profit - last_price
@@ -98,15 +91,18 @@ class RiskManager:
 
             # RR 过滤
             if rr < self.min_rr:
-                return TradePlan(False, f"RR 不足 ({rr:.2f})", expected_rr=rr)
+                return TradePlan(False, f"RR 不足 ({rr:.2f})", expected_rr=self.min_rr)
             # ---------- size ----------
             available_cash = capital  # 本次最大可用资金
             risk_per_share = last_price - stop_loss
 
-            max_shares = int(available_cash / last_price)
-            risk_shares = int((available_cash * self.risk_per_trade) / risk_per_share)
+            risk_cash = available_cash * self.risk_per_trade
 
-            allowed_shares = min(max_shares, risk_shares)
+            risk_shares = int(risk_cash / risk_per_share)
+
+            max_shares = int(available_cash / last_price)
+
+            allowed_shares = min(risk_shares, max_shares)
 
             actual_shares = allowed_shares // self.lot_size          
             signal_log(f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss},take_profit={take_profit}, expected_rr={round(rr, 2)}")
@@ -131,11 +127,11 @@ class RiskManager:
 
 risk_mgr = RiskManager(
     risk_per_trade=0.02,  # 单笔最多亏 1%
-    min_rr=1.5,  # 最低风险回报比
-    min_stop_pct=0.01,  # 最小止损 1%
-    max_stop_pct=0.03,  # 最大止损 3%
+    min_rr=2,  # 最低风险回报比
+    min_stop_pct=0.02,  # 最小止损 1%
+    max_stop_pct=0.05,  # 最大止损 3%
     min_take_pct=0.01,  # 最小止盈 1%
-    atr_stop_mult=1.2,  # ATR 止损
-    atr_take_mult=2.0,  # ATR 止盈
+    atr_stop_mult=1.5,  # ATR 止损
+    atr_take_mult=4.0,  # ATR 止盈
     lot_size=100,  # A 股
 )

@@ -100,7 +100,67 @@ class PositionManager:
                 return "TAKE_PROFIT"
 
         return None
-   
+    
+    #移动止损核心函数
+    def update_trailing_stop(self,ticker, price, atr):
+        position = self.positions.get(ticker)
+        if not position:
+            return None
+        
+        atr_price = atr * price
+
+        entry = position.entry_price
+        stop = position.stop_loss
+
+        # 记录最高价
+        position.highest_price = max(position.highest_price, price)
+
+        profit = (price - entry) / entry
+
+        # ---------- 第一阶段 ----------
+        # 盈利 > 3% → 止损移动到成本
+        if profit > 0.03:
+            stop = max(stop, entry)
+
+        # ---------- 第二阶段 ----------
+        # 盈利 > 6% → 锁定2%
+        if profit > 0.06:
+            stop = max(stop, entry * 1.02)
+
+        # ---------- 第三阶段 ----------
+        # trailing ATR
+
+        trail_stop = position.highest_price - 2 * atr_price
+
+        stop = max(stop, trail_stop)
+
+        position.stop_loss = stop
+
+    # 移动止盈（分批止盈）
+    def check_take_profit(self, ticker, price):
+        position = self.positions.get(ticker)
+        if not position:
+            return None
+        # 第一目标
+        tp1 = position.entry_price * 1.05
+
+        # 第二目标
+        tp2 = position.entry_price * 1.10
+
+        # ---------- TP1 ----------
+        if not position.tp1_hit and price >= tp1:
+
+            position.tp1_hit = True
+
+            return "reduce_half"
+
+        # ---------- TP2 ----------
+        if price >= tp2:
+
+            return "reduce_half"
+
+        return None
+
     # ==================================================
     # 行情
     # ==================================================
@@ -380,11 +440,13 @@ class PositionManager:
                 return
             value = pos.size * price * pos.contract_size
             self.cash += value
+            print(f'cash:{self.cash}')
+            size = pos.size
             pos.size = 0
             self._record(
                 symbol=ticker,
                 action="CLOSE",
-                size=pos.size,
+                size=size,
                 price=price,
                 value=value,
                 reason=reason,

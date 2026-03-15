@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class EquityRecorder:
-    def __init__(self, path: str = "", max_len: int = 2000):
+    def __init__(self, path: str = "", max_len: int = 200):
         self.path = path
         self.max_len = max_len
         self.df = pd.DataFrame(
@@ -24,10 +24,14 @@ class EquityRecorder:
             except Exception as e:
                 print(f"Warning: failed to load equity file: {e}")
 
-
     def add(self, equity: float, timestamp: datetime = None):
         if timestamp is None:
             timestamp = datetime.now()
+        # 1. 检查是否与最后一条记录重复,重复更新时间
+        if not self.df.empty and self.df.iloc[-1]['equity'] == equity:
+            self.df.iat[-1, self.df.columns.get_loc('timestamp')] =  timestamp
+            return  
+    
         self.df = pd.concat(
             [self.df, pd.DataFrame([{"timestamp": timestamp, "equity": equity}])],
             ignore_index=True,
@@ -50,8 +54,7 @@ class EquityRecorder:
             return pd.Series(dtype=float, index=pd.DatetimeIndex([]), name="equity")
 
         df = (
-            self.df
-            .dropna(subset=["timestamp", "equity"])
+            self.df.dropna(subset=["timestamp", "equity"])
             .drop_duplicates(subset="timestamp", keep="last")
             .sort_values("timestamp")
         )
@@ -61,7 +64,7 @@ class EquityRecorder:
             index=pd.DatetimeIndex(df["timestamp"]),
             name="equity",
         )
-       
+
         return s
 
     def latest(self) -> float:
@@ -69,4 +72,3 @@ class EquityRecorder:
         if len(self.df) == 0:
             return 0.0
         return float(self.df["equity"].iloc[-1])
-
