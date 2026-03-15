@@ -102,15 +102,17 @@ class PositionManager:
         return None
     
     #移动止损核心函数
-    def update_trailing_stop(self,ticker, price, atr):
+    def update_trailing_stop(self, ticker, price, atr):
+
         position = self.positions.get(ticker)
         if not position:
-            return None
-        
-        atr_price = atr * price
+            return
 
         entry = position.entry_price
         stop = position.stop_loss
+
+        # ATR (如果ATR是价格)
+        atr_price = atr * price
 
         # 记录最高价
         position.highest_price = max(position.highest_price, price)
@@ -118,22 +120,21 @@ class PositionManager:
         profit = (price - entry) / entry
 
         # ---------- 第一阶段 ----------
-        # 盈利 > 3% → 止损移动到成本
-        if profit > 0.03:
+        if profit > 0.06:
             stop = max(stop, entry)
 
         # ---------- 第二阶段 ----------
-        # 盈利 > 6% → 锁定2%
-        if profit > 0.06:
-            stop = max(stop, entry * 1.02)
+        if profit > 0.12:
+            stop = max(stop, entry * 1.03)
 
         # ---------- 第三阶段 ----------
-        # trailing ATR
+        if profit > 0.10:
 
-        trail_stop = position.highest_price - 2 * atr_price
+            trail_stop = position.highest_price - 2 * atr_price
 
-        stop = max(stop, trail_stop)
+            stop = max(stop, trail_stop)
 
+        # 防止止损下降
         position.stop_loss = stop
 
     # 移动止盈（分批止盈）

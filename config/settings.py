@@ -33,3 +33,20 @@ if is_torch_available():
     torch.backends.cudnn.allow_tf32 = True
     torch.backends.cudnn.benchmark = True
 
+"""
+AI信号必须 >0.6
+趋势 slope >0.002
+止损 = 2ATR
+移动止盈 = 2.5ATR
+止损后 20 bar 不再开仓
+最多加仓3次
+"""
+
+MODEL_LONG_THRESHOLD = 0.55
+TREND_SLOPE_THRESHOLD = 0.001
+
+ATR_STOP_MULT = 2.0
+ATR_TRAIL_MULT = 2.5
+
+STOP_LOSS_COOLDOWN = 20
+MAX_POSITION = 3

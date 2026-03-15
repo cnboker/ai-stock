@@ -57,5 +57,5 @@ class BudgetManager:
 budget_mgr = BudgetManager(
     max_signal_pct=0.3,
     max_drawdown_pct=0.2,
-    single_position_limit=0.1,
+    single_position_limit=0.2,
 )

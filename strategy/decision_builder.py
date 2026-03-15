@@ -1,4 +1,5 @@
 import numpy as np
+from config.settings import MODEL_LONG_THRESHOLD, TREND_SLOPE_THRESHOLD
 from strategy.calc_predicted_up import calc
 from strategy.decision_context import DecisionContext
 from strategy.slope import compute_slope
@@ -35,14 +36,10 @@ class DecisionContextBuilder:
         self.position_mgr = position_mgr
 
     def make_signal(self, predicted_up, slope, model_score):
-
-        if model_score > 0.5 and slope > 0:
+        if model_score > MODEL_LONG_THRESHOLD and slope > TREND_SLOPE_THRESHOLD:
             return "LONG"
 
-        if model_score < 0.4 and predicted_up < -0.004 and slope < 0:
-            return "HOLD"  # 不能做空, "SHORT"
 
-        return "HOLD"
 
     def compute_score(
         self,
@@ -168,9 +165,9 @@ class DecisionContextBuilder:
             reduce_strength = 0.5
 
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
-        if slope > 0:
+        if pos and slope > 0:
             signal_log(
-                f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f}  "
+                f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f},atr={atr},stop_loss={pos.stop_loss} take_profit={pos.take_profit} "
             )
             # signal_log(
             #     f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} "
