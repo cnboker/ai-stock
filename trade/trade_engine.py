@@ -96,6 +96,7 @@ def execute_stock_decision(
         close_df=close_df,
         eq_decision=session.tradeIntent,
     )
+    session.eq_recorder.add(position_mgr.equity)
 
     if ctx.raw_signal == "SHORT":
         return None
@@ -149,7 +150,6 @@ def execute_stock_decision(
         last_price=price,
         plan=plan,
     )
-    session.eq_recorder.add(position_mgr.equity)
 
     # 返回用于动态表格显示的 dict
     return ret_dict

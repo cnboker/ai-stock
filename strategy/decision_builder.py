@@ -206,7 +206,7 @@ class DecisionContextBuilder:
 
         if raw_signal == "LONG":
             signal_log(
-                f"LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, {median[-1]}, price={latest_price}, pre_up={predicted_up}, slope={slope} model_score={model_score}"
+                f"ticker={ticker} med={median[-1]}, price={latest_price:.2f}, pre_up={predicted_up:.3f}, slope={slope:.3f} model_score={model_score:.3f} LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, "
             )
             # signal_log(ctx)
         return ctx

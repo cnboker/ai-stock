@@ -138,6 +138,8 @@ def update_graph(_):
                 prediction_tails.append(tail)
 
         except Exception as e:
+            import traceback
+            traceback.print_exc(e)
             print(f"[WARN] {ticker} failed: {e}")
 
     # ===== 更新动态表格 =====

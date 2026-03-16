@@ -39,7 +39,7 @@ def notify_order(event: OrderEvent,position_mgr):
     if (
         ENABLE_LIVE_PERSIST
         and event.status == "FILLED"
-        and event.action in {"OPEN", "CLOSE", "REDUCE"}
+        and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
     ):
         #增加语音播报
         os.system("xdg-open data/tick.mp3")

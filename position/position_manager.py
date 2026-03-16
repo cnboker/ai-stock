@@ -116,8 +116,9 @@ class PositionManager:
 
         # 记录最高价
         position.highest_price = max(position.highest_price, price)
-
-        profit = (price - entry) / entry
+        profit = 0
+        if entry > 0:
+            profit = (price - entry) / entry
 
         # ---------- 第一阶段 ----------
         if profit > 0.06:
@@ -198,7 +199,7 @@ class PositionManager:
         """
 
         pos = self.positions.get(ticker)
-        if pos:
+        if pos and pos.size > 0:
             # ==== 加仓 ====
             add_size = 0
             if size is not None:
