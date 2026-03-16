@@ -35,7 +35,8 @@ def persist_live_positions(position_mgr):
             "size": pos.size,
             "entry_price": pos.entry_price,
             "stop_loss": pos.stop_loss,
-            "take_profit": pos.take_profit,
+            "highest_price": pos.highest_price,            
+            "tp1_hit": pos.tp1_hit,
             "open_time": pos.open_time.isoformat(),
         }
 

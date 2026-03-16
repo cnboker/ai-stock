@@ -33,7 +33,7 @@ class EquityRecorder:
             return  
     
         self.df = pd.concat(
-            [self.df, pd.DataFrame([{"timestamp": timestamp, "equity": equity}])],
+            [self.df, pd.DataFrame([{"timestamp": timestamp, "equity": round(equity,2)}])],
             ignore_index=True,
         )
         # 保留最近 max_len 条

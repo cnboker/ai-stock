@@ -74,8 +74,7 @@ def execute_equity_action(
                 position_mgr.open_or_add(
                     ticker=ticker,
                     size=plan.size,
-                    stop_loss=plan.stop_loss,
-                    take_profit=plan.take_profit,
+                    stop_loss=plan.stop_loss,                    
                     price=last_price,
                     reason=decision.reason,
                 )

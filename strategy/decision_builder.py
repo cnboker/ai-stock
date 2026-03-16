@@ -167,7 +167,7 @@ class DecisionContextBuilder:
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
         if pos and slope > 0:
             signal_log(
-                f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f},atr={atr},stop_loss={pos.stop_loss} take_profit={pos.take_profit} "
+                f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f},atr={atr},stop_loss={pos.stop_loss} "
             )
             # signal_log(
             #     f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} "

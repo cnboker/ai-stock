@@ -1,59 +1,75 @@
 account: main_account
-cash: 67546.81
+cash: 68939.68999999978
 positions:
   sh600446:
     direction: LONG
     entry_price: 16.73
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
     stop_loss: 15.5
-    take_profit: 17.2
+    tp1_hit: false
   sh600938:
     direction: LONG
     entry_price: 41.5
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
     stop_loss: 39
-    take_profit: 12
+    tp1_hit: false
   sh601882:
     direction: LONG
     entry_price: 20.8
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
     stop_loss: 18
-    take_profit: 12
+    tp1_hit: false
+  sh603123:
+    direction: LONG
+    entry_price: 13.36
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
+    size: 1
+    stop_loss: 12.9
+    tp1_hit: false
   sh603871:
     direction: LONG
     entry_price: 15.1
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
     stop_loss: 14.5
-    take_profit: 12
+    tp1_hit: false
   sz002137:
     direction: LONG
     entry_price: 9.0
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
     stop_loss: 8.26
-    take_profit: 12
+    tp1_hit: false
   sz159908:
     direction: LONG
     entry_price: 0
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
-    stop_loss: null
-    take_profit: null
+    stop_loss: 0
+    tp1_hit: false
   sz300124:
     direction: LONG
     entry_price: 70.39
-    open_time: '2026-03-13T09:57:33.423242'
+    highest_price: 0
+    open_time: '2026-03-16T16:23:47.428301'
     size: 0
     stop_loss: 68
-    take_profit: 12
+    tp1_hit: false
   sz300142:
     direction: LONG
-    entry_price: 10.8
-    open_time: '2026-03-13T09:57:33.423242'
-    size: 0
-    stop_loss: 10.5
-    take_profit: 12
+    entry_price: 12.28
+    highest_price: 12.28
+    open_time: '2026-03-16T16:23:47.428301'
+    size: 1
+    stop_loss: 11.87
+    tp1_hit: false

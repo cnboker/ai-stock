@@ -10,10 +10,7 @@ class TradePlan:
     reason: str = ""
 
     size: int = 0
-    stop_loss: float = 0.0
-    take_profit: float = 0.0
-
-    expected_rr: float = 0.0
+    stop_loss: float = 0.0    
 
 #允许什么（allow_open / allow_add / stop / take）
 class RiskManager:
@@ -67,31 +64,6 @@ class RiskManager:
 
             stop_loss = min(max(stop_loss, max_stop), min_stop)
 
-            # ---------- take ----------
-            tp_atr = last_price + self.atr_take_mult * atr_price
-            tp_chronos = chronos_high
-
-            take_profit = max(tp_atr, tp_chronos)
-
-            # ---------- RR ----------
-            risk = last_price - stop_loss
-            reward = take_profit - last_price
-
-            if risk <= 0 or reward <= 0:
-                return TradePlan(False, "无效风险结构")
-
-            rr = reward / risk
-
-            # RR 上限保护
-            max_rr = 3.5
-            if rr > max_rr:
-                take_profit = last_price + risk * max_rr
-                reward = take_profit - last_price
-                rr = reward / risk
-
-            # RR 过滤
-            if rr < self.min_rr:
-                return TradePlan(False, f"RR 不足 ({rr:.2f})", expected_rr=self.min_rr)
             # ---------- size ----------
             available_cash = capital  # 本次最大可用资金
             risk_per_share = last_price - stop_loss
@@ -105,16 +77,14 @@ class RiskManager:
             allowed_shares = min(risk_shares, max_shares)
 
             actual_shares = allowed_shares // self.lot_size          
-            signal_log(f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss},take_profit={take_profit}, expected_rr={round(rr, 2)}")
+            signal_log(f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss}")
 
             if actual_shares <= 0:
                 return TradePlan(False, "仓位为 0")
             return TradePlan(
                 True,
                 size=actual_shares,
-                stop_loss=round(stop_loss, 2),
-                take_profit=round(take_profit, 2),
-                expected_rr=round(rr, 2),
+                stop_loss=round(stop_loss, 2),                                
             )
 
         except Exception:

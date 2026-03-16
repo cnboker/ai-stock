@@ -2,6 +2,7 @@ import numpy as np
 from pandas import DataFrame, Series
 from global_state import equity_engine
 from infra.core.context import TradingSession
+from infra.persistence.live_positions import persist_live_positions
 from log import signal_log, risk_log
 from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
@@ -109,6 +110,7 @@ def execute_stock_decision(
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 + 有仓位=====
     if not intent.confirmed and not intent.force_reduce :
+        persist_live_positions(position_mgr)
         return {
             "ticker": ticker,
             **pos_dict,
@@ -150,6 +152,6 @@ def execute_stock_decision(
         last_price=price,
         plan=plan,
     )
-
+    persist_live_positions(position_mgr)
     # 返回用于动态表格显示的 dict
     return ret_dict

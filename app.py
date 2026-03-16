@@ -139,13 +139,13 @@ def update_graph(_):
 
         except Exception as e:
             import traceback
-            traceback.print_exc(e)
+            traceback.print_exc()
             print(f"[WARN] {ticker} failed: {e}")
 
     # ===== 更新动态表格 =====
     df = pd.DataFrame(list(dfs.values()))
     #live_stock_table(df)
-
+    
     # ===== 绘图最终处理 =====
     finalize_figure(fig, prediction_tails)
     return fig, build_update_text()

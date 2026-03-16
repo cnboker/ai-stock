@@ -54,8 +54,7 @@ class PositionManager:
             "position_size": getattr(pos, "size", 0),
             "direction": getattr(pos, "direction", ""),
             "entry_price": getattr(pos, "entry_price", 0),
-            "stop_loss": getattr(pos, "stop_loss", 0),
-            "take_profit": getattr(pos, "take_profit", 0),
+            "stop_loss": getattr(pos, "stop_loss", 0),            
         }
 
     def has_position(self, ticker: str) -> bool:
@@ -78,28 +77,7 @@ class PositionManager:
             total += pos.size * price * pos.contract_size
         return total
     
-     # 检查止损止盈
-    def check_stop_take(self, ticker: str, price: float) -> str | None:
-        pos = self.positions.get(ticker)
-        if not pos:
-            return None
-        if pos.size == 0:
-            return None
-        # LONG 仓位
-        if pos.direction == "LONG":
-            if pos.stop_loss is not None and price <= pos.stop_loss:
-                return "STOP_LOSS"
-            if pos.take_profit is not None and price >= pos.take_profit:
-                return "TAKE_PROFIT"
-
-        # SHORT 仓位
-        elif pos.direction == "SHORT":
-            if pos.stop_loss is not None and price >= pos.stop_loss:
-                return "STOP_LOSS"
-            if pos.take_profit is not None and price <= pos.take_profit:
-                return "TAKE_PROFIT"
-
-        return None
+   
     
     #移动止损核心函数
     def update_trailing_stop(self, ticker, price, atr):
@@ -107,15 +85,16 @@ class PositionManager:
         position = self.positions.get(ticker)
         if not position:
             return
-
+        if atr is None:
+            return
         entry = position.entry_price
-        stop = position.stop_loss
+        stop = position.stop_loss or 0
 
         # ATR (如果ATR是价格)
         atr_price = atr * price
 
         # 记录最高价
-        position.highest_price = max(position.highest_price, price)
+        position.highest_price = round(max(position.highest_price, price),2)
         profit = 0
         if entry > 0:
             profit = (price - entry) / entry
@@ -136,7 +115,7 @@ class PositionManager:
             stop = max(stop, trail_stop)
 
         # 防止止损下降
-        position.stop_loss = stop
+        position.stop_loss = round(stop,2)
 
     # 移动止盈（分批止盈）
     def check_take_profit(self, ticker, price):
@@ -187,15 +166,14 @@ class PositionManager:
         reason: str,
         contract_size: int = 100,
         size: int = None,
-        stop_loss: float = None,
-        take_profit: float = None,
+        stop_loss: float = None,        
         ):
         """
         打开新仓或加仓
         支持两种方式：
         1️⃣ 直接传 size → 精确仓位
         2️⃣ 传 strength → 按 equity * strength 自动计算仓位
-        stop_loss / take_profit 可直接指定
+        stop_loss  可直接指定
         """
 
         pos = self.positions.get(ticker)
@@ -223,8 +201,6 @@ class PositionManager:
             # 更新止损止盈
             if stop_loss is not None:
                 pos.stop_loss = stop_loss
-            if take_profit is not None:
-                pos.take_profit = take_profit
 
             self._record(
                 symbol=ticker,
@@ -258,8 +234,7 @@ class PositionManager:
                 entry_price=price,
                 open_time=datetime.now(),
                 contract_size=contract_size,
-                stop_loss=stop_loss,
-                take_profit=take_profit,
+                stop_loss=stop_loss,                
             )
             self.positions[ticker] = pos
             self.cash -= cost
@@ -534,8 +509,7 @@ class PositionManager:
                 direction=p["direction"],
                 size=p["size"],
                 entry_price=p["entry_price"],
-                stop_loss=p["stop_loss"],
-                take_profit=p["take_profit"],
+                stop_loss=p["stop_loss"],                
             )
 
     def clear(self):
