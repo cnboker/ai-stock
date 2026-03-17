@@ -1,11 +1,11 @@
 account: main_account
-cash: 68939.68999999978
+cash: 59927.21
 positions:
   sh600446:
     direction: LONG
     entry_price: 16.73
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 15.5
     tp1_hit: false
@@ -13,7 +13,7 @@ positions:
     direction: LONG
     entry_price: 41.5
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 39
     tp1_hit: false
@@ -21,7 +21,7 @@ positions:
     direction: LONG
     entry_price: 20.8
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 18
     tp1_hit: false
@@ -29,7 +29,7 @@ positions:
     direction: LONG
     entry_price: 13.36
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 1
     stop_loss: 12.9
     tp1_hit: false
@@ -37,7 +37,7 @@ positions:
     direction: LONG
     entry_price: 15.1
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 14.5
     tp1_hit: false
@@ -45,7 +45,7 @@ positions:
     direction: LONG
     entry_price: 9.0
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 8.26
     tp1_hit: false
@@ -53,7 +53,7 @@ positions:
     direction: LONG
     entry_price: 0
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 0
     tp1_hit: false
@@ -61,7 +61,7 @@ positions:
     direction: LONG
     entry_price: 70.39
     highest_price: 0
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 0
     stop_loss: 68
     tp1_hit: false
@@ -69,7 +69,7 @@ positions:
     direction: LONG
     entry_price: 12.28
     highest_price: 12.28
-    open_time: '2026-03-16T16:23:47.428301'
+    open_time: '2026-03-17T13:06:47.072358'
     size: 1
     stop_loss: 11.87
     tp1_hit: false

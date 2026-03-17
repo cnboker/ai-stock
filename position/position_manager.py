@@ -77,7 +77,24 @@ class PositionManager:
             total += pos.size * price * pos.contract_size
         return total
     
-   
+    def to_dict(self) -> Dict:
+        data = {
+            "account": self.account_name,
+            "cash": round(self.cash,2),
+            "positions": {},
+            }
+
+        for symbol, pos in self.positions.items():
+            data["positions"][symbol] = {
+                "direction": pos.direction,
+                "size": pos.size,
+                "entry_price": pos.entry_price,
+                "stop_loss": pos.stop_loss,
+                "highest_price": pos.highest_price,            
+                "tp1_hit": pos.tp1_hit,
+                "open_time": pos.open_time.isoformat(),
+            }
+        return data
     
     #移动止损核心函数
     def update_trailing_stop(self, ticker, price, atr):

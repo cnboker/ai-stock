@@ -38,7 +38,7 @@ class LivePositionLoader:
 
             self._last_mtime = mtime
             reloaded = True
-            print(f"[LivePosition] reloaded @ {time.strftime('%H:%M:%S')}")
+            #print(f"[LivePosition] reloaded @ {time.strftime('%H:%M:%S')}")
 
             if self._on_reload:
                 self._on_reload(self._cache)
@@ -47,7 +47,8 @@ class LivePositionLoader:
 
 
 def reload_if_needed(data: dict):
-    print(f"[Callback] positions updated: {list(data.keys())}")
+    pass
+    #print(f"[Callback] positions updated: {list(data.keys())}")
     
 
 
