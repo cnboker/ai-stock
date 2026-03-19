@@ -57,7 +57,7 @@ def execute_stock_decision(
     ticker: str,
     close_df: DataFrame | Series,
     pre_result: PredictionResult,
-    session: TradingSession,    
+    session: TradingSession,
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
@@ -82,8 +82,8 @@ def execute_stock_decision(
         pre_result.median,
         pre_result.high,
         pre_result.atr,
-        pre_result.model_score
-    )  
+        pre_result.model_score,
+    )
 
     ctx = ctx_builder.build(
         ticker=ticker,
@@ -101,7 +101,7 @@ def execute_stock_decision(
 
     if ctx.raw_signal == "SHORT":
         return None
-    #signal_log(ctx)
+    # signal_log(ctx)
 
     # debugger.update(ctx)
 
@@ -109,7 +109,7 @@ def execute_stock_decision(
 
     pos_dict = position_mgr.pos_to_dict(ticker=ticker)
     # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 + 有仓位=====
-    if not intent.confirmed and not intent.force_reduce :
+    if not intent.confirmed and not intent.force_reduce:
         persist_live_positions(position_mgr)
         return {
             "ticker": ticker,
@@ -120,6 +120,7 @@ def execute_stock_decision(
         }
     # ===== 4️⃣ Risk + Budget =====
     plan = None
+
     if not position_mgr.has_position(ticker):
         low_v = float(pre_result.low[-1])
         high_v = float(pre_result.high[-1])
@@ -136,11 +137,13 @@ def execute_stock_decision(
         signal_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
 
         plan = risk_mgr.evaluate(
+            ticker=ticker,
             last_price=price,
             chronos_low=low_v,
             chronos_high=high_v,
             atr=pre_result.atr,
             capital=signal_capital,
+            position_mgr=position_mgr,
         )
         signal_log(f"plan={plan}")
 

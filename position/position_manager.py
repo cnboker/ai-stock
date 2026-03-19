@@ -32,6 +32,14 @@ class PositionManager:
         # ===== 记录 =====
         self.trade_log: List[dict] = []
         self.last_action_ts: Dict[str, float] = {}        
+        self.highest_price = 0.0
+        self.cooldown = {}  # ticker -> 剩余bar数
+
+    def update_cooldown(self):
+        for k in list(self.cooldown.keys()):
+            self.cooldown[k] -= 1
+            if self.cooldown[k] <= 0:
+                del self.cooldown[k]        
     # ==================================================
     # 基础状态
     # ==================================================
@@ -98,64 +106,72 @@ class PositionManager:
     
     #移动止损核心函数
     def update_trailing_stop(self, ticker, price, atr):
-
         position = self.positions.get(ticker)
-        if not position:
+        if not position or atr is None:
             return
-        if atr is None:
-            return
+
         entry = position.entry_price
         stop = position.stop_loss or 0
 
-        # ATR (如果ATR是价格)
+        # ⚠️ ATR直接用（不要乘price）
         atr_price = atr * price
 
-        # 记录最高价
-        position.highest_price = round(max(position.highest_price, price),2)
-        profit = 0
-        if entry > 0:
-            profit = (price - entry) / entry
+        # 更新最高价
+        position.highest_price = max(position.highest_price, price)
 
-        # ---------- 第一阶段 ----------
-        if profit > 0.06:
+        profit = (price - entry) / entry if entry > 0 else 0
+
+        # =============================
+        # 状态切换
+        # =============================
+
+        if position.stage == "init" and profit > 0.05:
+            position.stage = "profit_lock"
+
+        if position.stage == "profit_lock" and profit > 0.12:
+            position.stage = "trend"
+
+        # =============================
+        # 各阶段逻辑
+        # =============================
+
+        # 🟢 阶段1：刚盈利 → 保本
+        if position.stage == "profit_lock":
             stop = max(stop, entry)
 
-        # ---------- 第二阶段 ----------
-        if profit > 0.12:
-            stop = max(stop, entry * 1.03)
-
-        # ---------- 第三阶段 ----------
-        if profit > 0.10:
-
-            trail_stop = position.highest_price - 2 * atr_price
-
+        # 🟡 阶段2：趋势跟踪（核心）
+        elif position.stage == "trend":
+            trail_stop = position.highest_price - 1.5 * atr_price
             stop = max(stop, trail_stop)
 
         # 防止止损下降
-        position.stop_loss = round(stop,2)
+        position.stop_loss = round(stop, 2)
 
     # 移动止盈（分批止盈）
     def check_take_profit(self, ticker, price):
         position = self.positions.get(ticker)
         if not position:
             return None
-        # 第一目标
-        tp1 = position.entry_price * 1.05
 
-        # 第二目标
-        tp2 = position.entry_price * 1.10
+        entry = position.entry_price
 
-        # ---------- TP1 ----------
+        # 👉 提高止盈阈值（关键）
+        tp1 = entry * 1.08
+        tp2 = entry * 1.15
+
+        # 🟢 只在趋势阶段才允许止盈
+        if position.stage != "trend":
+            return None
+
+        # TP1：只减30%
         if not position.tp1_hit and price >= tp1:
-
             position.tp1_hit = True
+            return 0.3
 
-            return "reduce_half"
-
-        # ---------- TP2 ----------
-        if price >= tp2:
-
-            return "reduce_half"
+        # TP2：再减30%
+        if not position.tp2_hit and price >= tp2:
+            position.tp2_hit = True
+            return 0.3
 
         return None
 

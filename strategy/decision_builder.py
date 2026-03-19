@@ -152,17 +152,25 @@ class DecisionContextBuilder:
 
         # 止损
         liquidate_reason = None
+
+        SLIPPAGE = 0.002  # 0.2%     
+
         if pos and pos.size > 0 and latest_price <= pos.stop_loss:
+            #用止损价格成交
+            latest_price = pos.stop_loss * (1 - SLIPPAGE)
             raw_signal = "LIQUIDATE"
             liquidate_reason = "STOP LOSS"
+            self.position_mgr.cooldown[ticker] = 10
 
+            
         # 止盈
-        action = self.position_mgr.check_take_profit(ticker, latest_price)
         reduce_strength = eq_decision.reduce_strength
-        if pos and pos.size > 0 and action == "reduce_half":
+        action = self.position_mgr.check_take_profit(ticker, latest_price)
+        if isinstance(action, float):
             raw_signal = "REDUCE"
+            reduce_strength = action
             liquidate_reason = "TAKE_PROFIT"
-            reduce_strength = 0.5
+        
 
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
         if pos and slope > 0:

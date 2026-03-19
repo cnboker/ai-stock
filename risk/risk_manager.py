@@ -10,9 +10,10 @@ class TradePlan:
     reason: str = ""
 
     size: int = 0
-    stop_loss: float = 0.0    
+    stop_loss: float = 0.0
 
-#允许什么（allow_open / allow_add / stop / take）
+
+# 允许什么（allow_open / allow_add / stop / take）
 class RiskManager:
     def __init__(
         self,
@@ -38,31 +39,36 @@ class RiskManager:
     # AI信号 → RiskManager.evaluate → TradePlan → PositionManager执行
     def evaluate(
         self,
+        ticker: str,
         last_price: float,
         chronos_low: float,
         chronos_high: float,
         atr: float,
         capital: float,
+        position_mgr,
     ) -> TradePlan:
 
         try:
-
+            if ticker in position_mgr.cooldown:
+                return TradePlan(allow_trade=False, reason="COOLDOWN")
             if atr <= 0:
                 return TradePlan(False, "ATR 无效")
-
-          # ---------- ATR ----------
+          
+            # ✅ 1. ATR 不要乘 price           
             atr_price = atr * last_price
-
+            # ✅ 2. 两种止损
             sl_chronos = chronos_low
             sl_atr = last_price - self.atr_stop_mult * atr_price
 
-            stop_loss = max(sl_chronos, sl_atr)
+            # ✅ 3. 取“更保守”（更远）的那个
+            stop_loss = min(sl_chronos, sl_atr)
 
-            # 最小止损保护
-            min_stop = last_price * 0.99
-            max_stop = last_price * 0.94
+            # ✅ 4. 只做“极端保护”（防bug）
+            max_risk = last_price * 0.95   # 最多亏5%
+            min_risk = last_price * 0.99  # 至少1%
 
-            stop_loss = min(max(stop_loss, max_stop), min_stop)
+            stop_loss = max(stop_loss, max_risk)   # 不允许太远
+            stop_loss = min(stop_loss, min_risk)   # 不允许太近
 
             # ---------- size ----------
             available_cash = capital  # 本次最大可用资金
@@ -76,23 +82,25 @@ class RiskManager:
 
             allowed_shares = min(risk_shares, max_shares)
 
-            actual_shares = allowed_shares // self.lot_size          
-            signal_log(f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss}")
+            actual_shares = allowed_shares // self.lot_size
+            signal_log(
+                f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss}"
+            )
 
             if actual_shares <= 0:
                 return TradePlan(False, "仓位为 0")
             return TradePlan(
                 True,
                 size=actual_shares,
-                stop_loss=round(stop_loss, 2),                                
+                stop_loss=round(stop_loss, 2),
             )
 
         except Exception:
             import traceback
+
             traceback.print_exc()
             return TradePlan(False, "风险计算异常")
             # ---------- 止损候选 ----------
-
 
 
 risk_mgr = RiskManager(

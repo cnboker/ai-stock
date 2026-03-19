@@ -13,3 +13,5 @@ class Position:
     #用于 trailing stop
     highest_price: float = 0
     tp1_hit: bool = False
+     # 状态机
+    stage = "init"   # init → profit_lock → trend

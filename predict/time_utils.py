@@ -66,11 +66,12 @@ def build_future_index(df, period: str):
 
 
 
-def calc_atr(df: pd.DataFrame, period: int = 3) -> float:
+def calc_atr(df: pd.DataFrame, period: int = 14) -> float:
     """
-    鲁棒 ATR：
-    - 不返回 0 / NaN
-    - 支持涨停、一字板、小样本
+    强化版 ATR（交易级）：
+    - EMA 平滑（更稳定）
+    - 防止过小（关键）
+    - 自适应波动
     """
     if df is None or len(df) == 0:
         return 1e-6
@@ -90,15 +91,18 @@ def calc_atr(df: pd.DataFrame, period: int = 3) -> float:
         axis=1,
     ).max(axis=1)
 
-    # rolling ATR，允许小样本
-    atr = tr.rolling(period, min_periods=1).mean()
+    # ✅ 用 EMA 替代 SMA（更专业）
+    atr = tr.ewm(span=period, adjust=False).mean()
 
     val = float(atr.iloc[-1])
+    price = float(close.iloc[-1])
 
-    # 🚑 兜底：防止 0 / NaN
-    if not np.isfinite(val) or val <= 0:
-        # 用价格比例兜底（千分之一）
-        price = float(close.iloc[-1])
-        return max(price * 0.001, 1e-6)
+    # ✅ 关键1：防止 ATR 过小（核心改进）
+    min_atr = price * 0.002   # 0.2%
+    val = max(val, min_atr)
+
+    # ✅ 关键2：防止异常
+    if not np.isfinite(val):
+        return max(price * 0.002, 1e-6)
 
     return val
