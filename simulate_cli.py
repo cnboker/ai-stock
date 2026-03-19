@@ -1,6 +1,8 @@
 # simulate_cli.py
 import argparse
 from simulator.replay_trade_day import simulate_trade_day
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")
 
 #python3 simulate_cli.py --ticker=sh600446 --date=2026-1-7
 def main():

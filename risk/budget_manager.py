@@ -69,7 +69,7 @@ class BudgetManager:
         # 5 Kelly 资金
         # =============================
 
-        kelly_budget = equity * self.kelly_fraction * smooth_score * 0.1
+        kelly_budget = equity * self.kelly_fraction * smooth_score 
 
         # =============================
         # 6 每笔交易风险预算

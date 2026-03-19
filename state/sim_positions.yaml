@@ -1,9 +1,3 @@
 account: ''
-cash: 96186.0
-positions:
-  sh600426:
-    direction: LONG
-    entry_price: 36.17
-    open_time: '2026-03-15T20:52:55.094897'
-    size: 1
-    stop_loss: 36.17
+cash: 50000
+positions: {}

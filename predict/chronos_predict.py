@@ -60,7 +60,7 @@ def run_prediction(
                 "target": recent_df["close"].values.astype(float),
                 # ===== 原有协变量 =====
                 "volume": recent_df["volume"].values.astype(float),
-                "hs300": hs300_series.astype(float),            
+                "hs300": hs300_series.astype(float),         
             }
         )
     else:
