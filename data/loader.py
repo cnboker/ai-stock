@@ -1,29 +1,58 @@
+import os
 import time
-import datetime
 import json
 import re
 import pandas as pd
 import requests
+from infra.core.config import settings
+from diskcache import Cache
+from datetime import timedelta
+
+# 初始化缓存目录（在项目根目录创建 .cache 文件夹）
+cache_dir = os.path.join(os.getcwd(), ".cache_data")
+cache = Cache(cache_dir)
+
+def load_stock_df(ticker: str, period: str, expire_seconds: int = 3600) -> pd.DataFrame:
+    """
+    加载个股 K 线（带磁盘缓存功能）
+    :param ticker: 股票代码
+    :param period: 时间范围
+    :param expire_seconds: 缓存失效时间（秒），默认 1 小时
+    """
+    # 生成唯一的缓存 Key
+    cache_key = f"stock_data_{ticker}_{period}"
+    
+    # 尝试从缓存获取
+    cached_df = cache.get(cache_key)
+    
+    if cached_df is not None:
+        # print(f"--- [Cache Hit] {ticker} ---")
+        return cached_df
+
+    # --- [Cache Miss] 执行原有的下载逻辑 ---
+    # print(f"--- [Downloading] {ticker} from network ---")
+    
+    # 这里的 download 替换为你实际的下载函数
+    df = download(ticker, period=period) 
+    
+    if df is None or df.empty:
+        raise ValueError(f"{ticker} 行情为空")
+        
+    # 数据清洗
+    df.index = pd.to_datetime(df.index).tz_localize(None)
+    df = df.sort_index()
+    
+    # 存入缓存，设置过期时间
+    cache.set(cache_key, df, expire=expire_seconds)
+    
+    return df
 
 def load_index_df(period: str) -> pd.DataFrame:
     """
     加载沪深300指数数据，用于条件化预测
     """
-    df = download("sh000300",period) 
-    df.index = pd.to_datetime(df.index).tz_localize(None)
-    return df.sort_index()
-
-
-def load_stock_df(ticker: str, period: str) -> pd.DataFrame:
-    """
-    加载个股 K 线
-    """
-    df = download(ticker, period=period) 
-    if df is None or df.empty:
-        raise ValueError(f"{ticker} 行情为空")
-    df.index = pd.to_datetime(df.index).tz_localize(None)
-    return df.sort_index()
-
+    return load_stock_df("sh000300",period) 
+  
 
 def fetch_sina_quote(symbol,minites):
     #datalen=512(30min, 3months)
@@ -120,24 +149,10 @@ def parse_multiple_latest_prices(raw: str) -> dict[str, float]:
 
 
 
-# 全局缓存字典
-_quote_cache = {}  # key: tuple(symbols), value: (timestamp, data)
 
 def fetch_sina_quote_live(symbols):
-    """
-    symbols: ["sz300697", "sh600000"]
-    缓存 5 秒
-    """
-    global _quote_cache
-    key = tuple(symbols)
     now = time.time()
-    
-    # 检查缓存
-    if key in _quote_cache:
-        ts, data = _quote_cache[key]
-        if now - ts < 5:  # 5秒内直接返回缓存
-            return data
-    
+
     # 发送请求
     ts_ms = int(now * 1000)  # 毫秒时间戳
     url = f"https://hq.sinajs.cn/etag.php?_={ts_ms}&list={','.join(symbols)}"
@@ -151,9 +166,7 @@ def fetch_sina_quote_live(symbols):
         r.encoding = "gbk"  # 新浪编码
         # print(r.text)
         data = parse_multiple_latest_prices(r.text)
-        
-        # 更新缓存
-        _quote_cache[key] = (now, data)
+    
         return data
     except Exception as e:
         print("请求失败：", e)

@@ -3,11 +3,12 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")
 
-runner = BacktestRunner(
-    ticker="sz000617",
-    days=15,
-    period="15" #30 minutes
-)
+def run_backtest():
+    runner = BacktestRunner(
+        ticker="sz000617",
+        days=10,
+        period="10" #30 minutes
+    )
+    runner.run()
 
-runner.run()
-#runner.show()
+run_backtest()

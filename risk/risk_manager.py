@@ -1,7 +1,6 @@
 from dataclasses import dataclass
-from typing import Optional
-
 from log import signal_log
+from infra.core.config import settings
 
 
 @dataclass
@@ -16,24 +15,9 @@ class TradePlan:
 # 允许什么（allow_open / allow_add / stop / take）
 class RiskManager:
     def __init__(
-        self,
-        risk_per_trade=0.02,  # 单笔最多亏 1%
-        min_rr=1.5,  # 最小风险回报比
-        min_stop_pct=0.02,  # 最小止损 1%
-        max_stop_pct=0.08,  # 最大止损 3%
-        min_take_pct=0.01,  # 最小止盈 1%
-        atr_stop_mult=1.2,  # ATR 止损倍数
-        atr_take_mult=2.0,  # ATR 止盈倍数
-        lot_size=100,  # A 股 100 股
+        self
     ):
-        self.risk_per_trade = risk_per_trade
-        self.min_rr = min_rr
-        self.min_stop_pct = min_stop_pct
-        self.max_stop_pct = max_stop_pct
-        self.min_take_pct = min_take_pct
-        self.atr_stop_mult = atr_stop_mult
-        self.atr_take_mult = atr_take_mult
-        self.lot_size = lot_size
+        self.lot_size = 100
 
     # 交易可行性评估器
     # AI信号 → RiskManager.evaluate → TradePlan → PositionManager执行
@@ -53,28 +37,37 @@ class RiskManager:
                 return TradePlan(allow_trade=False, reason="COOLDOWN")
             if atr <= 0:
                 return TradePlan(False, "ATR 无效")
-          
-            # ✅ 1. ATR 不要乘 price           
-            atr_price = atr * last_price
-            # ✅ 2. 两种止损
-            sl_chronos = chronos_low
-            sl_atr = last_price - self.atr_stop_mult * atr_price
 
-            # ✅ 3. 取“更保守”（更远）的那个
-            stop_loss = min(sl_chronos, sl_atr)
+            # 1. 计算止损位
+            sl_atr = last_price - settings.ATR_STOP_MULT * (atr * last_price)
+            stop_loss = min(chronos_low, sl_atr)
 
-            # ✅ 4. 只做“极端保护”（防bug）
-            max_risk = last_price * 0.95   # 最多亏5%
-            min_risk = last_price * 0.99  # 至少1%
+            # 2. 【复活参数】使用全局配置限制止损范围，不再硬编码 0.95/0.99
+            limit_sl_far = last_price * (
+                1 - settings.MAX_STOP_PCT
+            )  # 比如最多容忍 8% 损耗
+            limit_sl_near = last_price * (
+                1 - settings.MIN_STOP_PCT
+            )  # 至少要有 2% 保护空间
 
-            stop_loss = max(stop_loss, max_risk)   # 不允许太远
-            stop_loss = min(stop_loss, min_risk)   # 不允许太近
+            stop_loss = max(stop_loss, limit_sl_far)
+            stop_loss = min(stop_loss, limit_sl_near)
+
+            # 3. 【新增盈利门槛】计算盈亏比 (RR)
+            # 如果预期涨幅 (chronos_high) 连止损空间的 1.5 倍都不到，这单不接
+            risk_dist = last_price - stop_loss
+            reward_dist = chronos_high - last_price
+
+            current_rr = reward_dist / risk_dist if risk_dist > 0 else 0
+
+            if current_rr < settings.MIN_RR:
+                return TradePlan(False, f"盈亏比太低: {current_rr:.2f}")
 
             # ---------- size ----------
             available_cash = capital  # 本次最大可用资金
             risk_per_share = last_price - stop_loss
 
-            risk_cash = available_cash * self.risk_per_trade
+            risk_cash = available_cash * settings.RISK_PER_TRADE
 
             risk_shares = int(risk_cash / risk_per_share)
 
@@ -104,12 +97,5 @@ class RiskManager:
 
 
 risk_mgr = RiskManager(
-    risk_per_trade=0.02,  # 单笔最多亏 1%
-    min_rr=2,  # 最低风险回报比
-    min_stop_pct=0.02,  # 最小止损 1%
-    max_stop_pct=0.05,  # 最大止损 3%
-    min_take_pct=0.01,  # 最小止盈 1%
-    atr_stop_mult=1.5,  # ATR 止损
-    atr_take_mult=4.0,  # ATR 止盈
-    lot_size=100,  # A 股
+    
 )

@@ -1,5 +1,5 @@
 import numpy as np
-
+from infra.core.config import settings
 
 class BudgetManager:
     """
@@ -9,20 +9,18 @@ class BudgetManager:
 
     def __init__(
         self,
-        max_signal_pct: float = 0.3,
         max_drawdown_pct: float = 0.2,
         single_position_limit: float = 0.2,
-        risk_per_trade: float = 0.01,      # 每笔交易风险
-        kelly_fraction: float = 0.5,       # Kelly缩放
+        risk_per_trade: float = 0.01,      # 每笔交易风险   
         volatility_target: float = 0.02,   # 目标波动
     ):
 
-        self.max_signal_pct = max_signal_pct
+        self.max_signal_pct = settings.MAX_SIGNAL_PCT
         self.max_drawdown_pct = max_drawdown_pct
         self.single_position_limit = single_position_limit
 
         self.risk_per_trade = risk_per_trade
-        self.kelly_fraction = kelly_fraction
+        self.kelly_fraction = settings.KELLY_FRACTION
         self.volatility_target = volatility_target
 
         self._last_signal_score = {}
@@ -104,7 +102,6 @@ class BudgetManager:
 
 
 budget_mgr = BudgetManager(
-    max_signal_pct=0.3,
     max_drawdown_pct=0.2,
     single_position_limit=0.2,
 )

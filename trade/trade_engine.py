@@ -96,6 +96,7 @@ def execute_stock_decision(
         eq_feat=session.eq_feat,
         close_df=close_df,
         eq_decision=session.tradeIntent,
+        
     )
     session.eq_recorder.add(position_mgr.equity)
 
@@ -145,7 +146,7 @@ def execute_stock_decision(
             capital=signal_capital,
             position_mgr=position_mgr,
         )
-        signal_log(f"plan={plan}")
+        #signal_log(f"plan={plan}")
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====
     ret_dict = execute_equity_action(

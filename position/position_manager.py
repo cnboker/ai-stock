@@ -6,7 +6,7 @@ from infra.core.runtime import RunMode
 from infra.notify.order import OrderEvent, notify_order
 from position.position import Position
 from log import order_log, risk_log
-
+from infra.core.config import settings
 
 class PositionManager:
     """
@@ -125,10 +125,10 @@ class PositionManager:
         # 状态切换
         # =============================
 
-        if position.stage == "init" and profit > 0.05:
+        if position.stage == "init" and profit > settings.INIT_PROFIT_TRIGGER:
             position.stage = "profit_lock"
 
-        if position.stage == "profit_lock" and profit > 0.12:
+        if position.stage == "profit_lock" and profit > settings.TREND_STAGE_TRIGGER:
             position.stage = "trend"
 
         # =============================
@@ -141,7 +141,7 @@ class PositionManager:
 
         # 🟡 阶段2：趋势跟踪（核心）
         elif position.stage == "trend":
-            trail_stop = position.highest_price - 1.5 * atr_price
+            trail_stop = position.highest_price - settings.ATR_MULTIPLIER * atr_price
             stop = max(stop, trail_stop)
 
         # 防止止损下降
@@ -156,8 +156,8 @@ class PositionManager:
         entry = position.entry_price
 
         # 👉 提高止盈阈值（关键）
-        tp1 = entry * 1.08
-        tp2 = entry * 1.15
+        tp1 = entry * settings.TP1_RATIO
+        tp2 = entry * settings.TP2_RATIO
 
         # 🟢 只在趋势阶段才允许止盈
         if position.stage != "trend":

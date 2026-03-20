@@ -8,7 +8,7 @@ from log import signal_log
 from strategy.slope import corrected_slope
 from equity.regime_cooldown import regime_cooldown
 from strategy.trade_intent import TradeIntent
-
+from infra.core.config import settings
 """
 1 Gate 判断
 2 模型预测
@@ -34,11 +34,11 @@ class DecisionContextBuilder:
         self.equity_engine = equity_engine
         self.gater = gater
         self.position_mgr = position_mgr
+      
 
     def make_signal(self, predicted_up, slope, model_score):
-        if model_score > MODEL_LONG_THRESHOLD and slope > TREND_SLOPE_THRESHOLD:
+         if model_score > settings.MODEL_LONG_THRESHOLD and slope > settings.TREND_SLOPE_THRESHOLD and predicted_up > settings.PREDICTED_UP:
             return "LONG"
-
 
 
     def compute_score(
@@ -173,10 +173,10 @@ class DecisionContextBuilder:
         
 
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
-        if pos and slope > 0:
-            signal_log(
-                f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f},atr={atr},stop_loss={pos.stop_loss} "
-            )
+        # if pos and slope > 0:
+        #     signal_log(
+        #         f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f},atr={atr},stop_loss={pos.stop_loss} "
+        #     )
             # signal_log(
             #     f"symbol={ticker} price={latest_price} slope={slope:.3f} model_score={model_score:.3f} raw_signal={raw_signal} final_regime={final_regime} dd={dd} reduce_strength={eq_decision.reduce_strength} gate_allow={gate_result.allow} equity_regime={eq_decision.regime} "
             # )
@@ -212,9 +212,9 @@ class DecisionContextBuilder:
             liquidate_reason=liquidate_reason,
         )
 
-        if raw_signal == "LONG":
-            signal_log(
-                f"ticker={ticker} med={median[-1]}, price={latest_price:.2f}, pre_up={predicted_up:.3f}, slope={slope:.3f} model_score={model_score:.3f} LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, "
-            )
+        # if raw_signal == "LONG":
+        #     signal_log(
+        #         f"ticker={ticker} med={median[-1]}, price={latest_price:.2f}, pre_up={predicted_up:.3f}, slope={slope:.3f} model_score={model_score:.3f} LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, "
+        #     )
             # signal_log(ctx)
         return ctx
