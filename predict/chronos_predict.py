@@ -13,7 +13,7 @@ def run_prediction(
     hs300_df: pd.DataFrame | None,
     ticker: str = "",
     period: str = "5",
-    prediction_length: int = 10,
+    prediction_length: int = 5,
     eq_feat: pd.DataFrame | None = None,
 ):
     """

@@ -107,6 +107,7 @@ class BacktestRunner:
 
         if self.DrawChart:
             plot_prediction(self.ticker, self.period, self.df_all["close"])
+            
         return result
     
     def _simulate_day(self, trade_day):

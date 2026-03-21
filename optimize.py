@@ -27,7 +27,7 @@ def objective(trial):
     # 1. 让 Optuna 建议一组参数
     config = {
         # 入场门槛：如果太高就没单子，太低就是炮灰
-        "MODEL_LONG_THRESHOLD": trial.suggest_float("model_th", 0.4, 1.0),
+        "MODEL_LONG_THRESHOLD": trial.suggest_float("model_th", 0.3,0.6),
         "TREND_SLOPE_THRESHOLD": trial.suggest_float("slope_th", -0.02, 0.02),
         "PREDICTED_UP": trial.suggest_float("predict_up_th", -0.05, 0.02),
         # 止盈阶段触发点：优化什么时候进入“利润锁定”和“趋势跟踪”
@@ -43,7 +43,7 @@ def objective(trial):
         "MAX_SIGNAL_PCT": trial.suggest_float("max_pct", 0.01, 0.05),
         # --- 风控
         # 趋势过滤：ATR 止损倍数（这是你拿住利润的核心）
-        "ATR_STOP_MULT": trial.suggest_float("atr_stop_mult", 1.2, 3.5),
+        "ATR_STOP_MULT": trial.suggest_float("atr_stop_mult", 0.5, 2.0),
         # 止盈野心：ATR 止盈倍数
         "ATR_TAKE_MULT": trial.suggest_float("atr_take_mult", 2.5, 8.0),
         # 止损底线：最大允许的价格回撤百分比 (对应原 0.95)
@@ -51,7 +51,7 @@ def objective(trial):
         "MAX_STOP_PCT_BASE": trial.suggest_float("max_stop_base", 0.03, 0.10),
         # 止损上限：最小的价格保护空间 (对应原 0.99)
         "MIN_STOP_PCT_BASE": trial.suggest_float("min_stop_base", 0.005, 0.02),
-        "MIN_RR": trial.suggest_float("min_rr", 0.8, 2.5)
+        "MIN_RR": trial.suggest_float("min_rr", 0.5, 2.0)
     }
     # 2. 【关键步】动态赋值给全局单例 settings
     for key, value in config.items():

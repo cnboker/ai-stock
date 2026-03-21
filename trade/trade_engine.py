@@ -135,7 +135,7 @@ def execute_stock_decision(
             positions_value=position_value,
         )
 
-        signal_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
+        # signal_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
 
         plan = risk_mgr.evaluate(
             ticker=ticker,
