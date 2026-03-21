@@ -16,7 +16,7 @@ from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
 
 from global_state import equity_engine
-from simulator.snapshot import prediction_to_csv, decision_to_csv, plot_prediction
+from simulator.snapshot import prediction_to_csv, plot_prediction
 
 
 class BacktestRunner:
@@ -175,5 +175,6 @@ class BacktestRunner:
             "Days:": self.days,
             "Strategy_Return": round(strategy_return * 100, 2),
             "BuyHold_Return": round(buy_hold_return * 100, 2),
-            "Max_Drawdown": round(max_dd * 100, 2)
+            "Max_Drawdown": round(max_dd * 100, 2),
+            "Trade_Count": self.position_mgr.total_trade_count
         }

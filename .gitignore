@@ -9,3 +9,4 @@ data/equity.csv
 logs
 state/backup
 outputs
+.cache_data

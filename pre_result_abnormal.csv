@@ -1,3 +1,0 @@
-index,atr,atr_is_zero,model_score,model_score_low,low_last,median_last,high_last,predicted_up,regime,raw_score,action,confidence
-8,0.14999999999999977,False,0.3450605453254827,True,14.955268383026123,15.35721492767334,15.759161472320557,True,neutral,0.0,HOLD,0.0
-28,0.040000000000000334,False,0.32761372909859965,True,14.919680663463991,15.145807266235352,15.371933869006712,True,neutral,0.0,HOLD,0.0

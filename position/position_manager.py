@@ -34,7 +34,8 @@ class PositionManager:
         self.last_action_ts: Dict[str, float] = {}        
         self.highest_price = 0.0
         self.cooldown = {}  # ticker -> 剩余bar数
-
+        self.total_trade_count = 0  # 新增：用于回测统计总成交次数
+        
     def update_cooldown(self):
         for k in list(self.cooldown.keys()):
             self.cooldown[k] -= 1

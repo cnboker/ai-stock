@@ -1,27 +1,9 @@
+import numpy as np
 import optuna
 from simulator.run_backtest import run_backtest  # 假设这是你的回测入口
 from infra.core.config import settings
-import csv
-import os
+from persist import write_best_config
 
-# 定义 CSV 文件名
-CSV_FILE = "outputs/optuna_results.log.csv"
-
-# 初始化 CSV 表头（包含所有参数名 + 回测结果字段）
-HEADERS = [
-    "trial_num", 
-    "MODEL_LONG_THRESHOLD", "TREND_SLOPE_THRESHOLD", "PREDICTED_UP", 
-    "INIT_PROFIT_TRIGGER", "TREND_STAGE_TRIGGER", "ATR_MULTIPLIER", 
-    "TP1_RATIO", "TP2_RATIO", "KELLY_FRACTION", "MAX_SIGNAL_PCT",
-    "ATR_STOP_MULT", "ATR_TAKE_MULT", "MAX_STOP_PCT", "MIN_STOP_PCT",
-    "MIN_RR",
-    "Strategy_Return", "BuyHold_Return", "Max_Drawdown", "Score"
-]
-
-if not os.path.exists(CSV_FILE):
-    with open(CSV_FILE, 'w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(HEADERS)
 
 def objective(trial):
     # 1. 让 Optuna 建议一组参数
@@ -53,56 +35,51 @@ def objective(trial):
         "MIN_STOP_PCT_BASE": trial.suggest_float("min_stop_base", 0.005, 0.02),
         "MIN_RR": trial.suggest_float("min_rr", 0.5, 2.0)
     }
+
     # 2. 【关键步】动态赋值给全局单例 settings
     for key, value in config.items():
         setattr(settings, key, value)
-    # 2. 运行回测
-    # 注意：run_backtest 内部需要接收这组 config 并应用到 position_mgr 和 budget_mgr
-    stats = run_backtest()
+    # --- 2. 定义测试集 (你的多只股票列表) ---
+    tickers = ["sh603123", "sz000617", "sz002137", "sz301380", "sz300785"] 
+    
+    all_returns = []
+    trade_counts = []
 
-    # 3. 定义评价指标（盈利能力指标）
-    # 既然你风控不错，目标可以设为：总收益率 * (1 - 最大回撤) 或直接用夏普比率
-    # 如果回测期间没交易，返回一个极小值
-    # if stats["trade_count"] < 5:
-    #     return -1.0
+    # --- 3. 循环回测每只股票 ---
+    for ticker in tickers:
+        try:
+            # 运行单只股票回测 (确保内部使用了全局 settings)
+            stats = run_backtest(ticker) 
+            
+            if stats and stats.get("trade_count", 0) > 0:
+                all_returns.append(stats["Strategy_Return"])
+                trade_counts.append(stats["Trade_Count"])
+            else:
+                # 惩罚：如果没有交易，给一个负收益
+                all_returns.append(-2.0) 
+                trade_counts.append(0)
+        except Exception:
+            all_returns.append(-5.0) # 报错惩罚
 
-    # 3. 处理回测失败的情况 (防御性逻辑)
-    if stats is None:
-        return -99.0
+    # --- 4. 【核心】计算综合评价分数 (泛化评分) ---
+    if not all_returns:
+        return -100.0
 
-    # 4. 【核心步骤】将参数和结果合并，写入 CSV
-    try:
-        with open(CSV_FILE, 'a', newline='') as f:
-            writer = csv.writer(f)
-            # 按照 HEADERS 的顺序组织数据
-            row = [
-                trial.number,
-                config.get("MODEL_LONG_THRESHOLD"),
-                config.get("TREND_SLOPE_THRESHOLD"),
-                config.get("PREDICTED_UP"),
-                config.get("INIT_PROFIT_TRIGGER"),
-                config.get("TREND_STAGE_TRIGGER"),
-                config.get("ATR_MULTIPLIER"),
-                config.get("TP1_RATIO"),
-                config.get("TP2_RATIO"),
-                config.get("KELLY_FRACTION"),
-                config.get("MAX_SIGNAL_PCT"),
-                config.get("ATR_STOP_MULT"),
-                config.get("ATR_TAKE_MULT"),
-                config.get("MAX_STOP_PCT"),
-                config.get("MIN_STOP_PCT"),
-                config["MIN_RR"],
-                stats.get("Strategy_Return"),
-                stats.get("BuyHold_Return"),
-                stats.get("Max_Drawdown"),
-                stats.get("Strategy_Return%") # 这里假设用收益率作为打分标准
-            ]
-            writer.writerow(row)
-    except Exception as e:
-        print(f"写入 CSV 失败: {e}")
-
-    # 5. 返回给 Optuna 的最终分值
-    return stats.get("Strategy_Return", -99.0)
+    avg_return = np.mean(all_returns)      # 平均收益
+    std_return = np.std(all_returns)       # 收益的标准差（衡量稳定性）
+    total_trades = sum(trade_counts)       # 总交易次数
+    
+    # 评价指标公式：平均收益 - 0.5 * 标准差
+    # 逻辑：收益越高越好，但股票间差异越大（不稳定）扣分越多
+    # 同时要求总交易次数不能太少，否则是运气
+    if total_trades < len(tickers) * 1: # 平均每只票不到 1 笔交易
+        return -10.0
+        
+    final_score = avg_return - (0.5 * std_return)
+    
+    # 将此轮全市场的表现记录到 CSV (可选)
+    # log_to_csv(trial.number, config, avg_return, std_return, total_trades)
+    return final_score
 
 
 
@@ -130,5 +107,6 @@ if __name__ == "__main__":
         }
     )
     study.optimize(objective, n_trials=100)
+    write_best_config(study)
 
-    print("最佳参数:", study.best_params)
+    

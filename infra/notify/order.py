@@ -1,9 +1,8 @@
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Dict, Any
-import os
 from config.settings import ENABLE_LIVE_PERSIST
-from infra.persistence.live_positions import persist_live_positions
 
 @dataclass
 class OrderEvent:
@@ -29,6 +28,11 @@ def notify_order(event: OrderEvent,position_mgr):
         f"Reason: {event.reason}\n"
         f"Time:   {event.ts:%Y-%m-%d %H:%M:%S}"
     )
+
+    if event.status == "FILLED":
+        if event.action in {"OPEN", "ADD"}:
+            # 动态增加计数
+            position_mgr.total_trade_count += 1
 
     print("\n" + "=" * 50)
     print(headline)
