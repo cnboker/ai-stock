@@ -1,5 +1,4 @@
 import numpy as np
-from config.settings import MODEL_LONG_THRESHOLD, TREND_SLOPE_THRESHOLD
 from strategy.calc_predicted_up import calc
 from strategy.decision_context import DecisionContext
 from strategy.slope import compute_slope

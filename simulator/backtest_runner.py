@@ -17,7 +17,7 @@ from equity.equity_features import equity_features
 
 from global_state import equity_engine
 from simulator.snapshot import prediction_to_csv, plot_prediction
-
+from config.settings import LOOKBACK_WINDOW
 
 class BacktestRunner:
 
@@ -110,22 +110,31 @@ class BacktestRunner:
             
         return result
     
-    def _simulate_day(self, trade_day):
-
+    def get_history(self, trade_day, df):
         trade_day = pd.to_datetime(trade_day)
-
-        df_today = self.df_all[self.df_all.index.date == trade_day.date()]
-        df_history = self.df_all[self.df_all.index.date < trade_day.date()]
+        df_today = df[df.index.date == trade_day.date()]
+        # 找到今天第一根 K 线的时间戳
+        today_start_ts = df_today.index[0]
+        # 找到所有早于这个时间戳的数据
+        all_history = df[df.index < today_start_ts]
+        # 只取最近的 LOOKBACK_WINDOW 条
+        df_history_fixed = all_history.tail(LOOKBACK_WINDOW)
+        return df_history_fixed
+    
+    def _simulate_day(self, trade_day):
+        df_today = self.df_all[self.df_all.index.date == trade_day]
+        df_history_fixed = self.get_history(trade_day, self.df_all)
+        hs300_df = self.get_history(trade_day, self.hs300_df)
 
         for i in range(len(df_today)):
             # update equity
             self.eq_recorder.add(self.position_mgr.equity)
             df_slice = df_today.iloc[: i + 1]
-            df_combined = pd.concat([df_history, df_slice])
+            ticker_df = pd.concat([df_history_fixed, df_slice])
 
             pre_result = run_prediction(
-                df=df_combined,
-                hs300_df=self.hs300_df,
+                df=ticker_df,
+                hs300_df=hs300_df,
                 ticker=self.ticker,
                 period=self.period,
                 eq_feat=self.session.eq_feat,
@@ -133,13 +142,13 @@ class BacktestRunner:
 
             decision = execute_stock_decision(
                 ticker=self.ticker,
-                close_df=df_combined["close"],
+                close_df=ticker_df["close"],
                 pre_result=pre_result,
                 session=self.session,
             )
             if decision is not None and self.SaveDecision:
                 prediction_to_csv(
-                    self.ticker, self.period, pre_result, df_combined["close"], decision
+                    self.ticker, self.period, pre_result, ticker_df["close"], decision
                 )
             # decision_to_csv(self.ticker,self.period, decision)
 

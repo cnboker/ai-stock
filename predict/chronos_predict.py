@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from model_torch import is_torch_available,optional_inference_mode
-from config.settings import MODEL_NAME
+from model_torch import optional_inference_mode
+from config.settings import MODEL_NAME,LOOKBACK_WINDOW
 from predict.chronos_model import load_chronos_model
 from predict.predict_result import PredictionResult
 from predict.price_alpha import chronos2_to_large_style
@@ -23,13 +23,14 @@ def run_prediction(
 
     if df is None or df.empty:
         raise ValueError("行情 df 为空")
-
-    history_len = min(1024, len(df))
+ 
+    history_len = min(LOOKBACK_WINDOW, len(df))
     recent_df = df.iloc[-history_len:].copy()
     recent_df.index = recent_df.index.tz_localize(None)
 
     # ========== HS300 对齐 ==========
     if hs300_df is not None and not hs300_df.empty:
+        hs300_df = hs300_df.tail(history_len)
         hs300_series = (
             hs300_df["close"]
             .reindex(recent_df.index, method="nearest")
@@ -107,14 +108,6 @@ def run_prediction(
             q90=q90,
             context=context,
         )
-    # print("is_t5_style", is_t5_style)
-    # print(low, median, high)
-    # 显存清理（只在 CUDA）
-    del pred
-    if is_torch_available():
-        import torch
-        torch.cuda.is_available()
-        torch.cuda.empty_cache()
 
     latest_price = df["close"].iloc[-1]
     atr = calc_atr(df)

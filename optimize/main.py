@@ -2,14 +2,14 @@ import numpy as np
 import optuna
 from simulator.run_backtest import run_backtest  # 假设这是你的回测入口
 from infra.core.config import settings
-from persist import write_best_config
+from optimize.persist import write_best_config
 
 
 def objective(trial):
     # 1. 让 Optuna 建议一组参数
     config = {
         # 入场门槛：如果太高就没单子，太低就是炮灰
-        "MODEL_LONG_THRESHOLD": trial.suggest_float("model_th", 0.3,0.6),
+        "MODEL_LONG_THRESHOLD": trial.suggest_float("model_th", 0.4, 0.9),
         "TREND_SLOPE_THRESHOLD": trial.suggest_float("slope_th", -0.02, 0.02),
         "PREDICTED_UP": trial.suggest_float("predict_up_th", -0.05, 0.02),
         # 止盈阶段触发点：优化什么时候进入“利润锁定”和“趋势跟踪”
@@ -22,71 +22,73 @@ def objective(trial):
         "TP2_RATIO": trial.suggest_float("tp2", 1.15, 1.30),
         # 凯利公式缩放：直接影响仓位大小
         "KELLY_FRACTION": trial.suggest_float("kelly", 0.1, 0.7),
-        "MAX_SIGNAL_PCT": trial.suggest_float("max_pct", 0.01, 0.05),
+        #单笔最大投资
+        "MAX_SIGNAL_PCT": trial.suggest_float("max_pct", 0.05, 0.2),
+        # 单笔最多亏
+        "RISK_PER_TRADE": trial.suggest_float("max_lost_pct", 0.01, 0.05),
         # --- 风控
         # 趋势过滤：ATR 止损倍数（这是你拿住利润的核心）
         "ATR_STOP_MULT": trial.suggest_float("atr_stop_mult", 0.5, 2.0),
-        # 止盈野心：ATR 止盈倍数
-        "ATR_TAKE_MULT": trial.suggest_float("atr_take_mult", 2.5, 8.0),
         # 止损底线：最大允许的价格回撤百分比 (对应原 0.95)
         # 建议设为 0.03 到 0.10 (即 3% 到 10%)
-        "MAX_STOP_PCT_BASE": trial.suggest_float("max_stop_base", 0.03, 0.10),
-        # 止损上限：最小的价格保护空间 (对应原 0.99)
-        "MIN_STOP_PCT_BASE": trial.suggest_float("min_stop_base", 0.005, 0.02),
-        "MIN_RR": trial.suggest_float("min_rr", 0.5, 2.0)
+        "MAX_STOP_PCT": trial.suggest_float("max_stop", 0.03, 0.10),
+        # 止损上限：最小的价格保护空间 (对应原 1%)
+        "MIN_STOP_PCT": trial.suggest_float("min_stop", 0.01, 0.02),
+        "MIN_RR": trial.suggest_float("min_rr", 0.5, 2.0),
     }
 
     # 2. 【关键步】动态赋值给全局单例 settings
     for key, value in config.items():
         setattr(settings, key, value)
     # --- 2. 定义测试集 (你的多只股票列表) ---
-    tickers = ["sh603123", "sz000617", "sz002137", "sz301380", "sz300785"] 
-    
-    all_returns = []
-    trade_counts = []
+    tickers = ["sz159908"]
+    #tickers = ["sh603123", "sz000617", "sz002137", "sz301380", "sz300785"]
+    scores = []
 
     # --- 3. 循环回测每只股票 ---
     for ticker in tickers:
-        try:
-            # 运行单只股票回测 (确保内部使用了全局 settings)
-            stats = run_backtest(ticker) 
-            
-            if stats and stats.get("trade_count", 0) > 0:
-                all_returns.append(stats["Strategy_Return"])
-                trade_counts.append(stats["Trade_Count"])
-            else:
-                # 惩罚：如果没有交易，给一个负收益
-                all_returns.append(-2.0) 
-                trade_counts.append(0)
-        except Exception:
-            all_returns.append(-5.0) # 报错惩罚
-
-    # --- 4. 【核心】计算综合评价分数 (泛化评分) ---
-    if not all_returns:
-        return -100.0
-
-    avg_return = np.mean(all_returns)      # 平均收益
-    std_return = np.std(all_returns)       # 收益的标准差（衡量稳定性）
-    total_trades = sum(trade_counts)       # 总交易次数
-    
-    # 评价指标公式：平均收益 - 0.5 * 标准差
-    # 逻辑：收益越高越好，但股票间差异越大（不稳定）扣分越多
-    # 同时要求总交易次数不能太少，否则是运气
-    if total_trades < len(tickers) * 1: # 平均每只票不到 1 笔交易
-        return -10.0
+        stats = run_backtest(ticker)
         
-    final_score = avg_return - (0.5 * std_return)
-    
-    # 将此轮全市场的表现记录到 CSV (可选)
-    # log_to_csv(trial.number, config, avg_return, std_return, total_trades)
+        # 提取核心数据
+        ret = stats.get("Strategy_Return", -5.0)
+        mdd = abs(stats.get("Max Drawdown", 10.0)) # 取绝对值
+        trades = stats.get("Trade_Count", 0)
+
+        # 惩罚项：如果没有交易，或者回撤是0（通常意味着没开仓）
+        if trades < 2 or mdd < 0.0001:
+            scores.append(-5.0)
+            continue
+
+        # 计算上帝视角分数：卡玛比率 (收益/回撤)
+        # 这里的 ret 是百分比，例如 0.33，mdd 是 0.17
+        calmar = ret / mdd if mdd > 0 else 0
+        
+        # 如果输给了基准 (Alpha < 0)，给予轻微惩罚
+        if stats.get("Alpha", 0) < 0:
+            calmar *= 0.8
+            
+        scores.append(calmar)
+
+    # 最终得分：平均分 - 标准差 (追求所有票都表现稳健)
+    final_score = np.mean(scores) - 0.5 * np.std(scores)
     return final_score
 
 
 
 if __name__ == "__main__":
-   
+
     # 启动调参
-    study = optuna.create_study(direction="maximize")
+    #study = optuna.create_study(direction="maximize")
+    # 创建或加载一个名为 "my_optimization" 的研究
+    # storage 参数就是它的“记忆库”
+    # 经验学习： 采样器会读取数据库中所有已完成的 $x$（超参数）和 $y$（目标值）的关系。它通过历史数据构建概率模型，预测哪些区域更有可能产生最优解，从而避免重复失败的路径。
+    study = optuna.create_study(
+        study_name="my_experiment", 
+        storage="sqlite:///db.sqlite3", 
+        load_if_exists=True,
+        direction="maximize"  # 必须是最大化分数
+    )
+
     # 建议先把你的现有写死参数作为第一个 Trial 运行
     study.enqueue_trial(
         {
@@ -98,15 +100,22 @@ if __name__ == "__main__":
             "tp1": 1.08,
             "tp2": 1.15,
             "kelly": 0.5,
-            "max_pct": 0.02,
+            "max_pct": 0.1,
+            "max_lost_pct": 0.01,
             "atr_stop_mult": 1.5,
-            "atr_take_mult": 4.0,
-            "max_stop_base": 0.05,
-            "min_stop_base": 0.01,
-            "min_rr": 0.9
+            "max_stop": 0.05,
+            "min_stop": 0.01,
+            "min_rr": 0.9,
         }
     )
-    study.optimize(objective, n_trials=100)
+    study.optimize(objective, n_trials=50)
     write_best_config(study)
 
-    
+
+
+# 周期 (Timeframe),每天 K 线数量,1000 条数据可覆盖时长,是否满足 6 个月？
+# 日线 (Daily),1 条,~1000 个交易日 (约 4 年),是 (过度覆盖)
+# 1 小时 (1H),4 条,~250 个交易日 (约 12 个月),是 (完美契合)
+# 30 分钟 (30M),8 条,~125 个交易日 (约 6 个月),是 (刚好满足)
+# 15 分钟 (15M),16 条,~62.5 个交易日 (约 3 个月),否
+# 5 分钟 (5M),48 条,~21 个交易日 (约 1 个月),否

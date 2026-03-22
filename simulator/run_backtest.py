@@ -11,3 +11,4 @@ def run_backtest(ticker):
     )
     return runner.run()
 
+#run_backtest("sz000617")
