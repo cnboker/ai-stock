@@ -7,7 +7,7 @@ from infra.core.config import settings
 class TradePlan:
     allow_trade: bool
     reason: str = ""
-
+    #股数
     size: int = 0
     stop_loss: float = 0.0
 
@@ -60,34 +60,48 @@ class RiskManager:
 
             current_rr = reward_dist / risk_dist if risk_dist > 0 else 0
 
-            if current_rr < settings.MIN_RR:
-                return TradePlan(False, f"盈亏比太低: {current_rr:.2f}")
+            # if current_rr < settings.MIN_RR:
+            #     return TradePlan(False, f"盈亏比太低: {current_rr:.2f}")
 
-            # ---------- size ----------
-            available_cash = capital  # 本次最大可用资金
+           # ---------- size 计算逻辑修正 ----------
+            available_cash = capital  # 比如 3000 元
+            
+            # 单股亏损空间 (例如 0.3 元)
             risk_per_share = last_price - stop_loss
+            
+            # 【关键修改】：风险金应基于账户总权益 (equity) 或 允许预算满仓
+            # 如果你希望这 3000 元能全部花出去，这里应该增加风险容忍度
+            # 或者直接使用账户总资产来计算 risk_cash
+            total_equity = position_mgr.equity
+            risk_cash = total_equity * settings.RISK_PER_TRADE 
 
-            risk_cash = available_cash * settings.RISK_PER_TRADE
+            # 1. 基于单笔最大亏损限制的股数
+            risk_shares = int(risk_cash / risk_per_share) if risk_per_share > 0 else 0
 
-            risk_shares = int(risk_cash / risk_per_share)
-
+            # 2. 基于本次预算金额限制的股数
             max_shares = int(available_cash / last_price)
 
+            # 3. 取两者交集
             allowed_shares = min(risk_shares, max_shares)
 
-            actual_shares = allowed_shares // self.lot_size
+            # 4. 修正 A 股手数逻辑：这里的 size 应该是股数，不是手数！
+            # 如果你的下游执行函数需要的是“股数”，这里必须乘回 100
+            actual_lots = allowed_shares // self.lot_size
+            final_shares = actual_lots  # 比如 193 // 100 * 100 = 100 股
+            
             signal_log(
-                f"price={last_price}, max_shares={max_shares},risk_shares={risk_shares}, size={actual_shares},actual_shares={actual_shares},stop_loss={stop_loss}"
+                f"price={last_price}, max_shares={max_shares}, risk_shares={risk_shares}, "
+                f"lots={actual_lots}, final_shares={final_shares}, stop_loss={stop_loss}"
             )
 
-            if actual_shares <= 0:
-                return TradePlan(False, "仓位为 0")
+            if actual_lots <= 0:
+                return TradePlan(False, "资金不足以购买一手(100股)")
+
             return TradePlan(
                 True,
-                size=actual_shares,
+                size=final_shares,  # <--- 注意：这里传回 final_shares (股数)
                 stop_loss=round(stop_loss, 2),
             )
-
         except Exception:
             import traceback
 

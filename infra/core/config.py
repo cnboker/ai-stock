@@ -3,7 +3,7 @@
 class GlobalConfig:
     # --- 入场控制 ---
     MODEL_LONG_THRESHOLD = 0.4
-    TREND_SLOPE_THRESHOLD = 0
+    TREND_SLOPE_THRESHOLD = -0.01
     PREDICTED_UP = -0.03
     # --- 止盈止损阶段触发 ---
     INIT_PROFIT_TRIGGER = 0.07
@@ -16,8 +16,7 @@ class GlobalConfig:
     
     # --- 资金管理 ---
     KELLY_FRACTION = 0.11
-    # --- 单笔最大仓位 ---
-    MAX_SIGNAL_PCT = 0.08
+ 
 
     # --- 风控
     RISK_PER_TRADE = 0.03 # 单笔最多亏 1%

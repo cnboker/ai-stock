@@ -35,7 +35,7 @@ def execute_stock_analysis(
     #print('decision',decision)
     future_index = build_future_index(df, period)
 
-    history_pred = update_prediction_history(ticker, future_index, pre_result)
+   # history_pred = update_prediction_history(ticker, future_index, pre_result)
 
     return {
         "ticker": ticker,
@@ -46,7 +46,7 @@ def execute_stock_analysis(
         "high": pre_result.high,
         "model_score": pre_result.model_score,
         "future_index": future_index,
-        "history_pred": history_pred,
+       # "history_pred": history_pred,
         "last_price": df["close"].iloc[-1],
         "decision": decision,
     }

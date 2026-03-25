@@ -13,7 +13,7 @@ from trade.trade_engine import execute_stock_decision
 from config.settings import LOOKBACK_WINDOW
 
 class BacktestRunner:
-    def __init__(self, ticker, period, total_limit=1000):
+    def __init__(self, ticker, period, total_limit=760):
         self.ticker = ticker
         self.period = period
         # 多加载一点数据，为第一天提供 Chronos 的 LOOKBACK 背景
@@ -23,7 +23,7 @@ class BacktestRunner:
         full_df = load_stock_df(ticker=self.ticker, period=self.period).sort_index()
         self.df_all = full_df.tail(self.total_limit)
         self.hs300_df = load_index_df(self.period).tail(self.total_limit)
-
+      
         if len(self.df_all) < self.total_limit:
             print(f"警告: 数据量不足，仅有 {len(self.df_all)} 条")
 
@@ -78,7 +78,8 @@ class BacktestRunner:
         self._reset_engine()
         start_price = None
         end_price = None
-
+        # 记录初始资金，用于后续计算
+        self.initial_capital = self.position_mgr.equity
         for trade_day in target_dates:
             self._simulate_day(trade_day)
             
@@ -104,7 +105,7 @@ class BacktestRunner:
             ticker_df = pd.concat([df_history_fixed, df_slice])
 
             pre_result = run_prediction(
-                df=ticker_df,
+                df=ticker_df.tail(LOOKBACK_WINDOW),
                 hs300_df=hs300_history,
                 ticker=self.ticker,
                 period=self.period,
@@ -125,30 +126,84 @@ class BacktestRunner:
 
     def _report(self, start_price, end_price):
         equity = np.array(self.equity_curve)
-        if len(equity) < 2: return {"Strategy_Return": -10, "Max_Drawdown": 100, "Trade_Count": 0}
         
-        strat_ret = (equity[-1] - equity[0]) / equity[0]
-        buy_hold_return = (end_price - start_price) / start_price
+        # 💡 核心：定义你的作战基数
+        # 既然 4000 是最大投资额度，我们用它作为分母
+        ACTIVE_BUDGET = 5000.0 
+        
+        # 计算绝对盈亏额（比如赚了 80 元）
+        absolute_profit = equity[-1] - equity[0]
+        
+        # 2. 计算策略收益 (基于作战额度)
+        # 这样赚 80 元就是 2%，而不是 0.08%
+        strat_ret = absolute_profit / ACTIVE_BUDGET
+        
+        # 3. 计算最大回撤 (同样基于作战额度)
+        # 这样如果 4000 元亏了 400，回撤显示为 -10%，而不是 -0.4%
         peak = np.maximum.accumulate(equity)
-        max_dd = ((equity - peak) / peak).min()
+        drawdowns = (equity - peak) / ACTIVE_BUDGET
+        max_dd = drawdowns.min()
         
-        print()
-        print("=" * 40)
-        print("Ticker:", self.ticker)
-        print()
-        print("Strategy Return :", round(strat_ret * 100, 2), "%")
-        print("BuyHold Return  :", round(buy_hold_return * 100, 2), "%")
-        print(
-            "Alpha           :",
-            round((strat_ret - buy_hold_return) * 100, 2),
-            "%",
-        )
-        print("Max Drawdown    :", round(max_dd * 100, 2), "%")
-        print("Trade Count  :", self.position_mgr.total_trade_count)
-        print("=" * 40)
+        # 4. Alpha 计算
+        buy_hold_ret = (end_price - start_price) / start_price
+        alpha = strat_ret - buy_hold_ret
 
+        # --- 打印报告 ---
+        print("\n" + "=" * 40)
+        print(f"Ticker: {self.ticker}")
+        print(f"Strategy Return : {round(strat_ret * 100, 2)} %")
+        print(f"BuyHold Return  : {round(buy_hold_ret * 100, 2)} %")
+        print(f"Alpha           : {round(alpha * 100, 2)} %")
+        print(f"Max Drawdown    : {round(max_dd * 100, 2)} %")
+        print(f"Trade Count     : {self.position_mgr.total_trade_count}")
+        print("=" * 40 + "\n")
+
+        # ... 返回给 Optuna 的数据保持百分比形式 ...
+        return {
+            "Strategy_Return": round(strat_ret * 100, 4), # 比如返回 2.0
+            "Max_Drawdown": round(max_dd * 100, 4),
+            "Trade_Count": self.position_mgr.total_trade_count,
+            "Alpha": round(alpha * 100, 4)
+        }
+
+    def _report_1(self, start_price, end_price):
+        # 转换净值曲线为 numpy 数组方便计算
+        equity = np.array(self.equity_curve)
+        
+        # 💡 关键修改：定义“作战本金”
+        # 假设你的单笔上限是 5000 5000 元的表现：
+        ACTIVE_CAPITAL = 5000.0 
+        
+        # 计算绝对盈亏 (比如赚了 80 元)
+        net_pnl = equity[-1] - self.initial_capital
+        
+        # 1. 真实作战收益率 (80 / 4000 = 2%)
+        strat_ret = net_pnl / ACTIVE_CAPITAL
+        
+        # 2. 计算最大回撤 (也要基于 ACTIVE_CAPITAL 才有意义)
+        # 否则 10万本金下，400元的跌幅看起来只有 0.4%，太迷惑人了
+        peak = np.maximum.accumulate(equity)
+        # 这里的 drawdown 计算要反映出 4000 元亏了多少
+        max_dd = ((equity - peak) / ACTIVE_CAPITAL).min()
+
+        # 3. Alpha 计算
+        buy_hold_ret = (end_price - start_price) / start_price
+        alpha = strat_ret - buy_hold_ret
+
+        # --- 打印报告 ---
+        print("\n" + "=" * 40)
+        print(f"Ticker: {self.ticker}")
+        print(f"Strategy Return : {round(strat_ret * 100, 2)} %")
+        print(f"BuyHold Return  : {round(buy_hold_ret * 100, 2)} %")
+        print(f"Alpha           : {round(alpha * 100, 2)} %")
+        print(f"Max Drawdown    : {round(max_dd * 100, 2)} %")
+        print(f"Trade Count     : {self.position_mgr.total_trade_count}")
+        print("=" * 40 + "\n")
+
+        # 返回给 Optuna 的字典，字段名要和 get_advanced_score 对应
         return {
             "Strategy_Return": round(strat_ret * 100, 4),
             "Max_Drawdown": round(max_dd * 100, 4),
-            "Trade_Count": self.position_mgr.total_trade_count
+            "Trade_Count": self.position_mgr.total_trade_count,
+            "Alpha": round(alpha * 100, 4)
         }

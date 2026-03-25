@@ -40,11 +40,11 @@ def notify_order(event: OrderEvent,position_mgr):
     print("=" * 50 + "\n")
 
   # ===== 只在真实成交后写 =====
-    if (
-        ENABLE_LIVE_PERSIST
-        and event.status == "FILLED"
-        and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
-    ):
-        #增加语音播报
-        os.system("xdg-open data/tick.mp3")
+    # if (
+    #     ENABLE_LIVE_PERSIST
+    #     and event.status == "FILLED"
+    #     and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
+    # ):
+    #     #增加语音播报
+    #     os.system("xdg-open data/tick.mp3")
         

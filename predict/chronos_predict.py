@@ -49,40 +49,49 @@ def run_prediction(
         freq=freq,
     )
 
-    # Equity 特征对齐时间轴
-    eq_feat_aligned = eq_feat.reindex(perfect_index).dropna()
-   
-    if eq_feat_aligned.empty:
-        
-        df_input = pd.DataFrame(
-            {
-                "item_id": [ticker] * history_len,
-                "timestamp": perfect_index,
-                "target": recent_df["close"].values.astype(float),
-                # ===== 原有协变量 =====
-                "volume": recent_df["volume"].values.astype(float),
-                "hs300": hs300_series.astype(float),         
-            }
+    # 修改代码如下：
+    if eq_feat is not None:
+        # 只有当 eq_feat 存在时才进行重采样和对齐
+        perfect_index = pd.date_range(
+            start=recent_df.index[0],
+            periods=history_len,
+            freq=freq,
         )
+        eq_feat_aligned = eq_feat.reindex(perfect_index).dropna()
     else:
-        df_input = pd.DataFrame(
-            {
-                "item_id": [ticker] * history_len,
-                "timestamp": perfect_index,
-                "target": recent_df["close"].values.astype(float),
-                # ===== 原有协变量 =====
-                "volume": recent_df["volume"].values.astype(float),
-                "hs300": hs300_series.astype(float),
-                # ===== Equity 协变量 =====
-                "eq_ret": eq_feat_aligned["eq_ret"].values,
-                "eq_drawdown": eq_feat_aligned["eq_drawdown"].values,
-                "eq_slope": eq_feat_aligned["eq_slope"].values,
-                # ===== 权重增强（重复通道）=====
-                # 重复列 = 多通道 = 更高 attention
-                #"eq_ret_r1": eq_feat_aligned["eq_ret"].values,
-                #"eq_ret_z_r1": eq_feat_aligned["eq_ret_z"].values,
-            }
-        )
+        # 如果是 None（比如回测刚开始），给一个空的 Series 或 DataFrame
+        # 确保后面的程序不会因为找不到变量而崩溃
+        eq_feat_aligned = pd.Series(dtype='float64') 
+        print("DEBUG: eq_feat 为空，跳过特征对齐")
+
+   # 1. 价格取对数收益率或标准化，让模型对波动更敏感
+    # 2. HS300 转化成相对于价格的超额变动
+    hs300_relative = (hs300_series / hs300_series[0]) / (recent_df["close"].values / recent_df["close"].values[0])
+    
+    # 3. 成交量标准化（Z-Score 或 移动平均比）
+    vol_mean = recent_df["volume"].mean()
+    vol_std = recent_df["volume"].std() + 1e-6
+    vol_norm = (recent_df["volume"].values - vol_mean) / vol_std
+
+    if eq_feat_aligned.empty:
+        df_input = pd.DataFrame({
+            "item_id": [ticker] * history_len,
+            "timestamp": perfect_index,
+            "target": recent_df["close"].values.astype(float),
+            "volume": vol_norm.astype(float), # 传标准化后的量
+            "hs300": hs300_relative.astype(float), # 传相对强弱
+        })
+    else:
+        # Equity 特征也需要 Z-Score，否则模型不知道 0.01 的收益算不算多
+        df_input = pd.DataFrame({
+            "item_id": [ticker] * history_len,
+            "timestamp": perfect_index,
+            "target": recent_df["close"].values.astype(float),
+            "volume": vol_norm.astype(float),
+            "hs300": hs300_relative.astype(float),
+            "eq_drawdown": eq_feat_aligned["eq_drawdown"].values * 10, # 放大回撤权重
+            "eq_slope": eq_feat_aligned["eq_slope"].values,
+        })
 
     pipeline = load_chronos_model(MODEL_NAME)
     # ========== Chronos 推理 ==========
@@ -131,22 +140,35 @@ def run_prediction(
 
 def model_score_from_quantiles_trend(low, median, high, latest_price, atr):
     """
-    基于趋势和 ATR 改进 model_score
+    强化版评分：引入 ATR 归一化和置信区间偏离度
     """
     low = np.asarray(low)
     median = np.asarray(median)
     high = np.asarray(high)
+    atr = max(atr, 1e-6) # 防止除零
 
-    # 最近预测斜率
-    slope = median[-1] - median[0]
+    # 1. 预测趋势强度 (用预测终点相对于起点的涨幅，除以 ATR 归一化)
+    # 这样无论是 3 块的 ETF 还是 300 块的股票，分数值域是对齐的
+    pred_move = (median[-1] - median[0]) / atr
+    
+    # 2. 价格位置评分 (看现价在预测区间 low-high 中的位置)
+    # 如果现价靠近 low，说明下方空间小，风险大；靠近 high 说明上方空间大
+    range_width = (high[-1] - low[-1]) + 1e-6
+    position_score = (high[-1] - latest_price) / range_width
+    
+    # 3. 现价与中位数的偏离度 (Mean Reversion 因子)
+    # 如果现价远低于中位数，说明有向上修复动力
+    deviation = (median[0] - latest_price) / atr
 
-    # 最新价格偏离 median
-    deviation = (latest_price - median[-1]) / (atr + 1e-6)
+    # --- 组合评分权重 (可由 Optuna 进一步微调) ---
+    # 趋势(0.5) + 位置(0.3) + 偏离(0.2)
+    raw_score = (pred_move * 0.5) + (position_score * 0.3) + (deviation * 0.2)
 
-    # 趋势加偏离，正值支持 LONG，负值支持 SHORT
-    score = slope * 0.6 + deviation * 0.4
-
-    # clip 0~1
-    score_float = float(np.clip((score + 1) / 2, 0.0, 1.0))
+    # 4. 映射到 0~1 区间，并加入逻辑“死区”
+    # 如果 raw_score 太小（波动不足），强制回归 0.5 (即 HOLD)
+    if abs(raw_score) < 0.05: 
+        return 0.5
+    
+    score_float = float(np.clip((raw_score + 1) / 2, 0.0, 1.0))
     return score_float
 

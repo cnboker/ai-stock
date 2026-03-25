@@ -106,47 +106,48 @@ def execute_stock_decision(
 
     # debugger.update(ctx)
 
+        # 1. 评估信号意图
     intent = signal_mgr.evaluate(ctx)
 
-    pos_dict = position_mgr.pos_to_dict(ticker=ticker)
-    # ===== 3️⃣ 非确认信号 + 非强制减仓直接返回 + 有仓位=====
+    # 2. 关键：在被 Confirmed 逻辑拦截前，记录信号状态
+    # 这样你就能看到为什么 count/confirm_n 没达标
+    # signal_log(f"[{ticker}] Score: {ctx.raw_score:.3f} | Bucket: {intent.action} | Count: {intent.count}/{intent.confirm_n} | Confirmed: {intent.confirmed}")
+
+    # 3. 拦截未确认信号
     if not intent.confirmed and not intent.force_reduce:
+        # 如果没确认，但你有仓位，可能需要维持当前持仓状态（防止被当作信号丢失处理）
         persist_live_positions(position_mgr)
         return {
             "ticker": ticker,
-            **pos_dict,
-            **intent.__dict__,
-            "atr": ctx.atr,  # ✅ 强制覆盖
             "action": "HOLD",
+            #"reason": f"Waiting for confirmation ({intent.count}/{intent.confirm_n})"
         }
-    # ===== 4️⃣ Risk + Budget =====
+
+    # 4. 只有 Confirmed == True 才会运行到这里
     plan = None
-
     if not position_mgr.has_position(ticker):
-        low_v = float(pre_result.low[-1])
-        high_v = float(pre_result.high[-1])
-        position_value = position_mgr.position_value()
-
+        # 计算预算
         signal_capital = budget_mgr.get_budget(
             ticker=ticker,
             gate_score=intent.gate_mult,
             available_cash=position_mgr.available_cash,
             equity=position_mgr.equity,
-            positions_value=position_value,
+            positions_value=position_mgr.position_value(),
         )
 
-        # signal_log(f"{ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f}")
-
+    
+        # 风险评估与下单计划
         plan = risk_mgr.evaluate(
             ticker=ticker,
             last_price=price,
-            chronos_low=low_v,
-            chronos_high=high_v,
+            chronos_low=float(pre_result.low[-1]),
+            chronos_high=float(pre_result.high[-1]),
             atr=pre_result.atr,
             capital=signal_capital,
             position_mgr=position_mgr,
         )
-        #signal_log(f"plan={plan}")
+        # 这行日志现在会在每一根满足条件的 K 线上打印
+        signal_log(f"🔥 [EXECUTE] {ticker} budget={signal_capital:.2f} gate={intent.gate_mult:.2f} plan={plan}")
 
     # ===== 5️⃣ Signal → Trade Action（执行仓位变化）=====
     ret_dict = execute_equity_action(

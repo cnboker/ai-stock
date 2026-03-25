@@ -72,12 +72,12 @@ def run_analysis_cycle():
             try:
                 # 执行核心分析（包含预测逻辑）
                 result = execute_stock_analysis(ticker, session)
-                
+              
                 # 提取关键决策数据
                 decision = result["decision"]
                 last_price = result["df"]['close'].iloc[-1] if not result["df"].empty else 0
                 
-                print(f"[{ticker}] 现价: {last_price:.2f} | 预测中值: {result['median'][-1]:.2f} | 信号: {decision.get('action', 'HOLD')}")
+                print(f"[{ticker}] 现价: {last_price:.2f} | 置信low: {result['low'][-1]:.2f} | 置信mid: {result['median'][-1]:.2f} | 置信high: {result['high'][-1]:.2f} | 信号: {decision.get('action', 'HOLD')}")
                 
                 results_summary.append({
                     "ticker": ticker,

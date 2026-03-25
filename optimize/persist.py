@@ -13,7 +13,7 @@ def write_head():
         "trial_num", 
         "MODEL_LONG_THRESHOLD", "TREND_SLOPE_THRESHOLD", "PREDICTED_UP", 
         "INIT_PROFIT_TRIGGER", "TREND_STAGE_TRIGGER", "ATR_MULTIPLIER", 
-        "TP1_RATIO", "TP2_RATIO", "KELLY_FRACTION", "MAX_SIGNAL_PCT",
+        "TP1_RATIO", "TP2_RATIO", "KELLY_FRACTION",
         "ATR_STOP_MULT", "MIN_STOP_PCT",
         "MIN_RR",
         "Strategy_Return", "BuyHold_Return", "Max_Drawdown"
@@ -43,7 +43,6 @@ def write_data(trial,config,stats):
                 config.get("TP1_RATIO"),
                 config.get("TP2_RATIO"),
                 config.get("KELLY_FRACTION"),
-                config.get("MAX_SIGNAL_PCT"),
                 config.get("ATR_STOP_MULT"),
                 config.get("MIN_STOP_PCT"),
                 config["MIN_RR"],
@@ -74,7 +73,6 @@ def write_best_config(study):
         "tp1": "TP1_RATIO",
         "tp2": "TP2_RATIO",
         "kelly": "KELLY_FRACTION",
-        "max_pct": "MAX_SIGNAL_PCT",
         "atr_stop_mult": "ATR_STOP_MULT",
         "max_lost_pct":"RISK_PER_TRADE",
         "max_stop": "MAX_STOP_PCT", # 注意你代码里定义的 key

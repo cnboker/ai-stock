@@ -1,4 +1,5 @@
 import pandas as pd
+from log import signal_log
 from risk.risk_manager import TradePlan
 from strategy.trade_intent import TradeIntent
 
@@ -26,7 +27,7 @@ def execute_equity_action(
     plan: RiskManager.evaluate() 结果，用于控制仓位/止损/止盈
     返回 dict, 用于动态表格显示
     """
-
+   # signal_log(f"CHECK: Available Cash={position_mgr.available_cash}, Order Value={last_price * plan.size }")
     final_action = "HOLD"
 
     # ====================

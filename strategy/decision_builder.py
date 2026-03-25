@@ -159,7 +159,7 @@ class DecisionContextBuilder:
             latest_price = pos.stop_loss * (1 - SLIPPAGE)
             raw_signal = "LIQUIDATE"
             liquidate_reason = "STOP LOSS"
-            self.position_mgr.cooldown[ticker] = 10
+            self.position_mgr.cooldown[ticker] = 3
 
             
         # 止盈
@@ -169,8 +169,9 @@ class DecisionContextBuilder:
             raw_signal = "REDUCE"
             reduce_strength = action
             liquidate_reason = "TAKE_PROFIT"
-        
+            self.position_mgr.cooldown[ticker] = 3
 
+        self.position_mgr.update_cooldown()
         dd = eq_feat["eq_drawdown"].iloc[-1] if not eq_feat.empty else 0.0
         # if pos and slope > 0:
         #     signal_log(
@@ -211,9 +212,9 @@ class DecisionContextBuilder:
             liquidate_reason=liquidate_reason,
         )
 
-        # if raw_signal == "LONG":
-        #     signal_log(
-        #         f"ticker={ticker} med={median[-1]}, price={latest_price:.2f}, pre_up={predicted_up:.3f}, slope={slope:.3f} model_score={model_score:.3f} LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, "
-        #     )
+        if raw_signal == "LONG":
+            signal_log(
+                f"ticker={ticker} gate_result={gate_result.allow} med={median[-1]}, price={latest_price:.2f}, pre_up={predicted_up:.3f}, slope={slope:.3f} model_score={model_score:.3f} LONG med:date={close_df.index[-1].strftime('%Y-%m-%d %H:%M')}, "
+            )
             # signal_log(ctx)
         return ctx

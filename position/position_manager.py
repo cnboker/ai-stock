@@ -84,6 +84,7 @@ class PositionManager:
         for sym, pos in self.positions.items():
             price = self.price_cache.get(sym, pos.entry_price)
             total += pos.size * price * pos.contract_size
+            #print(f"DEBUG: {sym} 持仓 {pos.size} 手, 现价 {price}, 乘数 {pos.contract_size}, 计算市值: {pos.size * price * pos.contract_size}")
         return total
     
     def to_dict(self) -> Dict:
