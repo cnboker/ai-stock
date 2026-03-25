@@ -2,7 +2,7 @@
 
 class GlobalConfig:
     # --- 入场控制 ---
-    MODEL_LONG_THRESHOLD = 0.4
+    MODEL_LONG_THRESHOLD = 0.5
     TREND_SLOPE_THRESHOLD = -0.01
     PREDICTED_UP = -0.03
     # --- 止盈止损阶段触发 ---
