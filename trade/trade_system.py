@@ -32,6 +32,7 @@ class TradingSystem:
 
         # 3. 拦截未确认信号 (快捷路径)
         if not intent.confirmed and not intent.force_reduce:
+            persist_live_positions(self.position_mgr)
             return {"ticker": ticker, "action": "HOLD", "reason": "Unconfirmed"}
 
         # 4. 针对买入信号(LONG)进行资金规划

@@ -116,9 +116,8 @@ class PositionManager:
         entry = position.entry_price
         
         # 1. 稳健初始化最高价 (修复报错点)
-        if position.highest_price is None:
-            position.highest_price = float(price)
-        elif price > position.highest_price:
+        current_highest = position.highest_price if position.highest_price is not None else 0.0
+        if price > current_highest:
             position.highest_price = float(price)
 
         # 2. 计算止损基础
@@ -155,7 +154,7 @@ class PositionManager:
         # 注意：sz159908 是 ETF，建议用 round(stop, 3)
         precision = 3 if ticker.startswith(('sz15', 'sh51')) else 2
         position.stop_loss = round(float(stop), precision)
-
+        
     # 移动止盈（分批止盈）
     def check_take_profit(self, ticker, price):
         position = self.positions.get(ticker)
@@ -276,7 +275,8 @@ class PositionManager:
                 entry_price=price,
                 open_time=datetime.now(),
                 contract_size=contract_size,
-                stop_loss=stop_loss,                
+                stop_loss=stop_loss,     
+                highest_price=price,           
             )
             self.positions[ticker] = pos
             self.cash -= cost
@@ -472,7 +472,7 @@ class PositionManager:
             )
 
     # ==================================================
-    # Size 计算（模拟 / 实盘统一入口）
+    # Size(手) 计算（模拟 / 实盘统一入口）
     # ==================================================
     def _calc_open_size(
         self,
@@ -551,7 +551,8 @@ class PositionManager:
                 direction=p["direction"],
                 size=p["size"],
                 entry_price=p["entry_price"],
-                stop_loss=p["stop_loss"],                
+                stop_loss=p["stop_loss"],   
+                highest_price=p.get("highest_price", p["entry_price"]),             
             )
 
     def clear(self):
