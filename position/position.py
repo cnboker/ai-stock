@@ -11,7 +11,7 @@ class Position:
     open_time:datetime = datetime.now()    
     contract_size:int = 100
     #用于 trailing stop
-    highest_price: float = 0
+    highest_price: float = 0.0
     tp1_hit: bool = False
     tp2_hit: bool = False
      # 状态机

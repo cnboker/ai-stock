@@ -32,7 +32,6 @@ class PositionManager:
         # ===== 记录 =====
         self.trade_log: List[dict] = []
         self.last_action_ts: Dict[str, float] = {}        
-        self.highest_price = 0.0
         self.cooldown = {}  # ticker -> 剩余bar数
         self.total_trade_count = 0  # 新增：用于回测统计总成交次数
         
@@ -78,7 +77,13 @@ class PositionManager:
 
     def all_positions(self) -> Dict[str, Position]:
         return self.positions
-
+    
+    def get_ticker_value(self, ticker, price):
+        pos = self.positions.get(ticker)
+        if not pos or pos.size <= 0:
+            return 0.0
+        return pos.size * price * pos.contract_size
+    
     def position_value(self) -> float:
         total = 0.0
         for sym, pos in self.positions.items():
@@ -112,7 +117,13 @@ class PositionManager:
         # 增加对 price 的有效性检查
         if not position or atr is None or price is None:
             return
-
+        if position.highest_price is None or position.stop_loss is None:
+            print(f"\n[DEBUG] 捕获到 NoneType 污染!")
+            print(f"Ticker: {ticker}")
+            print(f"Position Object: {position.__dict__}") # 打印对象所有属性
+            print(f"Input Price: {price}, ATR: {atr}")
+            # 主动抛出异常，带上更多信息
+            raise ValueError(f"CRITICAL: {ticker} has None in its fields!")
         entry = position.entry_price
         
         # 1. 稳健初始化最高价 (修复报错点)
@@ -147,8 +158,17 @@ class PositionManager:
 
         # 🟡 阶段2：大肉趋势 → 移动 ATR 跟踪止损
         elif position.stage == "trend":
-            trail_stop = position.highest_price - settings.ATR_MULTIPLIER * atr_price
-            stop = max(stop, trail_stop)
+            # 1. 确保最高价有效，如果为 None 则降级使用现价
+            h_price = position.highest_price if position.highest_price is not None else price
+            
+            # 2. 计算基于 ATR 的跟踪止损线
+            trail_stop = h_price - (settings.ATR_MULTIPLIER * atr_price)
+            
+            # 3. 确保 stop 有数值（如果之前 stop_loss 是 None，则取一个保底值）
+            current_stop = stop if (stop is not None and stop > 0) else (entry * 0.95)
+            
+            # 4. 只允许止损线上移，绝不下移
+            stop = max(current_stop, trail_stop)
 
         # 3. 最终赋值 (A股价格建议保留 3 位精度给 ETF，或者 2 位给股票)
         # 注意：sz159908 是 ETF，建议用 round(stop, 3)

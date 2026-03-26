@@ -55,6 +55,7 @@ class SignalManager:
                 action=ctx.raw_signal,
                 confidence=1.0,
                 confirmed=True,
+                atr=ctx.atr,
                 raw_action=ctx.raw_signal,
                 raw_score=ctx.raw_score,
                 model_score=ctx.model_score,
@@ -87,17 +88,25 @@ class SignalManager:
             ctx.ticker, score, atr=ctx.atr
         )
 
-        confirmed = action != "HOLD" and confidence > 0
+       # 【核心修改点】：如果在 good regime 下，raw_signal 是 LONG，且已经有一定强度
+        # 我们不等 debouncer 的计数器跑完，直接“强制确认”
+        is_trend_confirmed = False
+        if ctx.regime == "good" and ctx.raw_signal == "LONG":
+            if ctx.model_score > self.min_score * 5: # 设定一个合理的起步分
+                is_trend_confirmed = True
+
+        confirmed = (action != "HOLD" and confidence > 0) or is_trend_confirmed
 
         intent = TradeIntent(
-            action=action,
-            confidence=confidence,
+            action="LONG" if is_trend_confirmed else action, # 强制修正 action
+            confidence=max(confidence, ctx.model_score) if is_trend_confirmed else confidence,
             confirmed=confirmed,
             raw_action=ctx.raw_signal,
             raw_score=ctx.raw_score,
             model_score=ctx.model_score,
             predicted_up=ctx.predicted_up,
             strength=ctx.strength,
+            atr=ctx.atr,
             has_position=ctx.has_position,
             force_reduce=False,
             reduce_strength=confidence,

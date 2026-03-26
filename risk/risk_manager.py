@@ -89,10 +89,10 @@ class RiskManager:
             actual_lots = allowed_shares // self.lot_size
             final_shares = actual_lots  # 比如 193 // 100 * 100 = 100 股
             
-            signal_log(
-                f"price={last_price}, max_shares={max_shares}, risk_shares={risk_shares}, "
-                f"lots={actual_lots}, final_shares={final_shares}, stop_loss={stop_loss}"
-            )
+            # signal_log(
+            #     f"price={last_price}, max_shares={max_shares}, risk_shares={risk_shares}, "
+            #     f"lots={actual_lots}, final_shares={final_shares}, stop_loss={stop_loss}"
+            # )
 
             if actual_lots <= 0:
                 return TradePlan(False,"持仓过大，风控导致资金不足以购买一手(100股)")

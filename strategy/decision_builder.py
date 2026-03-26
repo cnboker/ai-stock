@@ -71,9 +71,26 @@ class DecisionContextBuilder:
 
         # 4. 账户状态同步 (Regime 合成)
         # 策略：只要账户风险层说是 bad，整体就是 bad；否则看信号动量
+
+        is_trend_strong = slope > settings.TREND_SLOPE_THRESHOLD
+        is_model_confident = model_score > settings.MODEL_LONG_THRESHOLD
+        is_gate_open = gate_result.allow
+
+        # 优化后的判定逻辑
         signal_regime = "neutral"
-        if slope > 0.4 and model_score > 0.55 and gate_result.allow:
+        
+        # 1. 完美状态：全部达标
+        if is_trend_strong and is_model_confident and is_gate_open:
             signal_regime = "good"
+        
+        # 2. 趋势初期：模型极度自信 + 门槛通过 (即便斜率还没完全拉起)
+        elif model_score > (settings.MODEL_LONG_THRESHOLD + 0.1) and is_gate_open:
+            signal_regime = "good"
+            
+        # 3. 强势修正：斜率极好 + 门槛通过 (即便模型分刚过线)
+        elif slope > (settings.TREND_SLOPE_THRESHOLD * 1.5) and is_gate_open:
+            signal_regime = "good"
+
         elif slope < -0.4:
             signal_regime = "bad"
 
@@ -108,7 +125,7 @@ class DecisionContextBuilder:
             if isinstance(tp_action, float):
                 raw_signal = "REDUCE"
                 # 取账户减仓要求和个股止盈强度的最大值 (取严原则)
-                reduce_strength = max(reduce_strength, tp_action)
+                reduce_strength = max(float(reduce_strength or 0.0), float(tp_action or 0.0))
                 liquidate_reason = "TAKE_PROFIT"
                 self.position_mgr.cooldown[ticker] = 3
 
@@ -127,7 +144,7 @@ class DecisionContextBuilder:
             atr=atr,
             model_score=model_score,
             predicted_up=predicted_up,
-            gate_allow=gate_result.allow,
+            gate_allow=bool(gate_result.allow),
             gate_mult=final_gate_mult,
             regime=final_regime,
             has_position=has_position,
@@ -140,10 +157,10 @@ class DecisionContextBuilder:
             slope=slope,
         )
 
-        #if raw_signal == "LONG":
-        signal_log(
-            f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
-            f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
-        )
+        # if raw_signal == "LONG":
+        #     signal_log(
+        #         f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
+        #         f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
+        #     )
 
         return ctx

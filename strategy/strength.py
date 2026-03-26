@@ -7,7 +7,7 @@ def compute_strength(
     gate: float,
     *,
     alpha: float = settings.STRENGTH_ALPHA,       # 建议 1.2 ~ 1.5
-    slope_min: float = settings.STRENGTH_SLOPE_MIN, # 建议 0.02
+    slope_min: float = settings.STRENGTH_SLOPE_MIN or 0.02, # 建议 0.02
 ):
     if gate < 0.2: return 0.0
     

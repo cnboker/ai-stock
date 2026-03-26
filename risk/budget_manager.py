@@ -105,7 +105,7 @@ class BudgetManager:
 
         # 确保不超过当前可用现金
         final_budget = min(raw_budget, available_cash)
-        print(f'final_budget->${final_budget}')
+       # print(f'final_budget->${final_budget}')
         # =============================
         # 8. 可用性保底逻辑 (重要！)
         # =============================
