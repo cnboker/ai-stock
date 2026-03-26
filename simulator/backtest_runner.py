@@ -104,18 +104,10 @@ class BacktestRunner:
             df_slice = df_today.iloc[: i + 1]
             ticker_df = pd.concat([df_history_fixed, df_slice])
 
-            pre_result = run_prediction(
-                df=ticker_df.tail(LOOKBACK_WINDOW),
-                hs300_df=hs300_history,
-                ticker=self.ticker,
-                period=self.period,
-                eq_feat=self.session.eq_feat,
-            )
-
             execute_stock_decision(
                 ticker=self.ticker,
-                close_df=ticker_df["close"],
-                pre_result=pre_result,
+                hs300_df = hs300_history,
+                ticker_df=ticker_df,
                 session=self.session,
             )
 

@@ -11,7 +11,7 @@ class TradingSystem:
         self.risk_mgr = risk_mgr
         self.position_mgr = position_mgr
 
-    def run_tick(self, ticker, pre_result, session:TradingSession):
+    def run_tick(self, ticker, pre_result, close_df, session: TradingSession):
         """每只股票、每根K线的核心处理流程"""
         # 1. 构建标准上下文 (聚合所有原始数据与账户状态)
         ctx = self.ctx_builder.build(
@@ -22,8 +22,8 @@ class TradingSystem:
             latest_price=pre_result.price,
             atr=pre_result.atr,
             model_score=pre_result.model_score,
-            close_df=session.close_df,
-            eq_decision=session.tradeIntent, # 账户层风险意图
+            close_df=close_df,
+            eq_decision=session.tradeIntent,  # 账户层风险意图
         )
 
         # 2. 评估意图 (判断：进场/离场/强制减仓/观望)
@@ -49,20 +49,20 @@ class TradingSystem:
             plan = self.risk_mgr.evaluate(
                 ticker=ticker,
                 last_price=ctx.latest_price,
-                chronos_low=ctx.low_val,
-                chronos_high=ctx.high_val,
+                chronos_low=float(pre_result.low[-1]),
+                chronos_high=float(pre_result.high[-1]),
                 atr=ctx.atr,
                 capital=budget,
-                position_mgr=self.position_mgr
+                position_mgr=self.position_mgr,
             )
 
         # 5. 最终物理执行 (修改仓位)
-        result =  execute_equity_action(
+        result = execute_equity_action(
             decision=intent,
             position_mgr=self.position_mgr,
             ticker=ticker,
             last_price=ctx.latest_price,
-            plan=plan
+            plan=plan,
         )
 
         persist_live_positions(self.position_mgr)

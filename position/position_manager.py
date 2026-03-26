@@ -109,24 +109,29 @@ class PositionManager:
     #移动止损核心函数
     def update_trailing_stop(self, ticker, price, atr):
         position = self.positions.get(ticker)
-        if not position or atr is None:
+        # 增加对 price 的有效性检查
+        if not position or atr is None or price is None:
             return
 
         entry = position.entry_price
-        stop = position.stop_loss or 0
+        
+        # 1. 稳健初始化最高价 (修复报错点)
+        if position.highest_price is None:
+            position.highest_price = float(price)
+        elif price > position.highest_price:
+            position.highest_price = float(price)
 
-        # ⚠️ ATR直接用（不要乘price）
+        # 2. 计算止损基础
+        # 确保 stop 有初始值，防止后面 max(stop, ...) 报错
+        stop = position.stop_loss if position.stop_loss is not None else (entry * 0.95)
+        
+        # ATR 逻辑保持不变
         atr_price = atr * price
-
-        # 更新最高价
-        position.highest_price = max(position.highest_price, price)
-
         profit = (price - entry) / entry if entry > 0 else 0
 
         # =============================
         # 状态切换
         # =============================
-
         if position.stage == "init" and profit > settings.INIT_PROFIT_TRIGGER:
             position.stage = "profit_lock"
 
@@ -134,20 +139,22 @@ class PositionManager:
             position.stage = "trend"
 
         # =============================
-        # 各阶段逻辑
+        # 各阶段逻辑 (逻辑重构：确保 stop 始终不下降)
         # =============================
 
-        # 🟢 阶段1：刚盈利 → 保本
+        # 🟢 阶段1：刚盈利 → 移动到开仓价保本
         if position.stage == "profit_lock":
             stop = max(stop, entry)
 
-        # 🟡 阶段2：趋势跟踪（核心）
+        # 🟡 阶段2：大肉趋势 → 移动 ATR 跟踪止损
         elif position.stage == "trend":
             trail_stop = position.highest_price - settings.ATR_MULTIPLIER * atr_price
             stop = max(stop, trail_stop)
 
-        # 防止止损下降
-        position.stop_loss = round(stop, 2)
+        # 3. 最终赋值 (A股价格建议保留 3 位精度给 ETF，或者 2 位给股票)
+        # 注意：sz159908 是 ETF，建议用 round(stop, 3)
+        precision = 3 if ticker.startswith(('sz15', 'sh51')) else 2
+        position.stop_loss = round(float(stop), precision)
 
     # 移动止盈（分批止盈）
     def check_take_profit(self, ticker, price):

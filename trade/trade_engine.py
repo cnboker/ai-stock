@@ -56,18 +56,19 @@ debugger = DecisionDebugger()
 def execute_stock_decision(
     *,
     ticker: str,
+    hs300_df:DataFrame,
+    ticker_df:DataFrame,
     session: TradingSession,
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
     返回 dict，用于动态表格显示
     """
-    df = load_stock_df(ticker, session.period)
-    session.close_df = df["close"]
+    
     # 模型预测
     pre_result = run_prediction(
-        df=df,
-        hs300_df=session.hs300_df,
+        df=ticker_df,
+        hs300_df=hs300_df,
         ticker=ticker,
         period=session.period,
         eq_feat=session.eq_feat,
@@ -75,7 +76,7 @@ def execute_stock_decision(
 
     position_mgr = session.position_mgr
     # ===== 1️⃣ 最新价格 =====
-    price = float(session.close_df.iloc[-1])
+    price = float(ticker_df["close"].iloc[-1])
     position_mgr.update_price(ticker, price)
 
     # ===== 2️⃣ 模型预测 + 信号处理 =====
@@ -91,4 +92,4 @@ def execute_stock_decision(
         risk_mgr=risk_mgr,
         position_mgr=position_mgr,
     )
-    return tradeSystem.run_tick(ticker=ticker, pre_result=pre_result, session=session)
+    return tradeSystem.run_tick(ticker=ticker, pre_result=pre_result, close_df=ticker_df["close"], session=session)
