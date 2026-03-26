@@ -1,5 +1,4 @@
 from strategy.decision_context import DecisionContext
-from strategy.hold_reason import decide_good_hold_reason
 from strategy.trade_intent import TradeIntent
 from log import signal_log
 
@@ -46,8 +45,8 @@ class SignalManager:
 
     def evaluate(self, ctx: DecisionContext) -> TradeIntent:
         score = ctx.raw_score
-        # if ctx.regime == "bad":
-        #     return TradeIntent(confirmed=False, reason="bad regime")
+        if ctx.regime == "bad":
+            return TradeIntent(confirmed=False, reason="bad regime")
         # =========================
         # 0️⃣ 风控优先级最高（直接 bypass debounce）
         # =========================

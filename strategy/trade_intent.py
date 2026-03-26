@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from strategy.decision_context import GoodHoldReason
 
 #我打算做什么
 @dataclass
@@ -29,10 +28,7 @@ class TradeIntent:
     cooldown_active: bool = False
     cooldown_left: int = 0
 
-    # ===== 解释层（新增）=====
-    good_hold_reason: GoodHoldReason = GoodHoldReason.NONE
-    good_hold_detail: dict = field(default_factory=dict)
-
+  
     # ===== 通用日志原因（保留）=====
     reason: str = ""            # 触发原因（日志 / 回测用）
 

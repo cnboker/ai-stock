@@ -11,7 +11,10 @@ class GateResult:
     reason: str
     meta: dict
 
-
+# 战术/标的层
+# 这只票能不能买？
+# 评估信号质量、盈亏空间、预测的可信度。
+# 信号评分（Score），决定买入的“信心值”
 class PredictionGate:
     def __init__(
         self,
@@ -115,4 +118,4 @@ class PredictionGate:
 
 
 
-gater = PredictionGate(score_threshold=0.35)
+gater = PredictionGate(score_threshold=0.5)

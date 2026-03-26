@@ -13,11 +13,11 @@ from position.live_position_loader import live_positions_hot_load
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
 from predict.prediction_store import load_history
-from trade.processor import execute_stock_analysis
 from equity.equity_features import equity_features
 from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC
 from predict.time_utils import is_market_break
 from data.loader import load_index_df
+from trade.trade_engine import execute_stock_decision
 
 # 环境变量与警告忽略
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
@@ -33,9 +33,9 @@ def run_analysis_cycle():
     """单次分析循环核心逻辑"""
     
     # 1. 检查市场状态
-    if is_market_break():
-        print(f"[{time.strftime('%H:%M:%S')}] 市场休市中...")
-        return
+    # if is_market_break():
+    #     print(f"[{time.strftime('%H:%M:%S')}] 市场休市中...")
+    #     return
 
     print(f"\n--- 周期开始: {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
     
@@ -71,20 +71,9 @@ def run_analysis_cycle():
         for ticker, p in positions:
             try:
                 # 执行核心分析（包含预测逻辑）
-                result = execute_stock_analysis(ticker, session)
+                result = execute_stock_decision(ticker=ticker, session=session)
               
-                # 提取关键决策数据
-                decision = result["decision"]
-                last_price = result["df"]['close'].iloc[-1] if not result["df"].empty else 0
-                
-                print(f"[{ticker}] 现价: {last_price:.2f} | 置信low: {result['low'][-1]:.2f} | 置信mid: {result['median'][-1]:.2f} | 置信high: {result['high'][-1]:.2f} | 信号: {decision.get('action', 'HOLD')}")
-                
-                results_summary.append({
-                    "ticker": ticker,
-                    "price": last_price,
-                    **decision
-                })
-
+             
             except Exception as e:
                 print(f"[ERROR] 分析 {ticker} 失败: {e}")
                 traceback.print_exc()

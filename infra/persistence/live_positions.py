@@ -1,4 +1,5 @@
 import shutil
+import numpy as np
 import yaml
 import hashlib
 from datetime import datetime
@@ -13,9 +14,20 @@ BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 
 _last_hash = None
 
-def _calc_position_hash(position_mgr):
-    data = position_mgr.to_dict()
+def _sanitize_data(obj):
+    """递归转换字典/列表中的 NumPy 类型为 Python 原生类型"""
+    if isinstance(obj, dict):
+        return {k: _sanitize_data(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_sanitize_data(v) for v in obj]
+    elif isinstance(obj, (np.float64, np.float32)):
+        return float(obj)
+    elif isinstance(obj, (np.int64, np.int32)):
+        return int(obj)
+    return obj
 
+def _calc_position_hash(position_mgr):
+    data = _sanitize_data(position_mgr.to_dict())
     text = yaml.safe_dump(
         data,
         sort_keys=True,
@@ -52,6 +64,6 @@ def persist_live_positions(position_mgr):
     tmp_file = file.with_suffix(".tmp")
 
     with open(tmp_file, "w", encoding="utf8") as f:
-        yaml.safe_dump(position_mgr.to_dict(), f, allow_unicode=True)
+        yaml.safe_dump(_sanitize_data(position_mgr.to_dict()), f, allow_unicode=True)
 
     tmp_file.replace(file)

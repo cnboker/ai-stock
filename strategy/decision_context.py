@@ -1,84 +1,35 @@
-from enum import Enum, auto
-from dataclasses import dataclass, asdict
-from typing import Dict, Any
-import json
 
-import numpy as np
+from dataclasses import dataclass
 
-class GoodHoldReason(Enum):
-    NONE = auto()
-
-    # HARD / SUPPRESSED
-    COOLDOWN_ACTIVE = auto()
-    CONFIRMATION_PENDING = auto()
-    POSITION_LIMIT = auto()
-
-    # SOFT / SIGNAL
-    GATE_NOT_PASSED = auto()
-    STRENGTH_TOO_WEAK = auto()
-    TREND_DECAY = auto()
-
+from dataclasses import dataclass
 
 @dataclass
 class DecisionContext:
-    # ===== 标识 =====
+    # 1. 基础信息 (无默认值)
     ticker: str
-
-    # ===== 市场 =====
     latest_price: float
     atr: float
-
-    # ===== 模型 =====
+    
+    # 2. 模型预测 (无默认值)
     model_score: float
     predicted_up: float
-
-    # ===== Gate / 信号 =====
-    gate_allow: bool
-    gate_mult: float
-    slope: float
-    strength: float
-
-    # ===== 资金 / 风控 =====
-    regime: str
-    regime_cooldown_left: float
-    dd: float
-
-    # ===== 仓位 =====
-    has_position: bool
-    allow_add: bool
-    position_size: float
-
-    # ===== regime 确认 =====
-    good_count: int
-    good_confirm_need: int
-
-    # ===== 原始信号 =====
-    raw_signal: str
-    raw_score: float
-
-    # ===== 策略阈值（事实，不是逻辑）=====
-    slope_decay_thresh: float = 0.0
     
-    reduce_strength: float = 0.0
-    liquidate_reason: str | None = None
-    # =========================
-    # JSON / Dict
-    # =========================
-    def to_dict(self) -> Dict[str, Any]:
-        d = asdict(self)
-        for k, v in d.items():
-            if hasattr(v, "item"):
-                d[k] = v.item()
-        return d
-
-    def to_json(self, *, indent: int = 2) -> str:
-        return json.dumps(self.to_dict(), ensure_ascii=False, indent=indent)
-
-    def __post_init__(self):
-        for k, v in self.__dict__.items():
-            if isinstance(v, np.bool_):
-                setattr(self, k, bool(v))
-            elif isinstance(v, np.floating):
-                setattr(self, k, float(v))
-            elif isinstance(v, np.integer):
-                setattr(self, k, int(v))
+    # 3. 结构与风控系数 (无默认值)
+    gate_allow: bool
+    gate_mult: float       
+    
+    # 4. 状态判定 (无默认值)
+    regime: str            
+    has_position: bool
+    position_size: float
+    
+    # 5. 信号指令 (无默认值)
+    raw_signal: str        
+    raw_score: float       
+    reduce_strength: float 
+    
+    # 6. 过滤参数 (无默认值)
+    slope: float           # <--- 移动到这里，因为它没有默认值
+    strength: float  # <--- 加在这里，没有默认值
+    # 7. 带有默认值的参数 (必须放在最后)
+    liquidate_reason: str = None

@@ -95,7 +95,7 @@ class RiskManager:
             )
 
             if actual_lots <= 0:
-                return TradePlan(False, "资金不足以购买一手(100股)")
+                return TradePlan(False,"持仓过大，风控导致资金不足以购买一手(100股)")
 
             return TradePlan(
                 True,

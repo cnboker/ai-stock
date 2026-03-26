@@ -2,7 +2,7 @@
 
 class GlobalConfig:
     # --- 入场控制 ---
-    MODEL_LONG_THRESHOLD = 0.5
+    MODEL_LONG_THRESHOLD = 0.55
     TREND_SLOPE_THRESHOLD = -0.01
     PREDICTED_UP = -0.03
     # --- 止盈止损阶段触发 ---
@@ -25,6 +25,7 @@ class GlobalConfig:
     MIN_STOP_PCT = 0.01
 
     MIN_RR = 0.7 #默认最小盈亏比 1.5
-    
+    STRENGTH_ALPHA = 1.2
+    STRENGTH_SLOPE_MIN = 0.02
 # 实例化为一个全局单例
 settings = GlobalConfig()

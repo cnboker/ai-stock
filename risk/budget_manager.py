@@ -63,6 +63,7 @@ class BudgetManager:
 
         # =============================
         # 3. 账户回撤硬限制 (风控底线)
+        # 如果你当前的 positions_value（持仓市值）已经接近或超过了你设定的 equity * (1 - max_drawdown_pct)，那么 max_allowed 就会直接变成 0。
         # =============================
         max_allowed = equity * (1 - self.max_drawdown_pct) - positions_value
         max_allowed = max(max_allowed, 0)

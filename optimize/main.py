@@ -22,6 +22,7 @@ def objective(trial):
         "MAX_STOP_PCT": trial.suggest_float("max_stop", 0.03, 0.10),
         "MIN_STOP_PCT": trial.suggest_float("min_stop", 0.01, 0.02),
         "MIN_RR": trial.suggest_float("min_rr", 0.5, 1.0),
+        "STRENGTH_ALPHA": trial.suggest_float("strength_alpha", 1.2, 1.5),
     }
     
     # 动态赋值给全局单例 settings
@@ -128,6 +129,7 @@ if __name__ == "__main__":
         "max_stop": 0.04,         # 4%强制离场
         "min_stop": 0.01, 
         "min_rr": 0.8,
+        "strength_alpha":1.2
     })
 
     # 开始优化

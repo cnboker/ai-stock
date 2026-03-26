@@ -17,7 +17,10 @@ from equity.equity_gate import equity_gate
 from equity.equity_regime import equity_regime
 from strategy.trade_intent import TradeIntent
 
-
+# 战略/账户层
+# 我现在敢不敢下单？
+# 评估账户当前的健康状态，防止连败导致爆仓
+# 风险乘数（Gate Mult），决定投入资金的“缩放比例”
 class EquityRiskEngine:
 
     def __init__(self, cooldown_mgr):
