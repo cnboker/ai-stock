@@ -60,3 +60,23 @@
 # 30 分钟 (30M),8 条,~125 个交易日 (约 6 个月),是 (刚好满足)
 # 15 分钟 (15M),16 条,~62.5 个交易日 (约 3 个月),否
 # 5 分钟 (5M),48 条,~21 个交易日 (约 1 个月),否
+
+
+ config = {
+        "MODEL_LONG_THRESHOLD": trial.suggest_float("model_th", 0.42, 0.48),
+        "TREND_SLOPE_THRESHOLD": trial.suggest_float("slope_th", -0.001, 0.005),
+        "PREDICTED_UP": trial.suggest_float("predict_up_th", 0.0, 0.005),
+        "INIT_PROFIT_TRIGGER": trial.suggest_float("init_pt", 0.02, 0.04),
+        "TREND_STAGE_TRIGGER": trial.suggest_float("trend_pt", 0.05, 0.25),
+        "ATR_MULTIPLIER": trial.suggest_float("atr_mult", 2.5, 4.5),
+        "TP1_RATIO": trial.suggest_float("tp1", 1.03, 1.06),
+        "TP2_RATIO": trial.suggest_float("tp2", 1.1, 1.25),
+        "KELLY_FRACTION": trial.suggest_float("kelly", 0.3, 0.5),
+        "RISK_PER_TRADE": trial.suggest_float("max_lost_pct", 0.01, 0.015),
+        "ATR_STOP_MULT": trial.suggest_float("atr_stop_mult", 2.5, 3.5),
+        "MAX_STOP_PCT": trial.suggest_float("max_stop", 0.03, 0.10),
+        "MIN_STOP_PCT": trial.suggest_float("min_stop", 0.01, 0.02),
+        "MIN_RR": trial.suggest_float("min_rr", 0.0, 0.3),
+        "STRENGTH_ALPHA": trial.suggest_float("strength_alpha", 1.2, 1.5),
+        "CONFIRM_WINDOW": trial.suggest_float("confirm_n", 2, 5),
+    }

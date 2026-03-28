@@ -3,12 +3,12 @@ import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")
 
-def run_backtest(ticker):
+def run_backtest(ticker, period="60"):
     runner = BacktestRunner(
         ticker=ticker,
-        period="60" #60 minutes
+        period=period
     )
     # 执行 2/8 验证逻辑，返回 (train_stats, test_stats)
     return runner.run_split_backtest()
 
-run_backtest("sh588760")
+#run_backtest("sh588760")
