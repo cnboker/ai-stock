@@ -8,9 +8,9 @@ class ConfigManager:
         # 预加载全局默认参数（兜底用）
         self.default_config = {
             "STRENGTH_ALPHA": 1.35,
-            "MODEL_LONG_THRESHOLD": 0.45,
-            "ATR_STOP_MULT": 3.5,
-            "RISK_PER_TRADE": 0.01
+            "MODEL_TH": 0.45,
+            "ATR_STOP": 3.5,
+            "RISK": 0.01
         }
         # 缓存结构: { file_path: {"mtime": 12345, "data": {...}} }
         self._config_cache = {}

@@ -11,11 +11,11 @@ def write_head():
     # 初始化 CSV 表头（包含所有参数名 + 回测结果字段）
     HEADERS = [
         "trial_num", 
-        "MODEL_LONG_THRESHOLD", "TREND_SLOPE_THRESHOLD", "PREDICTED_UP", 
-        "INIT_PROFIT_TRIGGER", "TREND_STAGE_TRIGGER", "ATR_MULTIPLIER", 
-        "TP1_RATIO", "TP2_RATIO", "KELLY_FRACTION",
-        "ATR_STOP_MULT", "MIN_STOP_PCT",
-        "MIN_RR",
+        "MODEL_TH", "SLOPE", "PREDICT_UP", 
+        "INIT_PT", "TREND_STAGE", "ATR_MULT", 
+        "TP1", "TP2", "KELLY",
+        "ATR_STOP", "MIN_STOP",
+        
         "Strategy_Return", "BuyHold_Return", "Max_Drawdown"
     ]
 
@@ -34,18 +34,18 @@ def write_data(trial,config,stats):
             # 按照 HEADERS 的顺序组织数据
             row = [
                 trial.number,
-                config.get("MODEL_LONG_THRESHOLD"),
-                config.get("TREND_SLOPE_THRESHOLD"),
-                config.get("PREDICTED_UP"),
-                config.get("INIT_PROFIT_TRIGGER"),
-                config.get("TREND_STAGE_TRIGGER"),
-                config.get("ATR_MULTIPLIER"),
-                config.get("TP1_RATIO"),
-                config.get("TP2_RATIO"),
-                config.get("KELLY_FRACTION"),
-                config.get("ATR_STOP_MULT"),
-                config.get("MIN_STOP_PCT"),
-                config["MIN_RR"],
+                config.get("MODEL_TH"),
+                config.get("SLOPE"),
+                config.get("PREDICT_UP"),
+                config.get("INIT_PT"),
+                config.get("TREND_STAGE"),
+                config.get("ATR_MULT"),
+                config.get("TP1"),
+                config.get("TP2"),
+                config.get("KELLY"),
+                config.get("ATR_STOP"),
+                config.get("MIN_STOP"),
+               
                 stats.get("Strategy_Return"),
                 stats.get("BuyHold_Return"),
                 stats.get("Max_Drawdown")
@@ -61,23 +61,23 @@ def write_best_config(study):
     best_params = study.best_params
 
     # 2. 回写到 settings 对象中 (注意：这里的 key 要对应 settings 里的实际变量名)
-    # 因为你 suggest 时用了简写（如 "model_th"），而 settings 里是 "MODEL_LONG_THRESHOLD"
+    # 因为你 suggest 时用了简写（如 "model_th"），而 settings 里是 "MODEL_TH"
     # 我们需要一个映射表
     param_mapping = {
-        "model_th": "MODEL_LONG_THRESHOLD",
-        "slope_th": "TREND_SLOPE_THRESHOLD",
-        "predict_up_th": "PREDICTED_UP",
-        "init_pt": "INIT_PROFIT_TRIGGER",
-        "trend_pt": "TREND_STAGE_TRIGGER",
-        "atr_mult": "ATR_MULTIPLIER",
-        "tp1": "TP1_RATIO",
-        "tp2": "TP2_RATIO",
-        "kelly": "KELLY_FRACTION",
-        "atr_stop_mult": "ATR_STOP_MULT",
-        "max_lost_pct":"RISK_PER_TRADE",
-        "max_stop": "MAX_STOP_PCT", # 注意你代码里定义的 key
-        "min_stop": "MIN_STOP_PCT",
-        "min_rr": "MIN_RR"
+        "model_th": "MODEL_TH",
+        "slope_th": "SLOPE",
+        "predict_up_th": "PREDICT_UP",
+        "init_pt": "INIT_PT",
+        "trend_pt": "TREND_STAGE",
+        "atr_mult": "ATR_MULT",
+        "tp1": "TP1",
+        "tp2": "TP2",
+        "kelly": "KELLY",
+        "atr_stop_mult": "ATR_STOP",
+        "max_lost_pct":"RISK",
+        "max_stop": "MAX_STOP", # 注意你代码里定义的 key
+        "min_stop": "MIN_STOP",
+        
     }
 
     print("最佳参数:", study.best_params)

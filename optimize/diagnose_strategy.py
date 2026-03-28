@@ -62,7 +62,7 @@ def diagnose_run(ticker, test_config):
 
         # 3. 计算斜率 (slope) 
         # 使用预测序列的终点和起点差值，除以步长，并对当前价归一化
-        # 这样 slope 才能和 settings.TREND_SLOPE_THRESHOLD (如 0.005) 在一个量级上
+        # 这样 slope 才能和 settings.SLOPE (如 0.005) 在一个量级上
         history_len = len(median_prices)
         slope = (median_prices[-1] - median_prices[0]) / history_len / current_price
 
@@ -70,11 +70,11 @@ def diagnose_run(ticker, test_config):
         print(f"日期: {day} | 置信度: {conf:.4f} | 斜率: {slope:.6f} | 预涨: {up_pct:.4f}")
 
         # 5. 诊断拦截点
-        if conf < settings.MODEL_LONG_THRESHOLD:
+        if conf < settings.MODEL_TH:
             reject_reasons["model_confidence"] += 1
-        elif slope < settings.TREND_SLOPE_THRESHOLD:
+        elif slope < settings.SLOPE:
             reject_reasons["slope_filter"] += 1
-        elif up_pct < settings.PREDICTED_UP:
+        elif up_pct < settings.PREDICT_UP:
             reject_reasons["predict_up_filter"] += 1
         else:
             print(f"✅ >>> 发现潜在入场点！")
@@ -89,8 +89,8 @@ def diagnose_run(ticker, test_config):
 if __name__ == "__main__":
     # 使用你之前 Trial 45 失败的参数看看原因
     fail_config = {
-        "MODEL_LONG_THRESHOLD": 0.5,
-        "TREND_SLOPE_THRESHOLD": 0.005,
-        "PREDICTED_UP": 0.005,
+        "MODEL_TH": 0.5,
+        "SLOPE": 0.005,
+        "PREDICT_UP": 0.005,
     }
     diagnose_run("sz159908", fail_config)

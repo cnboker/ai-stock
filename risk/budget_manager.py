@@ -22,7 +22,7 @@ class BudgetManager:
     ):
         # 从配置中读取，若无则使用默认
      
-        self.kelly_fraction = getattr(settings, 'KELLY_FRACTION', 0.5)
+        self.kelly_fraction = getattr(settings, 'KELLY', 0.5)
         
         self.max_drawdown_pct = max_drawdown_pct
         self.single_position_limit = single_position_limit

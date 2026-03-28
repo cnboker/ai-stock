@@ -1,0 +1,19 @@
+{
+    "_META": {
+        "category": "stock",
+        "last_optimize": "2026-03-28 18:01",
+        "score": -137.169
+    },
+    "STRENGTH_ALPHA": 1.3,
+    "CONFIRM_N": 3,
+    "TP2": 1.2,
+    "MODEL_TH": 0.5,
+    "ATR_STOP": 5.5,
+    "RISK": 0.008,
+    "KELLY": 0.2,
+    "SLOPE": -0.001,
+    "MAX_STOP": 0.12,
+    "STOCK_PREDICT_UP": 0.0041,
+    "STOCK_INIT_PT": 0.028,
+    "STOCK_TP1": 1.0492
+}

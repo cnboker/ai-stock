@@ -16,9 +16,9 @@ class DecisionContextBuilder:
     def _make_raw_signal(self, predicted_up, slope, model_score):
         """基于模型输出生成初步信号"""
         if (
-            model_score > settings.MODEL_LONG_THRESHOLD
-            and slope > settings.TREND_SLOPE_THRESHOLD
-            and predicted_up > settings.PREDICTED_UP
+            model_score > settings.MODEL_TH
+            and slope > settings.SLOPE
+            and predicted_up > settings.PREDICT_UP
         ):
             return "LONG"
         return "HOLD"
@@ -72,8 +72,8 @@ class DecisionContextBuilder:
         # 4. 账户状态同步 (Regime 合成)
         # 策略：只要账户风险层说是 bad，整体就是 bad；否则看信号动量
 
-        is_trend_strong = slope > settings.TREND_SLOPE_THRESHOLD
-        is_model_confident = model_score > settings.MODEL_LONG_THRESHOLD
+        is_trend_strong = slope > settings.SLOPE
+        is_model_confident = model_score > settings.MODEL_TH
         is_gate_open = gate_result.allow
 
         # 优化后的判定逻辑
@@ -84,11 +84,11 @@ class DecisionContextBuilder:
             signal_regime = "good"
         
         # 2. 趋势初期：模型极度自信 + 门槛通过 (即便斜率还没完全拉起)
-        elif model_score > (settings.MODEL_LONG_THRESHOLD + 0.1) and is_gate_open:
+        elif model_score > (settings.MODEL_TH + 0.1) and is_gate_open:
             signal_regime = "good"
             
         # 3. 强势修正：斜率极好 + 门槛通过 (即便模型分刚过线)
-        elif slope > (settings.TREND_SLOPE_THRESHOLD * 1.5) and is_gate_open:
+        elif slope > (settings.SLOPE * 1.5) and is_gate_open:
             signal_regime = "good"
 
         elif slope < -0.4:
@@ -158,9 +158,9 @@ class DecisionContextBuilder:
         )
 
         # if raw_signal == "LONG":
-        signal_log(
-            f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
-            f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
-        )
+        # signal_log(
+        #     f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
+        #     f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
+        # )
 
         return ctx

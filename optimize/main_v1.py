@@ -72,7 +72,7 @@ def run_optimization(tickers: list):
         ConfigFactory.enqueue_initial_trial(study, main_ticker)
 
     # 4. 开始跑分：用 lambda 传递整个列表
-    study.optimize(lambda t: objective(t, tickers), n_trials=2)
+    study.optimize(lambda t: objective(t, tickers), n_trials=1)
     
     print(f"🚀 优化完成！最佳标的组合评分: {study.best_value}")
     print(f"📌 最佳参数已存入数据库: {db_url}")
@@ -83,7 +83,7 @@ def run_optimization(tickers: list):
 
 if __name__ == "__main__":
     # 场景 A：跑 ETF 组合优化 (追求宽基普适性)
-    run_optimization(["sz159908", "sh510300"])
-    
+    #run_optimization(["sz159908", "sh510300"])
+    run_optimization(["sz300785"])
     # 场景 B：跑个股组合优化 (如果你以后想试试几只个股能否共用一套参数)
     # run_optimization(["sz002137", "sz300750"])

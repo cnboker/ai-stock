@@ -39,15 +39,15 @@ class RiskManager:
                 return TradePlan(False, "ATR 无效")
 
             # 1. 计算止损位
-            sl_atr = last_price - settings.ATR_STOP_MULT * (atr * last_price)
+            sl_atr = last_price - settings.ATR_STOP * (atr * last_price)
             stop_loss = min(chronos_low, sl_atr)
 
             # 2. 【复活参数】使用全局配置限制止损范围，不再硬编码 0.95/0.99
             limit_sl_far = last_price * (
-                1 - settings.MAX_STOP_PCT
+                1 - settings.MAX_STOP
             )  # 比如最多容忍 8% 损耗
             limit_sl_near = last_price * (
-                1 - settings.MIN_STOP_PCT
+                1 - settings.MIN_STOP
             )  # 至少要有 2% 保护空间
 
             stop_loss = max(stop_loss, limit_sl_far)
@@ -60,9 +60,7 @@ class RiskManager:
 
             current_rr = reward_dist / risk_dist if risk_dist > 0 else 0
 
-            # if current_rr < settings.MIN_RR:
-            #     return TradePlan(False, f"盈亏比太低: {current_rr:.2f}")
-
+         
            # ---------- size 计算逻辑修正 ----------
             available_cash = capital  # 比如 3000 元
             
@@ -73,7 +71,7 @@ class RiskManager:
             # 如果你希望这 3000 元能全部花出去，这里应该增加风险容忍度
             # 或者直接使用账户总资产来计算 risk_cash
             total_equity = position_mgr.equity
-            risk_cash = total_equity * settings.RISK_PER_TRADE 
+            risk_cash = total_equity * settings.RISK 
 
             # 1. 基于单笔最大亏损限制的股数
             risk_shares = int(risk_cash / risk_per_share) if risk_per_share > 0 else 0

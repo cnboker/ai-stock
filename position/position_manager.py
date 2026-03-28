@@ -144,10 +144,10 @@ class PositionManager:
         # =============================
         # 状态切换
         # =============================
-        if position.stage == "init" and profit > settings.INIT_PROFIT_TRIGGER:
+        if position.stage == "init" and profit > settings.INIT_PT:
             position.stage = "profit_lock"
 
-        if position.stage == "profit_lock" and profit > settings.TREND_STAGE_TRIGGER:
+        if position.stage == "profit_lock" and profit > settings.TREND_STAGE:
             position.stage = "trend"
 
         # =============================
@@ -164,7 +164,7 @@ class PositionManager:
             h_price = position.highest_price if position.highest_price is not None else price
             
             # 2. 计算基于 ATR 的跟踪止损线
-            trail_stop = h_price - (settings.ATR_MULTIPLIER * atr_price)
+            trail_stop = h_price - (settings.ATR_MULT * atr_price)
             
             # 3. 确保 stop 有数值（如果之前 stop_loss 是 None，则取一个保底值）
             current_stop = stop if (stop is not None and stop > 0) else (entry * 0.95)
@@ -186,8 +186,8 @@ class PositionManager:
         entry = position.entry_price
 
         # 👉 提高止盈阈值（关键）
-        tp1 = entry * settings.TP1_RATIO
-        tp2 = entry * settings.TP2_RATIO
+        tp1 = entry * settings.TP1
+        tp2 = entry * settings.TP2
 
         # 🟢 只在趋势阶段才允许止盈
         if position.stage != "trend":

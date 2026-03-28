@@ -1,44 +1,86 @@
 import json
 import os
-import logging
-from optimize.config_factory import ConfigFactory
+from collections import OrderedDict
+from datetime import datetime
 
-logger = logging.getLogger("PersistManager")
 
 class PersistManager:
+
+    # 2. 默认值兜底：如果 Optuna 结果里真的没有，就用这些凑数，保证 JSON 结构完整
+    DEFAULTS = {
+        "TREND_STAGE": 0.18,
+        "MIN_STOP": 0.01,
+        "SLOPE_MIN": 0.02,
+        "ATR_MULT": 3.87,
+        "PREDICT_UP": 0.0,
+        "SLOPE": 0.0001,
+    }
+
+    # 3. 严格按照你要求的物理顺序排队
+    ORDERED_TEMPLATE = [
+        "MODEL_TH",
+        "SLOPE",
+        "PREDICT_UP",
+        "INIT_PT",
+        "TREND_STAGE",
+        "ATR_MULT",
+        "TP1",
+        "TP2",
+        "KELLY",
+        "RISK",
+        "ATR_STOP",
+        "MAX_STOP",
+        "MIN_STOP",
+        "STRENGTH_ALPHA",
+        "SLOPE_MIN",
+        "CONFIRM_N",
+    ]
+
     @staticmethod
-    def save_best_config(study, ticker: str, config_root: str = "./config/optimized_params"):
-        """
-        提取 Optuna 结果并保存为分类通用配置
-        """
+    def save_best_config(
+        study, ticker: str, config_root: str = "./config/optimized_params"
+    ):
         if not os.path.exists(config_root):
             os.makedirs(config_root)
 
-        # 1. 获取当前分类 (如 ETF 或 STOCK)
-        category = ConfigFactory.get_ticker_category(ticker)
-        prefix = category.lower() + "_"
-        
-        # 2. 清洗参数：去除前缀并转为大写
-        best_params = study.best_params
-        cleaned_config = {}
-        
-        for k, v in best_params.items():
-            # 处理带前缀的参数 (如 etf_model_th -> MODEL_LONG_THRESHOLD)
-            if k.startswith(prefix):
-                clean_key = k.replace(prefix, "").upper()
-                cleaned_config[clean_key] = v
-            else:
-                # 处理不带前缀的通用参数 (如 strength_alpha -> STRENGTH_ALPHA)
-                cleaned_config[k.upper()] = v
+        raw_best = study.best_params
+        print(f"raw_best={raw_best}")
+        # --- 步骤 A: 预填充默认值 ---
+        cleaned_pool = PersistManager.DEFAULTS.copy()
 
-        # 3. 写入文件 (例如 category_ETF.json)
-        file_name = f"category_{category}.json"
-        file_path = os.path.join(config_root, file_name)
-        
+        # --- 步骤 B: 用 Optuna 结果覆盖默认值 ---
+        for k, v in raw_best.items():
+            final_key = k.lower().replace("stock_", "").replace("etf_", "").upper()
+            # 精度控制
+            val = round(v, 4) if isinstance(v, float) else v
+            cleaned_pool[final_key] = val
+            print(f"{final_key}={val}")
+        # --- 步骤 C: 按照 ORDERED_TEMPLATE 抽取数据 ---
+        final_ordered_data = OrderedDict()
+
+        # 加上元数据
+        final_ordered_data["_META"] = {
+            "ticker": ticker,
+            "best_value": round(study.best_value, 4),
+            "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        }
+
+        for key in PersistManager.ORDERED_TEMPLATE:
+            # 只要模板里要求的，池子里一定会通过 DEFAULT 或 Optuna 存在
+            if key in cleaned_pool:
+                final_ordered_data[key] = cleaned_pool.pop(key)
+
+        # 兜底：处理池子里剩下没在模板里的杂项
+        for key, val in cleaned_pool.items():
+            final_ordered_data[key] = val
+
+        # --- 步骤 D: 保存 ---
+        file_path = os.path.join(config_root, f"{ticker}.json")
         try:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(cleaned_config, f, indent=4, ensure_ascii=False)
-            print(f"\n✨ [SUCCESS] 最优参数已同步至: {file_path}")
-            print(f"📊 最终得分 (Mean-0.5Std): {study.best_value:.4f}")
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    final_ordered_data, f, indent=4, ensure_ascii=False, sort_keys=False
+                )
+            print(f"✅ 配置文件已生成！已自动填充缺少的参数并按顺序排列: {file_path}")
         except Exception as e:
-            logger.error(f"❌ 自动保存参数失败: {e}")
+            print(f"❌ 保存失败: {e}")
