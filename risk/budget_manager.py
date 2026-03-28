@@ -1,7 +1,7 @@
 import numpy as np
 import logging
 from dataclasses import dataclass
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 
 # 配置日志，方便观察资金被哪个维度拦截
 logger = logging.getLogger(__name__)

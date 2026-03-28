@@ -1,6 +1,6 @@
 import pandas as pd
 from simulator.run_backtest import BacktestRunner
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 
 def diagnose_run(ticker, test_config):
     """

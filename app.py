@@ -3,10 +3,10 @@ import threading
 
 import pandas as pd
 from global_state import equity_engine
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 from infra.core.runtime import RunMode
 from plot.trade_monitor import live_stock_table
-from position.live_position_loader import (
+from position.position_loader import (
     live_positions_hot_load,
 )
 from predict.prediction_store import load_history
@@ -35,7 +35,7 @@ from plot.base import build_update_text, create_base_figure, finalize_figure
 
 # app.py
 from global_state import state_lock
-from position.live_position_loader import live_positions_hot_load
+from position.position_loader import live_positions_hot_load
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")

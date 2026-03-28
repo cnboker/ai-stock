@@ -5,7 +5,7 @@ from predict.chronos_predict import run_prediction
 from predict.predict_result import PredictionResult
 from strategy.trade_intent import TradeIntent
 from trade.trade_engine import execute_stock_decision
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 from infra.core.runtime import RunMode
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder

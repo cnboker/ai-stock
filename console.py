@@ -1,24 +1,25 @@
 import os
-import threading
 import time
-import pandas as pd
 import warnings
 import traceback
 
 # ========================== 项目内模块 ==========================
 from global_state import equity_engine, state_lock
-from infra.core.context import TradingSession
+from infra.core.dynamic_settings import use_config
+from infra.core.trade_session import TradingSession
 from infra.core.runtime import RunMode
-from position.live_position_loader import live_positions_hot_load
+from infra.utils.sync_watchlist import sync_account_and_watchlist
+from position import watchlist_loader
+from position.position_loader import LivePositionLoader
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
-from predict.prediction_store import load_history
 from equity.equity_features import equity_features
 from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC
 from predict.time_utils import is_market_break
 from data.loader import load_index_df, load_stock_df
 from trade.trade_engine import execute_stock_decision
-
+from typing import List, Tuple
+from infra.core.config_manager import dynamic_config_manager
 # 环境变量与警告忽略
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
@@ -28,39 +29,43 @@ warnings.filterwarnings(
 )
 
 # ========================== 初始化全局状态 ==========================
+sync_account_and_watchlist()
 position_mgr = create_position_manager(0, RunMode.LIVE)
 eq_recorder = create_equity_recorder(RunMode.LIVE)
 
-
-def run_analysis_cycle():
-    """单次分析循环核心逻辑"""
-
-    # 1. 检查市场状态
-    # if is_market_break():
-    #     print(f"[{time.strftime('%H:%M:%S')}] 市场休市中...")
-    #     return
-
-    print(f"\n--- 周期开始: {time.strftime('%Y-%m-%d %H:%M:%S')} ---")
+def run_trade_cycle():
+    """单次分析循环核心逻辑 - 2026 优化版"""
+    
+    # 打印周期开始时间（建议使用更简洁的格式）
+    now_str = time.strftime('%H:%M:%S')
+    print(f"\n🚀 [Cycle Start] {now_str}")
 
     try:
-        period = TICKER_PERIOD
-        hs300_df = load_index_df(str(period))
+        # 1. 环境准备
+        period = str(TICKER_PERIOD)
+        hs300_df = load_index_df(period)
 
-        # 2. 获取当前持仓（加锁保证线程安全）
+        # 2. ⚡ 内存快照提取 (一次性锁定，减少竞争)
         with state_lock:
-            positions = list(position_mgr.positions.items())
-
-        if not positions:
-            print("当前无活跃持仓。")
-            return
+            # 获取所有需要处理的标的：(代码, 持仓对象或None)
+            # 这样我们就把持仓和观察池统一成了处理队列
+            active_positions = list(position_mgr.positions.items()) # [(ticker, pos_obj), ...]
+            watch_tickers = [(t, None) for t in position_mgr.watchlist.keys()]
+            
+            # 合并队列：先处理持仓（为了止损优先级），再处理观察池
+            task_queue: List[Tuple[str, any]] = active_positions + watch_tickers
+            print(f"task_queue={task_queue}")
+            # 获取当前资金状态
+            has_pos = position_mgr.has_any_position()
 
         # 3. 更新 Equity 决策引擎
         eq_feat = equity_features(eq_recorder.to_series())
-        eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
+        eq_decision = equity_engine.decide(eq_feat, has_pos)
 
+        # 4. 初始化交易会话上下文
         session = TradingSession(
             run_mode=RunMode.LIVE,
-            period=str(period),
+            period=period,
             hs300_df=hs300_df,
             eq_feat=eq_feat,
             tradeIntent=eq_decision,
@@ -68,56 +73,54 @@ def run_analysis_cycle():
             eq_recorder=eq_recorder,
         )
 
-        results_summary = []
-
-        # 4. 遍历分析所有标的
-        for ticker, p in positions:
+        # 5. 遍历任务队列 (统一逻辑)
+        for ticker, pos_obj in task_queue:
             try:
+               
+                # 2. 假设我们要为创业板 ETF 开启交易
+                # 它会寻找 sz159908.json -> category_ETF.json -> default
+                final_config = dynamic_config_manager.load_params(ticker)
+                print(f'current_params={final_config}')
+                
+                # 加载数据 (如果这里慢，考虑增加多线程读取)
                 df = load_stock_df(ticker, session.period)
-                # 执行核心分析（包含预测逻辑）
-                result = execute_stock_decision(
-                    ticker=ticker,
-                    hs300_df=session.hs300_df,
-                    ticker_df=df,
-                    session=session,
-                )
+                if df is None or df.empty:
+                    continue
+                with use_config(final_config):
+                    # 核心决策逻辑执行
+                    # 注意：execute_stock_decision 内部应根据 pos_obj 是否为 None 自动判断是 卖出/止损 还是 买入
+                    result = execute_stock_decision(
+                        ticker=ticker,
+                        hs300_df=session.hs300_df,
+                        ticker_df=df,
+                        session=session,
+                        #pos_obj=pos_obj # 传入持仓对象，方便内部逻辑判断
+                    )
 
             except Exception as e:
-                print(f"[ERROR] 分析 {ticker} 失败: {e}")
-                traceback.print_exc()
+                print(f"❌ [Error] {ticker} 分析失败: {e}")
+                # traceback.print_exc() # 实盘时建议只记日志，不刷屏
 
-        # 5. 这里可以添加结果持久化或报警逻辑
-        # df = pd.DataFrame(results_summary)
-        # df.to_csv("latest_signals.csv", index=False)
+        print(f"🏁 [Cycle End] 处理标的总数: {len(task_queue)}")
 
     except Exception as e:
-        print(f"[CRITICAL] 循环执行异常: {e}")
+        print(f"🚨 [CRITICAL] 循环崩溃: {e}")
         traceback.print_exc()
 
 
 def main_loop():
     """主程序循环"""
     print("🚀 Chronos 后台引擎启动中...")
-
-    # 加载历史预测
-    load_history()
-
-    # 启动持仓热加载线程
-    stop_event = threading.Event()
-    hotload_thread = threading.Thread(
-        target=live_positions_hot_load,
-        args=(position_mgr, stop_event),
-        daemon=True,
-    )
-    hotload_thread.start()
-
+   
+    pos_loader = LivePositionLoader("state/live_positions.yaml", position_mgr)
+    pos_loader.sync()
+    watchlist_loader.live_watchlist_hot_load(position_mgr)
+    
     print(f"定时器已启动，每 {UPDATE_INTERVAL_SEC} 秒执行一次。")
-
     try:
         while True:
             start_time = time.time()
-
-            run_analysis_cycle()
+            run_trade_cycle()
 
             # 计算补偿时间，确保循环间隔准确
             elapsed = time.time() - start_time
@@ -126,7 +129,7 @@ def main_loop():
 
     except KeyboardInterrupt:
         print("\n用户中断，程序退出...")
-        stop_event.set()
+        
 
 
 if __name__ == "__main__":

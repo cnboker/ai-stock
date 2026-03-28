@@ -7,7 +7,7 @@ from config.settings import TICKER_PERIOD
 from global_state import equity_engine
 from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 from infra.core.runtime import RunMode
 from position.position_factory import create_position_manager
 from predict.prediction_runner import generate_prediction_df

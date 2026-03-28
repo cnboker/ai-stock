@@ -6,7 +6,7 @@ from infra.core.runtime import RunMode
 from infra.notify.order import OrderEvent, notify_order
 from position.position import Position
 from log import order_log, risk_log
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 
 class PositionManager:
     """
@@ -34,7 +34,9 @@ class PositionManager:
         self.last_action_ts: Dict[str, float] = {}        
         self.cooldown = {}  # ticker -> 剩余bar数
         self.total_trade_count = 0  # 新增：用于回测统计总成交次数
-        
+        self.watchlist = {}  # 观察池 
+
+
     def update_cooldown(self):
         for k in list(self.cooldown.keys()):
             self.cooldown[k] -= 1
@@ -574,6 +576,17 @@ class PositionManager:
                 stop_loss=p["stop_loss"],   
                 highest_price=p.get("highest_price", p["entry_price"]),             
             )
+
+    def load_watchlist_from_csv(self, ticker_list: list):
+        """新增方法：专门更新观察池，不碰真实持仓"""
+        self.watchlist.clear() 
+        for ticker in ticker_list:
+            # 只有当该标的不在真实持仓中时，才加入观察池
+            if ticker not in self.positions:
+                self.watchlist[ticker] = {
+                    "ticker": ticker,
+                    "status": "WATCHING"
+                }
 
     def clear(self):
         self.positions.clear()

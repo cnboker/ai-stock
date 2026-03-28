@@ -4,7 +4,7 @@ import numpy as np
 import optuna
 import pandas as pd
 from simulator.run_backtest import BacktestRunner, run_backtest  # 确保 BacktestRunner 已按之前的逻辑改造
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 from optimize.persist import write_best_config
 
 def objective(trial):

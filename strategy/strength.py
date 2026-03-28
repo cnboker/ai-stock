@@ -1,5 +1,5 @@
 import numpy as np
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 
 
 def compute_strength(

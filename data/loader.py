@@ -4,7 +4,7 @@ import json
 import re
 import pandas as pd
 import requests
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 from diskcache import Cache
 from datetime import timedelta
 

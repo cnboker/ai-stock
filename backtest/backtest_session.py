@@ -1,4 +1,4 @@
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 
 class BacktestSession(TradingSession):
     def __init__(self, init_cash: float):

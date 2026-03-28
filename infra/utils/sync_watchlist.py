@@ -63,5 +63,3 @@ def update_watchlist_csv(items, path):
                 writer.writerow([item["code"], item["name"]])
 
 
-if __name__ == "__main__":
-    sync_account_and_watchlist()

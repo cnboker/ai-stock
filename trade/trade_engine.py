@@ -1,6 +1,6 @@
 import numpy as np
 from pandas import DataFrame, Series
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 from infra.persistence.live_positions import persist_live_positions
 from log import signal_log, risk_log
 from predict.chronos_predict import run_prediction

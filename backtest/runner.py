@@ -3,7 +3,7 @@ from infra.core.runtime import RunMode
 from predict.predict_result import PredictionResult
 from trade.trade_engine import execute_stock_decision
 import numpy as np
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 
 class BacktestRunner:
     def __init__(self):

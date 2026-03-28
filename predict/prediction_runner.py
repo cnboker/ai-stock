@@ -1,6 +1,6 @@
 # for backtest
 import pandas as pd
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 from trade.processor import execute_stock_analysis
 from infra.core.runtime import RunMode
 from config.settings import TICKER_PERIOD, ticker_name_map

@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from infra.core.runtime import RunMode
-from infra.core.context import TradingSession
+from infra.core.trade_session import TradingSession
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features

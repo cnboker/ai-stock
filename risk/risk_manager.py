@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from log import signal_log
-from infra.core.config import settings
+from infra.core.dynamic_settings import settings
 
 
 @dataclass
