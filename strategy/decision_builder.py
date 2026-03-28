@@ -162,5 +162,5 @@ class DecisionContextBuilder:
         #     f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
         #     f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
         # )
-
+        #signal_log(ctx)
         return ctx

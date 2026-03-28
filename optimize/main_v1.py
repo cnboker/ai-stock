@@ -72,7 +72,8 @@ def run_optimization(tickers: list):
         ConfigFactory.enqueue_initial_trial(study, main_ticker)
 
     # 4. 开始跑分：用 lambda 传递整个列表
-    study.optimize(lambda t: objective(t, tickers), n_trials=1)
+    # n_jobs=-1 代表使用所有 CPU 核心
+    study.optimize(lambda t: objective(t, tickers), n_trials=50)
     
     print(f"🚀 优化完成！最佳标的组合评分: {study.best_value}")
     print(f"📌 最佳参数已存入数据库: {db_url}")

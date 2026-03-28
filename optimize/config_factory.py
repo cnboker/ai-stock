@@ -53,14 +53,13 @@ class ConfigFactory:
 
         # 3. 其他默认参数补全 (这里要确认你的 Factory 里这些有没有加前缀)
         other_params = {
-            f"predict_up": 0.001,   # 基础上涨预期 (0.1%)
-            f"init_pt": 0.035,      # 3.5% 利润触发第一阶段保护
-            f"tp1": 1.05,          # 5% 利润处进行第一次止盈/减仓
-            f"trend_stage": 0.15,   # 15% 利润进入趋势跟踪模式
-            f"min_stop": 0.01,      # 最小止损位 1% (防止滑点和手续费覆盖)
-            f"slope_min": 0.02,     # 强度斜率阈值
-            f"atr_mult": 3.5,       # 经典的 3.5 倍 ATR 移动止损
-            
+            f"predict_up": 0.001,  # 基础上涨预期 (0.1%)
+            f"init_pt": 0.035,  # 3.5% 利润触发第一阶段保护
+            f"tp1": 1.05,  # 5% 利润处进行第一次止盈/减仓
+            f"trend_stage": 0.15,  # 15% 利润进入趋势跟踪模式
+            f"min_stop": 0.01,  # 最小止损位 1% (防止滑点和手续费覆盖)
+            f"slope_min": 0.02,  # 强度斜率阈值
+            f"atr_mult": 3.5,  # 经典的 3.5 倍 ATR 移动止损
         }
 
         # 合并并注入
@@ -82,62 +81,43 @@ class ConfigFactory:
         # 2. 分类差异化参数 (Category-Specific Parameters)
         if category == "stock":
             # 个股逻辑：高门槛、宽止损、低杠杆 (防噪音)
+            slope_min = trial.suggest_float("slope_min", 0, 0.005)
             config.update(
                 {
-                    "MODEL_TH": trial.suggest_float(
-                        f"{category}_model_th", 0.48, 0.55
-                    ),
-                    "ATR_STOP": trial.suggest_float(
-                        f"{category}_atr_stop", 4.5, 6.5
-                    ),
-                    "RISK": trial.suggest_float(
-                        f"{category}_risk", 0.005, 0.01
-                    ),
-                    "KELLY": trial.suggest_float(
-                        f"{category}_kelly", 0.15, 0.3
-                    ),
-                    "SLOPE": trial.suggest_float(
-                        f"{category}_slope", 0.001, 0.005
-                    ),
-                    "MAX_STOP": trial.suggest_float(
-                        f"{category}_max_stop", 0.08, 0.15
-                    ),
+                    "MODEL_TH": trial.suggest_float(f"{category}_model_th", 0.45, 0.55),
+                    "ATR_STOP": trial.suggest_float(f"{category}_atr_stop", 1.5, 4.0),
+                    "RISK": trial.suggest_float(f"{category}_risk", 0.005, 0.01),
+                    "KELLY": trial.suggest_float(f"{category}_kelly", 0.15, 0.3),
+                    "SLOPE": trial.suggest_float(f"{category}_slope", 0.006, 0.02),
+                    "MAX_STOP": trial.suggest_float(f"{category}_max_stop", 0.08, 0.15),
+                    "SLOPE_MIN": slope_min,
+                    "PREDICT_UP": trial.suggest_float(f"predict_up", -0.05, 0.01),
                 }
             )
         else:
             # ETF逻辑：低门槛、窄止损、高杠杆 (抢趋势)
             config.update(
                 {
-                    "MODEL_TH": trial.suggest_float(
-                        f"{category}_model_th", 0.42, 0.48
+                    "MODEL_TH": trial.suggest_float(f"{category}_model_th", 0.42, 0.48),
+                    "ATR_STOP": trial.suggest_float(f"{category}_atr_stop", 2.5, 3.5),
+                    "RISK": trial.suggest_float(f"{category}_risk", 0.01, 0.015),
+                    "KELLY": trial.suggest_float(f"{category}_kelly", 0.4, 0.6),
+                    "SLOPE": trial.suggest_float(f"{category}_slope", -0.001, 0.002),
+                    "MAX_STOP": trial.suggest_float(f"{category}_max_stop", 0.03, 0.08),
+                    "SLOPE_MIN": trial.suggest_float(
+                        f"{category}_slope_min", 0.01, 0.05
                     ),
-                    "ATR_STOP": trial.suggest_float(
-                        f"{category}_atr_stop", 2.5, 3.5
-                    ),
-                    "RISK": trial.suggest_float(
-                        f"{category}_risk", 0.01, 0.015
-                    ),
-                    "KELLY": trial.suggest_float(
-                        f"{category}_kelly", 0.4, 0.6
-                    ),
-                    "SLOPE": trial.suggest_float(
-                        f"{category}_slope", -0.001, 0.002
-                    ),
-                    "MAX_STOP": trial.suggest_float(
-                        f"{category}_max_stop", 0.03, 0.08
-                    ),
+                    "PREDICT_UP": trial.suggest_float(f"predict_up", 0.0, 0.005),
                 }
             )
 
         # 3. 补充其他通用建议
         config.update(
             {
-                "PREDICT_UP": trial.suggest_float(f"predict_up", 0.0, 0.005),
                 "INIT_PT": trial.suggest_float(f"init_pt", 0.02, 0.05),
                 "TP1": trial.suggest_float(f"tp1", 1.02, 1.06),
                 "TREND_STAGE": trial.suggest_float(f"trend_stage", 0.12, 0.25),
                 "MIN_STOP": trial.suggest_float(f"min_stop", 0.005, 0.02),
-                "SLOPE_MIN": trial.suggest_float(f"slope_min", 0.01, 0.05),
                 "ATR_MULT": trial.suggest_float(f"atr_mult", 2.5, 4.5),
             }
         )

@@ -2,22 +2,22 @@
     "_META": {
         "ticker": "sz300785",
         "best_value": -137.169,
-        "date": "2026-03-28 19:21"
+        "date": "2026-03-28 21:01"
     },
-    "MODEL_TH": 0.5,
-    "SLOPE": -0.001,
-    "PREDICT_UP": 0.0041,
-    "INIT_PT": 0.028,
-    "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.87,
-    "TP1": 1.0492,
+    "MODEL_TH": 0.62,
+    "SLOPE": 0.012,
+    "PREDICT_UP": 0.001,
+    "INIT_PT": 0.035,
+    "TREND_STAGE": 0.15,
+    "ATR_MULT": 3.5,
+    "TP1": 1.05,
     "TP2": 1.2,
-    "KELLY": 0.2,
+    "KELLY": 0.15,
     "RISK": 0.008,
     "ATR_STOP": 5.5,
     "MAX_STOP": 0.12,
     "MIN_STOP": 0.01,
     "STRENGTH_ALPHA": 1.3,
     "SLOPE_MIN": 0.02,
-    "CONFIRM_N": 3
+    "CONFIRM_N": 2
 }

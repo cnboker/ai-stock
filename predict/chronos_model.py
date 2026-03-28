@@ -31,7 +31,8 @@ def load_chronos_model(
     if model_name == "chronos-2":
         pipeline = Chronos2Pipeline.from_pretrained(
             model_path,
-            device_map=device
+            device_map=device,
+            low_cpu_mem_usage=False,  # ⚡ 关键：设为 False，避免生成 Meta Tensor
         )
 
     # Chronos T5 Large
