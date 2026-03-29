@@ -25,9 +25,7 @@ class TradeIntent:
     strength: float = 0.0            # compute_strength
 
     has_position: bool = False
-    cooldown_active: bool = False
-    cooldown_left: int = 0
-
+ 
   
     # ===== 通用日志原因（保留）=====
     reason: str = ""            # 触发原因（日志 / 回测用）

@@ -1,0 +1,97 @@
+{
+    "ticker": "sz300785",
+    "category": "STOCK",
+    "best_params": {},
+    "intercept_stats": {
+        "success_count": 0,
+        "intercept_report": {
+            "model_confidence": 8,
+            "slope_filter": 10,
+            "predict_up_filter": 0,
+            "zero_strength_ghost": 2,
+            "other_error": 0
+        },
+        "scan_days": 20,
+        "total_scans": 20,
+        "success_rate": "0.0%"
+    },
+    "search_space": {
+        
+        "strength_alpha": {
+            "low": 10.0,
+            "high": 100.0
+        },
+        "confirm_n": {
+            "low": 1,
+            "high": 5,
+            "type": "int"
+        },
+        "model_th": {
+            "low": 0.35,
+            "high": 0.65
+        },
+        "atr_stop": {
+            "low": 3.5,
+            "high": 7.0
+        },
+        "risk": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "kelly": {
+            "low": 0.15,
+            "high": 0.3
+        },
+        "slope": {
+            "low": 0.006,
+            "high": 0.02
+        },
+        "max_stop": {
+            "low": 0.08,
+            "high": 0.15
+        },
+        "slope_min": {
+            "low": -0.001,
+            "high": 0.005
+        },
+        "predict_up": {
+            "low": -0.05,
+            "high": 0.01
+        },
+        "tp1": {
+            "low": 1.02,
+            "high": 1.06
+        },
+        "tp2": {
+            "low": 1.1,
+            "high": 1.25
+        },
+        "init_pt": {
+            "low": 0.01,
+            "high": 0.05
+        }
+    },
+    "initial_trial": {
+        "strength_alpha": 30.0,
+        "confirm_n": 1,
+        "model_th": 0.48,
+        "atr_stop": 5.2,
+        "risk": 0.008,
+        "kelly": 0.2,
+        "slope": 0.012,
+        "max_stop": 0.12,
+        "slope_min": 0.0005,
+        "predict_up": -0.05,
+        "tp1": 1.05,
+        "tp2": 1.2,
+        "init_pt": 0.01,
+        "trend_stage": 0.15,
+        "min_stop": 0.01,
+        "atr_mult": 3.5
+    },
+    "_META": {
+        "last_optimized": "2026-03-29 22:38:54",
+        "best_value": -137.169,
+        "status": "SIGNAL_BLOCKED"
+    }
+}

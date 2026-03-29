@@ -61,7 +61,8 @@
 # 15 分钟 (15M),16 条,~62.5 个交易日 (约 3 个月),否
 # 5 分钟 (5M),48 条,~21 个交易日 (约 1 个月),否
 
-
+# ETF 优化参数
+```js
  config = {
         "MODEL_TH": trial.suggest_float("model_th", 0.42, 0.48),
         "SLOPE": trial.suggest_float("slope_th", -0.001, 0.005),
@@ -80,3 +81,9 @@
         "STRENGTH_ALPHA": trial.suggest_float("strength_alpha", 1.2, 1.5),
         "CONFIRM_N": trial.suggest_float("confirm_n", 2, 5),
     }
+```
+
+### 全自动参数优化
+    ```bash
+    python -m optimize.auto_tune
+    ```

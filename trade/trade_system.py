@@ -1,7 +1,7 @@
 from infra.core.trade_session import TradingSession
 from infra.persistence.live_positions import persist_live_positions
 from log import signal_log
-from trade.SignalStablizer import stablizer
+from trade.signal_stablizer import stablizer
 from trade.equity_executor import execute_equity_action
 
 
@@ -32,7 +32,7 @@ class TradingSystem:
         # 2. 评估意图 (判断：进场/离场/强制减仓/观望)
         # 这一步会自动处理 Debounce 和 账户风险(REDUCE) 的合并
         intent = self.signal_mgr.evaluate(ctx)
-        # print(f"intent={intent}")
+        
         # 3. 拦截未确认信号 (快捷路径)
         #print(f"action={intent.action} ctx.has_position={ctx.has_position} confirmed={intent.confirmed },force_reduce={intent.force_reduce} result={not intent.confirmed and not intent.force_reduce}")
         if not intent.confirmed and not intent.force_reduce:
@@ -42,6 +42,7 @@ class TradingSystem:
         # 4. 针对买入信号(LONG)进行资金规划
         plan = None
         if intent.action == "LONG" :
+            print(f"intent={intent}")
             # 调用稳定器校验
             is_stable = stablizer.check(ticker, "LONG")
             

@@ -69,7 +69,6 @@ class DecisionDebugger:
             "regime": Text(ctx.regime, self._style_regime(ctx.regime)),
             "good": str(ctx.good_count),
             "need": str(ctx.good_confirm_need),
-            "cd": f"{ctx.regime_cooldown_left}",
             "dd": f"{ctx.dd:.2%}",
             "pos": "Y" if ctx.has_position else "-",
             "size": f"{ctx.position_size:.2f}" if ctx.has_position else "-",

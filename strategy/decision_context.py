@@ -28,6 +28,6 @@ class DecisionContext:
     
     # 6. 过滤参数 (无默认值)
     slope: float           # <--- 移动到这里，因为它没有默认值
-    strength: float  # <--- 加在这里，没有默认值
+    strength: float  # <--- 开仓强度，0~1 之间，0 表示无意图，>0 表示全力开仓
     # 7. 带有默认值的参数 (必须放在最后)
     liquidate_reason: str = None

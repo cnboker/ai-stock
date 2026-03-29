@@ -120,7 +120,5 @@ class SignalManager:
             ),
         )
 
-        intent.cooldown_active = action == "HOLD" and ctx.raw_signal != "HOLD"
-        intent.cooldown_left = max(0, state.confirm_n - state.count)
 
         return intent

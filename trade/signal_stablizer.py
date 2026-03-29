@@ -1,3 +1,4 @@
+from infra.core.dynamic_settings import settings
 class SignalStablizer:
     def __init__(self, window: int = 10):
         """
@@ -47,5 +48,7 @@ class SignalStablizer:
         state = self.counters.get(ticker, {"count": 0})
         return f"{state['count']}/{self.window}"
     
-
-stablizer = SignalStablizer(window=3)
+print(f'settings.SLOPE_MIN={settings.SLOPE_MIN}')
+print(f'settings.MODEL_TH={settings.MODEL_TH}')
+print(f'settings.CONFIRM_N={settings.CONFIRM_N}')
+stablizer = SignalStablizer(window=settings.CONFIRM_N)

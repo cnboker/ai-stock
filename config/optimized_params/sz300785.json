@@ -19,5 +19,5 @@
     "MIN_STOP": 0.01,
     "STRENGTH_ALPHA": 1.3,
     "SLOPE_MIN": 0.02,
-    "CONFIRM_N": 2
+    "CONFIRM_N": 1
 }

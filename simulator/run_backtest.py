@@ -11,4 +11,4 @@ def run_backtest(ticker, period="60"):
     # 执行 2/8 验证逻辑，返回 (train_stats, test_stats)
     return runner.run_split_backtest()
 
-run_backtest("sz300785")
+#run_backtest("sz300785")

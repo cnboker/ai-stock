@@ -153,11 +153,12 @@ class DecisionContextBuilder:
             raw_score=raw_score,
             reduce_strength=reduce_strength,
             liquidate_reason=liquidate_reason,
-            strength=strength,
+            strength=strength, #大于0才有开仓意图
             slope=slope,
         )
 
-        # if raw_signal == "LONG":
+        if raw_signal == "LONG":
+            signal_log(ctx)
         # signal_log(
         #     f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
         #     f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"

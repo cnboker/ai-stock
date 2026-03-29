@@ -29,18 +29,22 @@ class ConfigFactory:
         # 1. 通用参数 (不需要加前缀的)
         base_params = {
             "strength_alpha": 1.3,
-            "confirm_n": 3,
             "tp2": 1.20,
         }
 
         # 2. 类别特有参数 (必须与 suggest_config 中的前缀 Key 严格对应)
         if category == "stock":
             specific_params = {
-                f"{category}_model_th": 0.50,  # 个股门槛设高点
-                f"{category}_atr_stop": 5.5,  # 个股止损设宽点
+                f"{category}_model_th": 0.40,  # 个股门槛设高点
+                f"{category}_atr_stop": 4,  # 个股止损设宽点
                 f"{category}_risk": 0.008,  # 个股仓位设轻点
                 f"{category}_kelly": 0.2,
+                f"{category}_slope": 0.012,
                 f"{category}_max_stop": 0.12,
+                f"{category}_slope_min": 0.0001,  # 强度斜率阈值
+                f"{category}_predict_up": -0.05, # 基础上涨预期 (0.1%)
+                f"{category}_confirm_n": 1, # 减少确认天数，避免行情走完。
+                f"{category}_init_pt": 0.01,  # 利润触发第一阶段保护
             }
         else:  # ETF
             specific_params = {
@@ -48,17 +52,19 @@ class ConfigFactory:
                 f"{category}_atr_stop": 3.5,
                 f"{category}_risk": 0.015,
                 f"{category}_kelly": 0.5,
+                f"{category}_slope": 0.0001,
                 f"{category}_max_stop": 0.08,
+                f"{category}_slope_min": 0.02,
+                f"{category}_predict_up": 0.001,
+                f"{category}_confirm_n": 3, # 减少确认天数，避免行情走完。
+                f"{category}_init_pt": 0.035,  # 利润触发第一阶段保护
             }
 
         # 3. 其他默认参数补全 (这里要确认你的 Factory 里这些有没有加前缀)
         other_params = {
-            f"predict_up": 0.001,  # 基础上涨预期 (0.1%)
-            f"init_pt": 0.035,  # 3.5% 利润触发第一阶段保护
             f"tp1": 1.05,  # 5% 利润处进行第一次止盈/减仓
             f"trend_stage": 0.15,  # 15% 利润进入趋势跟踪模式
             f"min_stop": 0.01,  # 最小止损位 1% (防止滑点和手续费覆盖)
-            f"slope_min": 0.02,  # 强度斜率阈值
             f"atr_mult": 3.5,  # 经典的 3.5 倍 ATR 移动止损
         }
 
@@ -84,8 +90,8 @@ class ConfigFactory:
             slope_min = trial.suggest_float("slope_min", 0, 0.005)
             config.update(
                 {
-                    "MODEL_TH": trial.suggest_float(f"{category}_model_th", 0.45, 0.55),
-                    "ATR_STOP": trial.suggest_float(f"{category}_atr_stop", 1.5, 4.0),
+                    "MODEL_TH": trial.suggest_float(f"{category}_model_th", 0.4, 0.55),
+                    "ATR_STOP": trial.suggest_float(f"{category}_atr_stop", 3.5, 4.5),
                     "RISK": trial.suggest_float(f"{category}_risk", 0.005, 0.01),
                     "KELLY": trial.suggest_float(f"{category}_kelly", 0.15, 0.3),
                     "SLOPE": trial.suggest_float(f"{category}_slope", 0.006, 0.02),
