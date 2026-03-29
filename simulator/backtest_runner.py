@@ -35,7 +35,7 @@ class BacktestRunner:
     def _reset_engine(self):
         """重置引擎，确保训练集和测试集资金互不干扰"""
         self.eq_recorder = create_equity_recorder(RunMode.SIM, self.ticker)
-        self.position_mgr = create_position_manager(100000, RunMode.SIM)
+        self.position_mgr = create_position_manager(1000000, RunMode.SIM)
         
         # 初始化 Session
         eq_feat = equity_features(self.eq_recorder.to_series())

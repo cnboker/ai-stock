@@ -137,7 +137,13 @@ class DecisionContextBuilder:
 
         # 7. 善后处理
         self.position_mgr.update_cooldown()
-        strength = compute_strength(slope=slope, gate=final_gate_mult)
+        #strength = compute_strength(slope=slope, gate=final_gate_mult)
+        strength = compute_strength(
+            slope=slope,
+            gate=final_gate_mult,
+            alpha=settings.STRENGTH_ALPHA,  # 确保是从动态配置对象里取的
+            slope_min=settings.SLOPE_MIN    # 同上
+        )
         ctx = DecisionContext(
             ticker=ticker,
             latest_price=latest_price,
@@ -158,6 +164,7 @@ class DecisionContextBuilder:
         )
 
         if raw_signal == "LONG":
+            print(f"settings.STRENGTH_ALPHA: {settings.STRENGTH_ALPHA}")
             signal_log(ctx)
         # signal_log(
         #     f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "

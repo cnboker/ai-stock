@@ -1,9 +1,9 @@
 from infra.core.trade_session import TradingSession
 from infra.persistence.live_positions import persist_live_positions
 from log import signal_log
-from trade.signal_stablizer import stablizer
+from trade.signal_stablizer import SignalStablizer
 from trade.equity_executor import execute_equity_action
-
+from infra.core.dynamic_settings import settings
 
 class TradingSystem:
     def __init__(self, ctx_builder, signal_mgr, budget_mgr, risk_mgr, position_mgr):
@@ -12,7 +12,8 @@ class TradingSystem:
         self.budget_mgr = budget_mgr
         self.risk_mgr = risk_mgr
         self.position_mgr = position_mgr
-        
+        self.stablizer = None
+
 
     def run_tick(self, ticker, pre_result, close_df, session: TradingSession):
         """每只股票、每根K线的核心处理流程"""
@@ -41,24 +42,27 @@ class TradingSystem:
 
         # 4. 针对买入信号(LONG)进行资金规划
         plan = None
+        if self.stablizer is None:
+            self.stablizer = SignalStablizer(window=settings.CONFIRM_N)
         if intent.action == "LONG" :
-            print(f"intent={intent}")
+            print(f"intent={intent} settings.CONFIRM_N={settings.CONFIRM_N}")
             # 调用稳定器校验
-            is_stable = stablizer.check(ticker, "LONG")
+            is_stable = self.stablizer.check(ticker, "LONG")
             
             if not is_stable:
                 # 记录日志，但不触发下单
-                progress = stablizer.get_progress(ticker)
-                #signal_log(f"⏳ [{ticker}] Signal unstable, confirming: {progress}")
+                progress = self.stablizer.get_progress(ticker)
+                signal_log(f"⏳ [{ticker}] Signal unstable, confirming: {progress}")
                 return {"ticker": ticker, "action": "HOLD", "reason": f"Stablizing {progress}"}
             
-            stablizer.reset(ticker=ticker)
+            self.stablizer.reset(ticker=ticker)
             # 0. 增加【单一标的持仓上限】硬约束 (例如单标的不得超过总资产 30%)
             MAX_TICKER_WEIGHT = 0.15 
             current_weight = self.position_mgr.get_ticker_value(ticker,pre_result.price) / self.position_mgr.equity
             
             if current_weight >= MAX_TICKER_WEIGHT:
                 # 已经买够了，不再加仓，改为 HOLD
+                signal_log(f"⚠️ [{ticker}] Weight limit reached: {current_weight:.2%}, holding position.")
                 return {"ticker": ticker, "action": "HOLD", "reason": f"Weight Limit Reached ({current_weight:.2%})"}
 
             # A. 算钱 (这里需要把剩余额度传进去)
@@ -82,7 +86,7 @@ class TradingSystem:
                 capital=budget,
                 position_mgr=self.position_mgr,
             )
-            #print(f'plan={plan}')
+            print(f'plan={plan}')
         # 5. 最终物理执行 (修改仓位)
         result = execute_equity_action(
             decision=intent,

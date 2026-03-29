@@ -7,16 +7,14 @@ from infra.core.dynamic_settings import settings
 class TradePlan:
     allow_trade: bool
     reason: str = ""
-    #股数
+    # 股数
     size: int = 0
     stop_loss: float = 0.0
 
 
 # 允许什么（allow_open / allow_add / stop / take）
 class RiskManager:
-    def __init__(
-        self
-    ):
+    def __init__(self):
         self.lot_size = 100
 
     # 交易可行性评估器
@@ -43,12 +41,8 @@ class RiskManager:
             stop_loss = min(chronos_low, sl_atr)
 
             # 2. 【复活参数】使用全局配置限制止损范围，不再硬编码 0.95/0.99
-            limit_sl_far = last_price * (
-                1 - settings.MAX_STOP
-            )  # 比如最多容忍 8% 损耗
-            limit_sl_near = last_price * (
-                1 - settings.MIN_STOP
-            )  # 至少要有 2% 保护空间
+            limit_sl_far = last_price * (1 - settings.MAX_STOP)  # 比如最多容忍 8% 损耗
+            limit_sl_near = last_price * (1 - settings.MIN_STOP)  # 至少要有 2% 保护空间
 
             stop_loss = max(stop_loss, limit_sl_far)
             stop_loss = min(stop_loss, limit_sl_near)
@@ -60,19 +54,20 @@ class RiskManager:
 
             current_rr = reward_dist / risk_dist if risk_dist > 0 else 0
 
-         
-           # ---------- size 计算逻辑修正 ----------
+            # ---------- size 计算逻辑修正 ----------
             available_cash = capital  # 比如 3000 元
-            
+
             # 单股亏损空间 (例如 0.3 元)
             risk_per_share = last_price - stop_loss
-            
+
             # 【关键修改】：风险金应基于账户总权益 (equity) 或 允许预算满仓
             # 如果你希望这 3000 元能全部花出去，这里应该增加风险容忍度
             # 或者直接使用账户总资产来计算 risk_cash
             total_equity = position_mgr.equity
-            risk_cash = total_equity * settings.RISK 
-
+            risk_cash = total_equity * settings.RISK
+            print(
+                f"RiskManager: risk_cash={risk_cash}, risk_per_share={risk_per_share}, available_cash={available_cash} settings.RISK={settings.RISK}"
+            )
             # 1. 基于单笔最大亏损限制的股数
             risk_shares = int(risk_cash / risk_per_share) if risk_per_share > 0 else 0
 
@@ -85,19 +80,21 @@ class RiskManager:
             # 4. 修正 A 股手数逻辑：这里的 size 应该是股数，不是手数！
             # 如果你的下游执行函数需要的是“股数”，这里必须乘回 100
             actual_lots = allowed_shares // self.lot_size
-            final_shares = actual_lots  # 比如 193 // 100 * 100 = 100 股
-            
+          
+            if allowed_shares < 100 and available_cash > (last_price * 80):
+                # 如果预算不足以买一手，但又不是完全没钱了，允许买入少于一手的股数（比如 50 股）
+                actual_lots = 1
             # signal_log(
             #     f"price={last_price}, max_shares={max_shares}, risk_shares={risk_shares}, "
             #     f"lots={actual_lots}, final_shares={final_shares}, stop_loss={stop_loss}"
             # )
 
             if actual_lots <= 0:
-                return TradePlan(False,"持仓过大，风控导致资金不足以购买一手(100股)")
+                return TradePlan(False, "持仓过大，风控导致资金不足以购买一手(100股)")
 
             return TradePlan(
                 True,
-                size=final_shares,  # <--- 注意：这里传回 final_shares (股数)
+                size=actual_lots,  # <--- 注意：这里传回 final_shares (股数)
                 stop_loss=round(stop_loss, 2),
             )
         except Exception:
@@ -108,6 +105,4 @@ class RiskManager:
             # ---------- 止损候选 ----------
 
 
-risk_mgr = RiskManager(
-    
-)
+risk_mgr = RiskManager()

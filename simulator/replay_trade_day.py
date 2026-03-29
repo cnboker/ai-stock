@@ -36,7 +36,7 @@ def simulate_trade_day(ticker: str, trade_date: str, period="3"):
     hs300_df = load_index_df(period)
     eq_recorder = create_equity_recorder(RunMode.SIM, ticker)
     eq_feat = equity_features(eq_recorder.to_series())   
-    position_mgr = create_position_manager(50000, RunMode.SIM)
+    position_mgr = create_position_manager(100000, RunMode.SIM)
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
 
     session = TradingSession(

@@ -1,29 +1,42 @@
 {
     "ticker": "sz300785",
     "category": "STOCK",
-    "best_params": {},
+    "best_params": {
+        "strength_alpha": 15.031736381457065,
+        "confirm_n": 1,
+        "model_th": 0.4766507801407179,
+        "atr_stop": 5.1053310533127005,
+        "risk": 0.21594372533838016,
+        "kelly": 0.23080352366352347,
+        "slope": 0.006001904025356758,
+        "max_stop": 0.14036899199431274,
+        "slope_min": 0.00037946039597185825,
+        "predict_up": -0.023770276425989348,
+        "tp1": 1.0265645230570999,
+        "tp2": 1.1294044194661221,
+        "init_pt": 0.04085784463670066
+    },
     "intercept_stats": {
-        "success_count": 0,
+        "success_count": 2,
         "intercept_report": {
             "model_confidence": 8,
             "slope_filter": 10,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 2,
+            "zero_strength_ghost": 0,
             "other_error": 0
         },
         "scan_days": 20,
         "total_scans": 20,
-        "success_rate": "0.0%"
+        "success_rate": "10.0%"
     },
     "search_space": {
-        
         "strength_alpha": {
             "low": 10.0,
             "high": 100.0
         },
         "confirm_n": {
             "low": 1,
-            "high": 5,
+            "high": 1,
             "type": "int"
         },
         "model_th": {
@@ -35,8 +48,8 @@
             "high": 7.0
         },
         "risk": {
-            "low": 0.005,
-            "high": 0.01
+            "low": 0.1,
+            "high": 0.3
         },
         "kelly": {
             "low": 0.15,
@@ -76,7 +89,7 @@
         "confirm_n": 1,
         "model_th": 0.48,
         "atr_stop": 5.2,
-        "risk": 0.008,
+        "risk": 0.1,
         "kelly": 0.2,
         "slope": 0.012,
         "max_stop": 0.12,
@@ -84,14 +97,14 @@
         "predict_up": -0.05,
         "tp1": 1.05,
         "tp2": 1.2,
-        "init_pt": 0.01,
+        "init_pt": 0.1,
         "trend_stage": 0.15,
         "min_stop": 0.01,
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-03-29 22:38:54",
-        "best_value": -137.169,
-        "status": "SIGNAL_BLOCKED"
+        "last_optimized": "2026-03-30 00:41:56",
+        "best_value": 18526.25452,
+        "status": "ACTIVE"
     }
 }
