@@ -39,4 +39,15 @@ class LivePositionLoader:
             # traceback.print_exc()
         
         return False
-
+    @classmethod
+    def load_tickers(cls, file_path):
+        tickers = []
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+              data = yaml.safe_load(f) or {}
+              tickers = list(data.get("positions", {}).keys())
+              return tickers
+        except Exception as e:
+            print(f"❌ 加载观察池失败: {e}")
+            traceback.print_exc()
+        return tickers

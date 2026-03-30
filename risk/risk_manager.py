@@ -65,9 +65,9 @@ class RiskManager:
             # 或者直接使用账户总资产来计算 risk_cash
             total_equity = position_mgr.equity
             risk_cash = total_equity * settings.RISK
-            print(
-                f"RiskManager: risk_cash={risk_cash}, risk_per_share={risk_per_share}, available_cash={available_cash} settings.RISK={settings.RISK}"
-            )
+            # print(
+            #     f"RiskManager: risk_cash={risk_cash}, risk_per_share={risk_per_share}, available_cash={available_cash} settings.RISK={settings.RISK}"
+            # )
             # 1. 基于单笔最大亏损限制的股数
             risk_shares = int(risk_cash / risk_per_share) if risk_per_share > 0 else 0
 

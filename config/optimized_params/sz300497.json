@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz300497",
+        "best_value": -154.8384,
+        "date": "2026-03-30 12:16"
+    },
+    "MODEL_TH": 0.4587,
+    "SLOPE": 0.0064,
+    "PREDICT_UP": -0.024,
+    "INIT_PT": 0.0228,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.0541,
+    "TP2": 1.1222,
+    "KELLY": 0.2831,
+    "RISK": 0.0084,
+    "ATR_STOP": 3.7801,
+    "MAX_STOP": 0.129,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 10,
+    "SLOPE_MIN": 0.0032,
+    "CONFIRM_N": 1
+}

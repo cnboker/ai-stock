@@ -163,9 +163,9 @@ class DecisionContextBuilder:
             slope=slope,
         )
 
-        if raw_signal == "LONG":
-            print(f"settings.STRENGTH_ALPHA: {settings.STRENGTH_ALPHA}")
-            signal_log(ctx)
+        # if raw_signal == "LONG":
+        #     print(f"settings.STRENGTH_ALPHA: {settings.STRENGTH_ALPHA}")
+        #     signal_log(ctx)
         # signal_log(
         #     f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
         #     f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"

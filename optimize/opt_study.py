@@ -5,10 +5,11 @@ from infra.core.dynamic_settings import use_config
 from optimize import advanced_score
 from optimize.config_factory_v2 import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
+from optimize.persist_manager import PersistManager
 from simulator.run_backtest import run_backtest
 
 
-def run_optuna_study(ticker: str):
+def run_optuna_study(ticker: str, n_trials=100):
     # 1. 创建研究
     study = optuna.create_study(
         study_name=f"opt_{ticker}",
@@ -21,7 +22,7 @@ def run_optuna_study(ticker: str):
     ConfigFactory.enqueue_experience(study, ticker)
 
     # 3. 运行优化 (50 次尝试)
-    study.optimize(lambda t: objective(t, [ticker]), n_trials=50)
+    study.optimize(lambda t: objective(t, [ticker]), n_trials)
 
     # --- 关键修正：体检对象改为 study.best_params ---
     print(f"🎯 优化结束，正在对最优参数进行深度体检...")
@@ -37,6 +38,7 @@ def run_optuna_study(ticker: str):
         best_value=study.best_value,
         intercept_report=best_report, # 存档最优参数的拦截情况
     )
+    PersistManager.save_best_config(study, ticker)  # 可选：将整个 study 存档到文件系统或数据库
     print(f"⭐ {ticker} 存档成功 | 最佳分值: {study.best_value:.4f}")
 
 def objective(trial, tickers: list):
@@ -59,7 +61,7 @@ def objective(trial, tickers: list):
         for t_code in tickers:
             try:
                 # 运行回测
-                train_stats, test_stats = run_backtest(t_code)
+                train_stats, test_stats = run_backtest(t_code,period="15")
 
                 # 评分逻辑
                 train_val = max(-200, advanced_score.get_advanced_score(train_stats))

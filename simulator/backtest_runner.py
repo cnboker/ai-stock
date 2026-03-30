@@ -121,7 +121,7 @@ class BacktestRunner:
         
         # 💡 核心：定义你的作战基数
         # 既然 4000 是最大投资额度，我们用它作为分母
-        ACTIVE_BUDGET = 5000.0 
+        ACTIVE_BUDGET = 200000.0 
         
         # 计算绝对盈亏额（比如赚了 80 元）
         absolute_profit = equity[-1] - equity[0]

@@ -69,7 +69,7 @@ class SmartOptimizer:
             
             # 1. 加载当前配置 (可能已经过上一轮扩张)
             cfg = ConfigFactory.load_ticker_config(self.ticker)
-            print(f"cfg={cfg}")
+            #print(f"cfg={cfg}")
             # 2. 执行真实体检
             # 使用配置中的 initial_trial 作为测试样本
             report = DiagnosticScanner.run_body_check(self.ticker, cfg["initial_trial"])

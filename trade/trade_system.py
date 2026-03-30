@@ -45,7 +45,7 @@ class TradingSystem:
         if self.stablizer is None:
             self.stablizer = SignalStablizer(window=settings.CONFIRM_N)
         if intent.action == "LONG" :
-            print(f"intent={intent} settings.CONFIRM_N={settings.CONFIRM_N}")
+            #print(f"intent={intent} settings.CONFIRM_N={settings.CONFIRM_N}")
             # 调用稳定器校验
             is_stable = self.stablizer.check(ticker, "LONG")
             
@@ -62,7 +62,7 @@ class TradingSystem:
             
             if current_weight >= MAX_TICKER_WEIGHT:
                 # 已经买够了，不再加仓，改为 HOLD
-                signal_log(f"⚠️ [{ticker}] Weight limit reached: {current_weight:.2%}, holding position.")
+                #signal_log(f"⚠️ [{ticker}] Weight limit reached: {current_weight:.2%}, holding position.")
                 return {"ticker": ticker, "action": "HOLD", "reason": f"Weight Limit Reached ({current_weight:.2%})"}
 
             # A. 算钱 (这里需要把剩余额度传进去)

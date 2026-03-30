@@ -1,7 +1,7 @@
 {
     "search_space": {
-        "strength_alpha": {"low": 1.2, "high": 1.5},
-        "confirm_n": {"low": 1, "high": 5, "type": "int"},
+        "strength_alpha": {"low": 10, "high": 80},
+        "confirm_n": {"low": 1, "high": 1, "type": "int"},
         "model_th": {"low": 0.4, "high": 0.55},
         "atr_stop": {"low": 3.5, "high": 4.5},
         "risk": {"low": 0.005, "high": 0.01},
@@ -15,7 +15,7 @@
         "init_pt": {"low": 0.01, "high": 0.05}
     },
     "initial_trial": {
-        "strength_alpha": 1.3, "confirm_n": 1, "model_th": 0.40,
+        "strength_alpha": 80, "confirm_n": 1, "model_th": 0.40,
         "atr_stop": 4.0, "risk": 0.008, "kelly": 0.2, "slope": 0.012,
         "max_stop": 0.12, "slope_min": 0.0001, "predict_up": -0.05,
         "tp1": 1.05, "tp2": 1.20, "init_pt": 0.01,

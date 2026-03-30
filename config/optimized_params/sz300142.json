@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz300142",
+        "best_value": -61.2971,
+        "date": "2026-03-30 15:28"
+    },
+    "MODEL_TH": 0.4469,
+    "SLOPE": 0.0064,
+    "PREDICT_UP": -0.0286,
+    "INIT_PT": 0.014,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.0257,
+    "TP2": 1.2126,
+    "KELLY": 0.2277,
+    "RISK": 0.0052,
+    "ATR_STOP": 4.033,
+    "MAX_STOP": 0.0802,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 31,
+    "SLOPE_MIN": 0.0011,
+    "CONFIRM_N": 1
+}

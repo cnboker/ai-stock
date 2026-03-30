@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz300075",
+        "best_value": -31.6508,
+        "date": "2026-03-30 13:28"
+    },
+    "MODEL_TH": 0.4627,
+    "SLOPE": 0.0094,
+    "PREDICT_UP": -0.0368,
+    "INIT_PT": 0.0427,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.0476,
+    "TP2": 1.1987,
+    "KELLY": 0.1508,
+    "RISK": 0.0076,
+    "ATR_STOP": 3.9091,
+    "MAX_STOP": 0.1415,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 50,
+    "SLOPE_MIN": 0.0001,
+    "CONFIRM_N": 1
+}
