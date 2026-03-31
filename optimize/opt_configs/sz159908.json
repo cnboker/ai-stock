@@ -1,0 +1,104 @@
+{
+    "ticker": "sz159908",
+    "category": "ETF",
+    "best_params": {},
+    "intercept_stats": {
+        "success_count": 0,
+        "intercept_report": {
+            "model_confidence": 2,
+            "slope_filter": 11,
+            "predict_up_filter": 5,
+            "zero_strength_ghost": 4,
+            "other_error": 0
+        },
+        "scan_days": 20,
+        "total_scans": 20,
+        "success_rate": "0.0%"
+    },
+    "search_space": {
+        "model_th": {
+            "low": 0.35,
+            "high": 0.45
+        },
+        "slope": {
+            "low": -0.005,
+            "high": 0.005
+        },
+        "slope_min": {
+            "low": 0.0,
+            "high": 0.0005
+        },
+        "predict_up": {
+            "low": -0.002,
+            "high": 0.005
+        },
+        "init_pt": {
+            "low": 0.005,
+            "high": 0.02
+        },
+        "trend_pt": {
+            "low": 0.02,
+            "high": 0.1
+        },
+        "tp1": {
+            "low": 1.01,
+            "high": 1.03
+        },
+        "tp2": {
+            "low": 1.05,
+            "high": 1.12
+        },
+        "kelly": {
+            "low": 0.3,
+            "high": 0.6
+        },
+        "risk": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "atr_stop": {
+            "low": 1.8,
+            "high": 2.8
+        },
+        "max_stop": {
+            "low": 0.02,
+            "high": 0.05
+        },
+        "min_stop": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "strength_alpha": {
+            "low": 0.5,
+            "high": 2.0
+        },
+        "confirm_n": {
+            "low": 1,
+            "high": 2,
+            "type": "int"
+        }
+    },
+    "initial_trial": {
+        "model_th": 0.38,
+        "slope": 0.0005,
+        "slope_min": 0.0,
+        "predict_up": 0.001,
+        "init_pt": 0.01,
+        "trend_stage": 0.05,
+        "tp1": 1.02,
+        "tp2": 1.08,
+        "kelly": 0.5,
+        "risk": 0.008,
+        "atr_stop": 2.2,
+        "max_stop": 0.04,
+        "min_stop": 0.008,
+        "strength_alpha": 1.0,
+        "confirm_n": 1,
+        "atr_mult": 2.8
+    },
+    "_META": {
+        "last_optimized": "2026-03-31 08:52:47",
+        "best_value": -137.169,
+        "status": "SIGNAL_BLOCKED"
+    }
+}

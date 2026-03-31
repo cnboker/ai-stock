@@ -1,4 +1,34 @@
 {
+    "ticker": "sh600446",
+    "category": "STOCK",
+    "best_params": {
+        "strength_alpha": 80,
+        "confirm_n": 1,
+        "model_th": 0.4,
+        "atr_stop": 4.0,
+        "risk": 0.008,
+        "kelly": 0.2,
+        "slope": 0.012,
+        "max_stop": 0.12,
+        "slope_min": 0.0001,
+        "predict_up": -0.05,
+        "tp1": 1.05,
+        "tp2": 1.2,
+        "init_pt": 0.01
+    },
+    "intercept_stats": {
+        "success_count": 5,
+        "intercept_report": {
+            "model_confidence": 0,
+            "slope_filter": 10,
+            "predict_up_filter": 0,
+            "zero_strength_ghost": 10,
+            "other_error": 0
+        },
+        "scan_days": 20,
+        "total_scans": 20,
+        "success_rate": "25.0%"
+    },
     "search_space": {
         "strength_alpha": {
             "low": 10,
@@ -57,7 +87,7 @@
     "initial_trial": {
         "strength_alpha": 80,
         "confirm_n": 1,
-        "model_th": 0.40,
+        "model_th": 0.4,
         "atr_stop": 4.0,
         "risk": 0.008,
         "kelly": 0.2,
@@ -66,10 +96,15 @@
         "slope_min": 0.0001,
         "predict_up": -0.05,
         "tp1": 1.05,
-        "tp2": 1.20,
+        "tp2": 1.2,
         "init_pt": 0.01,
         "trend_stage": 0.15,
         "min_stop": 0.01,
         "atr_mult": 3.5
+    },
+    "_META": {
+        "last_optimized": "2026-03-30 17:02:19",
+        "best_value": -13.90964,
+        "status": "ACTIVE"
     }
 }

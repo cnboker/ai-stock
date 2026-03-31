@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz000980",
+        "best_value": 233.245,
+        "date": "2026-03-30 19:21"
+    },
+    "MODEL_TH": 0.4736,
+    "SLOPE": 0.0078,
+    "PREDICT_UP": -0.0389,
+    "INIT_PT": 0.0423,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.0399,
+    "TP2": 1.1306,
+    "KELLY": 0.2593,
+    "RISK": 0.0088,
+    "ATR_STOP": 4.0024,
+    "MAX_STOP": 0.1213,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 30,
+    "SLOPE_MIN": 0.0046,
+    "CONFIRM_N": 1
+}

@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sh603123",
+        "best_value": 24.6891,
+        "date": "2026-03-30 18:11"
+    },
+    "MODEL_TH": 0.4944,
+    "SLOPE": 0.006,
+    "PREDICT_UP": -0.0424,
+    "INIT_PT": 0.0461,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.0321,
+    "TP2": 1.2366,
+    "KELLY": 0.2993,
+    "RISK": 0.0056,
+    "ATR_STOP": 3.5835,
+    "MAX_STOP": 0.0805,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 12,
+    "SLOPE_MIN": 0.0044,
+    "CONFIRM_N": 1
+}

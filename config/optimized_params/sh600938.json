@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sh600938",
+        "best_value": -122.6603,
+        "date": "2026-03-31 01:07"
+    },
+    "MODEL_TH": 0.4409,
+    "SLOPE": 0.0104,
+    "PREDICT_UP": -0.0427,
+    "INIT_PT": 0.0447,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.0257,
+    "TP2": 1.1441,
+    "KELLY": 0.2582,
+    "RISK": 0.0097,
+    "ATR_STOP": 3.9071,
+    "MAX_STOP": 0.1071,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 34,
+    "SLOPE_MIN": 0.0042,
+    "CONFIRM_N": 1
+}

@@ -9,7 +9,7 @@ from optimize.persist_manager import PersistManager
 from simulator.run_backtest import run_backtest
 
 
-def run_optuna_study(ticker: str, n_trials=100):
+def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100):
     # 1. 创建研究
     study = optuna.create_study(
         study_name=f"opt_{ticker}",
@@ -22,7 +22,7 @@ def run_optuna_study(ticker: str, n_trials=100):
     ConfigFactory.enqueue_experience(study, ticker)
 
     # 3. 运行优化 (50 次尝试)
-    study.optimize(lambda t: objective(t, [ticker]), n_trials)
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
 
     # --- 关键修正：体检对象改为 study.best_params ---
     print(f"🎯 优化结束，正在对最优参数进行深度体检...")
@@ -41,7 +41,7 @@ def run_optuna_study(ticker: str, n_trials=100):
     PersistManager.save_best_config(study, ticker)  # 可选：将整个 study 存档到文件系统或数据库
     print(f"⭐ {ticker} 存档成功 | 最佳分值: {study.best_value:.4f}")
 
-def objective(trial, tickers: list):
+def objective(trial, tickers: list, ticker_interval="30"):
     # 使用列表中的第一个标的来决定参数分类 (ETF 或 STOCK)
     main_ticker = tickers[0]
 
@@ -61,7 +61,7 @@ def objective(trial, tickers: list):
         for t_code in tickers:
             try:
                 # 运行回测
-                train_stats, test_stats = run_backtest(t_code,period="15")
+                train_stats, test_stats = run_backtest(t_code,period=ticker_interval)
 
                 # 评分逻辑
                 train_val = max(-200, advanced_score.get_advanced_score(train_stats))

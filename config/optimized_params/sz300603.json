@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz300603",
+        "best_value": -42.6358,
+        "date": "2026-03-31 08:00"
+    },
+    "MODEL_TH": 0.4,
+    "SLOPE": 0.012,
+    "PREDICT_UP": -0.05,
+    "INIT_PT": 0.01,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.05,
+    "TP2": 1.2,
+    "KELLY": 0.2,
+    "RISK": 0.008,
+    "ATR_STOP": 4.0,
+    "MAX_STOP": 0.12,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 80,
+    "SLOPE_MIN": 0.0001,
+    "CONFIRM_N": 1
+}

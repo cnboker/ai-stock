@@ -65,16 +65,15 @@
 ```js
  config = {
         "MODEL_TH": trial.suggest_float("model_th", 0.42, 0.48),
-        "SLOPE": trial.suggest_float("slope_th", -0.001, 0.005),
-        "PREDICT_UP": trial.suggest_float("predict_up_th", 0.0, 0.005),
+        "SLOPE": trial.suggest_float("slope", -0.001, 0.005),
+        "PREDICT_UP": trial.suggest_float("predict_up", 0.0, 0.005),
         "INIT_PT": trial.suggest_float("init_pt", 0.02, 0.04),
         "TREND_STAGE": trial.suggest_float("trend_pt", 0.05, 0.25),
-        "ATR_MULT": trial.suggest_float("atr_mult", 2.5, 4.5),
         "TP1": trial.suggest_float("tp1", 1.03, 1.06),
         "TP2": trial.suggest_float("tp2", 1.1, 1.25),
         "KELLY": trial.suggest_float("kelly", 0.3, 0.5),
-        "RISK": trial.suggest_float("max_lost_pct", 0.01, 0.015),
-        "ATR_STOP": trial.suggest_float("atr_stop_mult", 2.5, 3.5),
+        "RISK": trial.suggest_float("risk", 0.01, 0.015),
+        "ATR_STOP": trial.suggest_float("atr_stop", 2.5, 3.5),
         "MAX_STOP": trial.suggest_float("max_stop", 0.03, 0.10),
         "MIN_STOP": trial.suggest_float("min_stop", 0.01, 0.02),
         
