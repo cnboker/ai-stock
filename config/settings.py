@@ -9,7 +9,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 # ================= 全局参数 =================
 PREDICTION_LENGTH = 10
-TICKER_PERIOD = 3
+TICKER_PERIOD = 30  # 30分钟周期
 UPDATE_INTERVAL_SEC = 60 * TICKER_PERIOD
 ALL_TICKERS = [
     {"code": "sh600446", "name": "金证股份"},

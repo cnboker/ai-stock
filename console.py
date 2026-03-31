@@ -80,8 +80,12 @@ def run_trade_cycle():
                 # 2. 假设我们要为创业板 ETF 开启交易
                 # 它会寻找 sz159908.json -> category_ETF.json -> default
                 final_config = dynamic_config_manager.load_params(ticker)
-                print(f'current_params={final_config}')
-                
+                #print(f'current_params={final_config}')
+                best_value = final_config.get("_META", {}).get("best_value", 0) 
+                print(f"🔍 [Config] {ticker} best_value={best_value}")
+                if best_value < 0:
+                    print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
+                    continue
                 # 加载数据 (如果这里慢，考虑增加多线程读取)
                 df = load_stock_df(ticker, session.period)
                 if df is None or df.empty:
