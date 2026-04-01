@@ -6,7 +6,7 @@ from optimize.smart_optimizer import SmartOptimizer
 
 # 这个脚本是整个自动化调优流程的入口
 # 如何stregth总是0,调整strength_alpha=30.0试试
-def tune(ticker,ticker_interval="60"):
+def tune(ticker,ticker_interval="30"):
     # 你可以从命令行读取，也可以写死
     #ticker = "sz300142" 
     
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     live_tickers = LivePositionLoader.load_tickers("state/live_positions.yaml")
 
     task_queue = list(dict.fromkeys(watchlist + live_tickers)) # 保持顺序去重
-    task_queue = ['sz159908']
+    task_queue = ['sz300497']
     print(f"当前观察池: {task_queue}")
     for ticker in task_queue:
         try:

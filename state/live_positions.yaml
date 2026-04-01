@@ -1,11 +1,11 @@
 account: main_account
-cash: 50316.14
+cash: 50436.34
 positions:
   sh600771:
     direction: LONG
     entry_price: 15.93
     highest_price: 17.07
-    open_time: '2026-03-31T09:50:49.342725'
+    open_time: '2026-04-01T09:40:57.602988'
     size: 1
     stop_loss: 15.93
     tp1_hit: false
@@ -13,7 +13,7 @@ positions:
     direction: LONG
     entry_price: 40.27
     highest_price: 41.07
-    open_time: '2026-03-31T09:50:49.342725'
+    open_time: '2026-04-01T09:40:57.602988'
     size: 1
     stop_loss: 37.5
     tp1_hit: false
@@ -21,23 +21,15 @@ positions:
     direction: LONG
     entry_price: 19.06
     highest_price: 18.83
-    open_time: '2026-03-31T09:50:49.342725'
+    open_time: '2026-04-01T09:40:57.602988'
     size: 1
     stop_loss: 18.35
-    tp1_hit: false
-  sz159908:
-    direction: LONG
-    entry_price: 3.003
-    highest_price: 3.081
-    open_time: '2026-03-31T09:50:49.342725'
-    size: 1
-    stop_loss: 2.97
     tp1_hit: false
   sz300961:
     direction: LONG
     entry_price: 12.84
     highest_price: 14.91
-    open_time: '2026-03-31T09:50:49.342725'
+    open_time: '2026-04-01T09:40:57.602988'
     size: 1
     stop_loss: 12.84
     tp1_hit: false
