@@ -1,5 +1,5 @@
     # 在 objective 函数内部改进评分：
-def get_advanced_score(stats):
+def get_advanced_score(stats,is_test=False):
     trades = stats.get("Trade_Count", 0)
     ret = stats.get("Strategy_Return", -5.0)  
     mdd = abs(stats.get("Max_Drawdown", 0.01)) 
@@ -23,7 +23,8 @@ def get_advanced_score(stats):
 
     # --- 4. 活跃度阶梯 ---
     # 只有交易次数够了，才执行上面的最终评分
-    if trades < 5: 
+    threshold = 2 if is_test else 5  # 验证集只要有 2 次交易就不惩罚
+    if trades < threshold: 
         # 这个梯度的存在是为了引
         # 导它通过阈值线
         # 加上 alpha * 2 是为了让它在同样没成交够时，优先选那个预测更准的

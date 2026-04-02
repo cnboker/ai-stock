@@ -166,8 +166,9 @@ class DecisionContextBuilder:
         # if raw_signal == "LONG":
         #     print(f"settings.STRENGTH_ALPHA: {settings.STRENGTH_ALPHA}")
         #     signal_log(ctx)
+        #if raw_signal == "LONG":
         # signal_log(
-        #     f"🔥 {ticker} | raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
+        #     f"🔥 {ticker} |eq_decision.action={eq_decision.action} Lost_price={pos.stop_loss if pos else None} raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
         #     f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
         # )
         #signal_log(ctx)

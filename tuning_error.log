@@ -243,3 +243,13 @@ Traceback (most recent call last):
     raise optuna.exceptions.DuplicatedStudyError(
 optuna.exceptions.DuplicatedStudyError: Another study with name 'opt_sh515050' already exists. Please specify a different name, or reuse the existing one by setting `load_if_exists` (for Python API) or `--skip-if-exists` flag (for CLI).
 
+ERROR:root:❌ [Error] sh515050 失败: local variable 'study' referenced before assignment
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 64, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 31, in run_optuna_study
+    ConfigFactory.enqueue_experience(study, ticker)
+UnboundLocalError: local variable 'study' referenced before assignment
+

@@ -38,7 +38,7 @@ def tune(ticker,ticker_interval="30"):
         # 这里执行最终的深度调优
         # 传入当前的体检报告（可选），用于 save_results 归档
         # 注意：这里的 report 可以在 start_auto_loop 结束前通过 self 存下来
-        run_optuna_study(ticker,ticker_interval, 100) 
+        run_optuna_study(ticker,ticker_interval, 100, reset_study=False) # 100 次尝试，重置旧的 Study
         
         print(f"🏁 {ticker} 全流程优化完成。")
     else:
@@ -54,8 +54,8 @@ if __name__ == "__main__":
     task_queue = list(dict.fromkeys(watchlist + live_tickers)) # 保持顺序去重
 
     task_queue = ['sz300383','sz300603','sh515050','sh588200', 'sh561330','sh512760', 'sz159515']
-    task_queue = ['sh515050','sh588200', 'sh561330','sh512760', 'sz159515']
-    task_queue = ['sh515050']
+    task_queue = ['sh588200', 'sh561330','sh512760', 'sz159515']
+   
     print(f"当前观察池: {task_queue}")
     for ticker in task_queue:
         try:

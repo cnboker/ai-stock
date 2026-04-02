@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 import warnings
@@ -44,7 +45,7 @@ def run_trade_cycle():
         # 1. 环境准备
         period = str(TICKER_PERIOD)
         hs300_df = load_index_df(period)
-
+        position_mgr.current_market_time = datetime.now()  # 初始化当前市场时间，后续会在循环中更新 
         # 2. ⚡ 内存快照提取 (一次性锁定，减少竞争)
         with state_lock:
             # 获取所有需要处理的标的：(代码, 持仓对象或None)

@@ -2,21 +2,22 @@
     "ticker": "sh588200",
     "category": "ETF",
     "best_params": {
-        "model_th": 0.38,
-        "slope": 0.0005,
-        "slope_min": 0.0001,
-        "predict_up": 0.0,
-        "init_pt": 0.01,
-        "trend_pt": 0.022674924177104424,
-        "tp1": 1.02,
-        "tp2": 1.08,
-        "kelly": 0.5,
-        "risk": 0.008,
-        "atr_stop": 2.0,
-        "max_stop": 0.03,
-        "min_stop": 0.005,
-        "strength_alpha": 1.2,
-        "confirm_n": 1
+        "model_th": 0.3858818340781735,
+        "slope": 0.000920439642063342,
+        "slope_min": 0.0002743786698220013,
+        "predict_up": -0.0032334381588621087,
+        "init_pt": 0.018018216811084977,
+        "trend_pt": 0.07755992337917013,
+        "tp1": 1.029324689098854,
+        "tp2": 1.0554668028115486,
+        "kelly": 0.5838266646519505,
+        "risk": 0.00778072208419907,
+        "atr_stop": 2.1907763643091456,
+        "max_stop": 0.02365953905535642,
+        "min_stop": 0.00578368766809992,
+        "strength_alpha": 1.326666399812084,
+        "confirm_n": 1,
+        "atr_mult": 4.30264581237397
     },
     "intercept_stats": {
         "success_count": 0,
@@ -116,8 +117,8 @@
         "atr_mult": 2.5
     },
     "_META": {
-        "last_optimized": "2026-04-02 11:49:30",
-        "best_value": -34.15358,
+        "last_optimized": "2026-04-02 22:50:47",
+        "best_value": 75.63566,
         "status": "SIGNAL_BLOCKED"
     }
 }

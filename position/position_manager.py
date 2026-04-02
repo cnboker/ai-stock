@@ -35,7 +35,7 @@ class PositionManager:
         self.cooldown = {}  # ticker -> 剩余bar数
         self.total_trade_count = 0  # 新增：用于回测统计总成交次数
         self.watchlist = {}  # 观察池 
-
+        self.current_market_time = None  # 当前处理的 K 线时间戳
 
     def update_cooldown(self):
         for k in list(self.cooldown.keys()):
@@ -533,7 +533,7 @@ class PositionManager:
         reason: str,
     ):
         self.max_occupied = max(self.max_occupied, self.get_ticker_value(symbol, price) )
-        ts = datetime.now()
+        ts = self.current_market_time if self.current_market_time else datetime.now()
 
         self.trade_log.append(
             {

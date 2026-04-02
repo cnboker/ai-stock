@@ -106,7 +106,12 @@ class BacktestRunner:
         #print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history_fixed)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
             self.eq_recorder.add(self.position_mgr.equity)
+            current_k = df_today.iloc[i]
+            #提取行情时间撮
+            current_market_time = current_k.name
+            self.position_mgr.current_market_time = current_market_time
             df_slice = df_today.iloc[: i + 1]
+          
             hs300_slice = df_hs300_today.iloc[: i + 1]
             ticker_df = pd.concat([df_history_fixed, df_slice])
             hs300_df = pd.concat([hs300_history,hs300_slice])   

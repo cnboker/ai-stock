@@ -9,14 +9,15 @@ from optimize.persist_manager import PersistManager
 from simulator.run_backtest import run_backtest
 
 
-def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100):
+def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100, reset_study=False):
     study_name=f"opt_{ticker}"
     storage=ConfigFactory.get_db_url(ticker)
-    try:
-        optuna.delete_study(study_name=study_name, storage=storage)
-        print(f"成功移除旧的任务: {study_name}")
-    except KeyError:
-        print(f"没有找到名为 {study_name} 的任务，可以直接开始。")
+    if reset_study:
+        try:
+            optuna.delete_study(study_name=study_name, storage=storage)
+            print(f"成功移除旧的任务: {study_name}")
+        except KeyError:
+            print(f"没有找到名为 {study_name} 的任务，可以直接开始。")
 
     # 1. 创建研究
     study = optuna.create_study(
@@ -25,7 +26,7 @@ def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100):
         load_if_exists=True,
         direction="maximize",
     )
-    
+        
     # 2. 注入经验
     ConfigFactory.enqueue_experience(study, ticker)
 
@@ -71,7 +72,7 @@ def objective(trial, tickers: list, ticker_interval="30"):
     final_config = {
         k.replace(f"{category}_", "").upper(): v for k, v in optuna_config.items()
     }
-
+    print(f"\n🔍 当前试验参数: {final_config}" )
     scores = []
     # 3. 声明式注入并循环跑分
     with use_config(final_config):
@@ -82,8 +83,8 @@ def objective(trial, tickers: list, ticker_interval="30"):
                 train_stats, test_stats = run_backtest(t_code,period=ticker_interval)
 
                 # 评分逻辑
-                train_val = max(-200, advanced_score.get_advanced_score(train_stats))
-                test_val = max(-200, advanced_score.get_advanced_score(test_stats))
+                train_val = max(-200, advanced_score.get_advanced_score(train_stats, is_test=False))
+                test_val = max(-200, advanced_score.get_advanced_score(test_stats, is_test=True))
 
                 # 惩罚项计算
                 test_return = test_stats.get("Strategy_Return", 0)
