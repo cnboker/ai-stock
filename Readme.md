@@ -86,3 +86,12 @@
     ```bash
     python -m optimize.auto_tune
     ```
+
+
+{
+    "atr_stop": {"low": 3.0, "high": 7.0},       // 允许更大的波动
+    "max_stop": {"low": 0.05, "high": 0.12},     // 接受 5%-12% 的波段回撤
+    "min_stop": {"low": 0.02, "high": 0.03},     // 过滤掉 2% 以内的所有噪音
+    "tp1": {"low": 1.10, "high": 1.20},          // 止盈设高点，不翻倍不走
+    "strength_alpha": {"low": 2.0, "high": 15.0} // 降低止损随价格上涨的移动速度
+}

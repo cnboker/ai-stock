@@ -2,20 +2,20 @@
     "ticker": "sh515050",
     "category": "ETF",
     "best_params": {
-        "model_th": 0.3894483673327321,
-        "slope": -0.0024704035934291586,
-        "slope_min": 5.576553066935872e-05,
-        "predict_up": 0.0049308638811758725,
-        "init_pt": 0.016089655187295254,
-        "trend_pt": 0.08771346895768987,
-        "tp1": 1.0227000599292484,
-        "tp2": 1.0595386304370373,
-        "kelly": 0.5629662164805621,
-        "risk": 0.006341420594474667,
-        "atr_stop": 2.4981171335371957,
-        "max_stop": 0.031024644138369716,
-        "min_stop": 0.009152674095943862,
-        "strength_alpha": 1.453004476466525,
+        "model_th": 0.4083888705905068,
+        "slope": -0.001722072499752069,
+        "slope_min": 3.7760866043494796e-05,
+        "predict_up": 0.0012847583771412264,
+        "init_pt": 0.01645705354450512,
+        "trend_pt": 0.07945003558523413,
+        "tp1": 1.019431393415457,
+        "tp2": 1.066015597226095,
+        "kelly": 0.3917898953722969,
+        "risk": 0.0064733239803681794,
+        "atr_stop": 2.068214203161447,
+        "max_stop": 0.03896908405113569,
+        "min_stop": 0.008505907985599822,
+        "strength_alpha": 1.4267030677527937,
         "confirm_n": 1
     },
     "intercept_stats": {
@@ -33,8 +33,8 @@
     },
     "search_space": {
         "model_th": {
-            "low": 0.35,
-            "high": 0.45
+            "low": 0.45,
+            "high": 0.55
         },
         "slope": {
             "low": -0.005,
@@ -42,27 +42,27 @@
         },
         "slope_min": {
             "low": 0.0,
-            "high": 0.0005
-        },
-        "predict_up": {
-            "low": -0.005,
             "high": 0.005
         },
+        "predict_up": {
+            "low": -0.05,
+            "high": 0.01
+        },
         "init_pt": {
-            "low": 0.005,
-            "high": 0.02
+            "low": 0.01,
+            "high": 0.05
         },
         "trend_pt": {
             "low": 0.01,
             "high": 0.1
         },
         "tp1": {
-            "low": 1.01,
-            "high": 1.05
+            "low": 1.1,
+            "high": 1.2
         },
         "tp2": {
-            "low": 1.05,
-            "high": 1.15
+            "low": 1.1,
+            "high": 1.25
         },
         "kelly": {
             "low": 0.2,
@@ -73,20 +73,20 @@
             "high": 0.01
         },
         "atr_stop": {
-            "low": 1.5,
-            "high": 4.0
+            "low": 3.0,
+            "high": 7.0
         },
         "max_stop": {
-            "low": 0.02,
-            "high": 0.05
+            "low": 0.05,
+            "high": 0.12
         },
         "min_stop": {
-            "low": 0.005,
-            "high": 0.01
+            "low": 0.02,
+            "high": 0.03
         },
         "strength_alpha": {
-            "low": 0.5,
-            "high": 1.5
+            "low": 2.0,
+            "high": 15.0
         },
         "confirm_n": {
             "low": 1,
@@ -95,26 +95,26 @@
         }
     },
     "initial_trial": {
-        "model_th": 0.42,
+        "model_th": 0.45,
         "slope": 0.0018,
         "slope_min": 0.0005,
-        "predict_up": 0.005,
+        "predict_up": 0.001,
         "init_pt": 0.01,
         "trend_stage": 0.1,
-        "tp1": 1.035,
-        "tp2": 1.12,
+        "tp1": 1.12,
+        "tp2": 1.2,
         "kelly": 0.2,
         "risk": 0.01,
         "atr_stop": 3.0,
         "max_stop": 0.05,
-        "min_stop": 0.01,
-        "strength_alpha": 0.8,
+        "min_stop": 0.02,
+        "strength_alpha": 10,
         "confirm_n": 1,
         "atr_mult": 3.2
     },
     "_META": {
-        "last_optimized": "2026-04-02 11:48:48",
-        "best_value": -60.76606,
+        "last_optimized": "2026-04-02 14:46:41",
+        "best_value": -59.62882,
         "status": "SIGNAL_BLOCKED"
     }
 }

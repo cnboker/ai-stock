@@ -52,6 +52,7 @@ def notify_order(event: OrderEvent, position_mgr):
 
 
 async def play_sound():
+    return
     # This starts the process without stopping your whole program
     process = await asyncio.create_subprocess_exec("xdg-open", "data/tick.mp3")
     

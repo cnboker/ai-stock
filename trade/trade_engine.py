@@ -52,35 +52,36 @@ debugger = DecisionDebugger()
 
 
 # 2️ 实盘主循环,每次行情 / 预测更新
-#@timer_decorator, 如果想测单次决策耗时，可以打开这个装饰器：0.04s 左右，主要耗在模型推理上
+# @timer_decorator, 如果想测单次决策耗时，可以打开这个装饰器：0.04s 左右，主要耗在模型推理上
 def execute_stock_decision(
     *,
     ticker: str,
-    hs300_df:DataFrame,
-    ticker_df:DataFrame,
+    hs300_df: DataFrame,
+    ticker_df: DataFrame,
     session: TradingSession,
 ) -> dict:
     """
     每次行情/预测更新，执行单只股票的交易决策
     返回 dict，用于动态表格显示
     """
-    
+
     # 1. 首先明确“当前”要处理的参考对象（即个股数据）
-    recent_df = ticker_df
-    history_len = len(recent_df)
-     # ========== HS300 对齐 ==========
+   
+   
+    hs300_df = hs300_df.iloc[-LOOKBACK_WINDOW:]
+    ticker_df = ticker_df.iloc[-LOOKBACK_WINDOW:]
+    # ========== HS300 对齐 ==========
     if hs300_df is not None and not hs300_df.empty:
-        hs300_df = hs300_df.tail(history_len)
         hs300_series = (
             hs300_df["close"]
-            .reindex(recent_df.index, method="nearest")
+            .reindex(ticker_df.index, method="nearest")
             .interpolate("linear")
             .ffill()
             .values
         )
     else:
-        hs300_series = recent_df["close"].values
-        
+        hs300_series = ticker_df["close"].values
+
     # 模型预测
     pre_result = run_prediction(
         df=ticker_df,
@@ -108,4 +109,9 @@ def execute_stock_decision(
         risk_mgr=risk_mgr,
         position_mgr=position_mgr,
     )
-    return tradeSystem.run_tick(ticker=ticker, pre_result=pre_result, close_df=ticker_df["close"], session=session)
+    return tradeSystem.run_tick(
+        ticker=ticker,
+        pre_result=pre_result,
+        close_df=ticker_df["close"],
+        session=session,
+    )

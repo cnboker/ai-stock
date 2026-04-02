@@ -22,7 +22,7 @@ class PositionManager:
         self.frozen_cash: float = 0.0
         self.run_mode: RunMode = run_mode
         self.account_name: str = ""
-
+        self.max_occupied = 0.0  # 回测时统计最大占用率
         # ===== 仓位 =====
         self.positions: Dict[str, Position] = {}
 
@@ -532,6 +532,7 @@ class PositionManager:
         value: float,
         reason: str,
     ):
+        self.max_occupied = max(self.max_occupied, self.get_ticker_value(symbol, price) )
         ts = datetime.now()
 
         self.trade_log.append(

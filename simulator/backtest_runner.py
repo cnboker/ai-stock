@@ -132,7 +132,8 @@ class BacktestRunner:
         
         # 💡 核心：定义你的作战基数
         # 既然 4000 是最大投资额度，我们用它作为分母
-        ACTIVE_BUDGET = 200000.0 
+        ACTIVE_BUDGET = self.position_mgr.max_occupied if self.position_mgr.max_occupied > 0 else 1
+        print(f"作战基数 (ACTIVE_BUDGET): {ACTIVE_BUDGET:.2f}")
         
         # 计算绝对盈亏额（比如赚了 80 元）
         absolute_profit = equity[-1] - equity[0]
@@ -169,44 +170,4 @@ class BacktestRunner:
             "Alpha": round(alpha * 100, 4)
         }
 
-    def _report_1(self, start_price, end_price):
-        # 转换净值曲线为 numpy 数组方便计算
-        equity = np.array(self.equity_curve)
-        
-        # 💡 关键修改：定义“作战本金”
-        # 假设你的单笔上限是 5000 5000 元的表现：
-        ACTIVE_CAPITAL = 5000.0 
-        
-        # 计算绝对盈亏 (比如赚了 80 元)
-        net_pnl = equity[-1] - self.initial_capital
-        
-        # 1. 真实作战收益率 (80 / 4000 = 2%)
-        strat_ret = net_pnl / ACTIVE_CAPITAL
-        
-        # 2. 计算最大回撤 (也要基于 ACTIVE_CAPITAL 才有意义)
-        # 否则 10万本金下，400元的跌幅看起来只有 0.4%，太迷惑人了
-        peak = np.maximum.accumulate(equity)
-        # 这里的 drawdown 计算要反映出 4000 元亏了多少
-        max_dd = ((equity - peak) / ACTIVE_CAPITAL).min()
-
-        # 3. Alpha 计算
-        buy_hold_ret = (end_price - start_price) / start_price
-        alpha = strat_ret - buy_hold_ret
-
-        # --- 打印报告 ---
-        print("\n" + "=" * 40)
-        print(f"Ticker: {self.ticker}")
-        print(f"Strategy Return : {round(strat_ret * 100, 2)} %")
-        print(f"BuyHold Return  : {round(buy_hold_ret * 100, 2)} %")
-        print(f"Alpha           : {round(alpha * 100, 2)} %")
-        print(f"Max Drawdown    : {round(max_dd * 100, 2)} %")
-        print(f"Trade Count     : {self.position_mgr.total_trade_count}")
-        print("=" * 40 + "\n")
-
-        # 返回给 Optuna 的字典，字段名要和 get_advanced_score 对应
-        return {
-            "Strategy_Return": round(strat_ret * 100, 4),
-            "Max_Drawdown": round(max_dd * 100, 4),
-            "Trade_Count": self.position_mgr.total_trade_count,
-            "Alpha": round(alpha * 100, 4)
-        }
+  

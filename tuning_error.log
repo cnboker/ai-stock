@@ -1,0 +1,160 @@
+ERROR:root:❌ [Error] sh515050 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 60, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 39, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh588200 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 60, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 39, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh561330 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 60, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 39, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh512760 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 60, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 39, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sz159515 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 60, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 39, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh515050 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 68, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh588200 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 68, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh561330 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 68, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh512760 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 68, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sz159515 失败: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 68, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100, report=optimizer.diagnostic_report)
+AttributeError: 'SmartOptimizer' object has no attribute 'diagnostic_report'
+
+ERROR:root:❌ [Error] sh515050 失败: Cannot set different distribution kind to the same parameter name.
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 64, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 25, in run_optuna_study
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/study.py", line 490, in optimize
+    _optimize(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 68, in _optimize
+    _optimize_sequential(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 165, in _optimize_sequential
+    frozen_trial_id = _run_trial(study, func, catch)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 263, in _run_trial
+    raise func_err
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 206, in _run_trial
+    value_or_values = func(trial)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 25, in <lambda>
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 59, in objective
+    optuna_config = ConfigFactory.suggest_config(trial, main_ticker)
+  File "/home/scott/code/stock-model/optimize/config_factory_v2.py", line 82, in suggest_config
+    params[key] = trial.suggest_int(key, low, high)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/_convert_positional_args.py", line 127, in converter_wrapper
+    return func(**kwargs)  # type: ignore[call-arg]
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/trial/_trial.py", line 336, in suggest_int
+    suggested_value = int(self._suggest(name, distribution))
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/trial/_trial.py", line 649, in _suggest
+    storage.set_trial_param(trial_id, name, param_value_in_internal_repr, distribution)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/storages/_cached_storage.py", line 167, in set_trial_param
+    self._backend._set_trial_param(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/storages/_rdb/storage.py", line 597, in _set_trial_param
+    self._set_trial_param_without_commit(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/storages/_rdb/storage.py", line 632, in _set_trial_param_without_commit
+    distributions.check_distribution_compatibility(previous_distribution, distribution)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/distributions.py", line 642, in check_distribution_compatibility
+    raise ValueError("Cannot set different distribution kind to the same parameter name.")
+ValueError: Cannot set different distribution kind to the same parameter name.
+
+ERROR:root:❌ [Error] sh515050 失败: Cannot set different distribution kind to the same parameter name.
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 64, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 25, in run_optuna_study
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/study.py", line 490, in optimize
+    _optimize(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 68, in _optimize
+    _optimize_sequential(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 165, in _optimize_sequential
+    frozen_trial_id = _run_trial(study, func, catch)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 263, in _run_trial
+    raise func_err
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 206, in _run_trial
+    value_or_values = func(trial)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 25, in <lambda>
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 59, in objective
+    optuna_config = ConfigFactory.suggest_config(trial, main_ticker)
+  File "/home/scott/code/stock-model/optimize/config_factory_v2.py", line 82, in suggest_config
+    params[key] = trial.suggest_int(key, low, high)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/_convert_positional_args.py", line 127, in converter_wrapper
+    return func(**kwargs)  # type: ignore[call-arg]
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/trial/_trial.py", line 336, in suggest_int
+    suggested_value = int(self._suggest(name, distribution))
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/trial/_trial.py", line 649, in _suggest
+    storage.set_trial_param(trial_id, name, param_value_in_internal_repr, distribution)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/storages/_cached_storage.py", line 167, in set_trial_param
+    self._backend._set_trial_param(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/storages/_rdb/storage.py", line 597, in _set_trial_param
+    self._set_trial_param_without_commit(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/storages/_rdb/storage.py", line 632, in _set_trial_param_without_commit
+    distributions.check_distribution_compatibility(previous_distribution, distribution)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/distributions.py", line 642, in check_distribution_compatibility
+    raise ValueError("Cannot set different distribution kind to the same parameter name.")
+ValueError: Cannot set different distribution kind to the same parameter name.
+

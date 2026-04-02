@@ -39,6 +39,16 @@ def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100):
         intercept_report=best_report, # 存档最优参数的拦截情况
     )
     PersistManager.save_best_config(study, ticker)  # 可选：将整个 study 存档到文件系统或数据库
+
+    # 1. 看看哪个参数最重要（必看！）
+    importance = optuna.importance.get_param_importances(study)
+    print(f"📊 参数重要性排行: {importance}")
+
+    # 2. 看看搜索过程（有没有往高收益区靠拢）
+    # 如果你在 Jupyter 里，可以直接显示图表
+    import optuna.visualization as vis
+    vis.plot_optimization_history(study).show()
+
     print(f"⭐ {ticker} 存档成功 | 最佳分值: {study.best_value:.4f}")
 
 def objective(trial, tickers: list, ticker_interval="30"):
