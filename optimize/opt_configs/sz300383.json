@@ -1,33 +1,33 @@
 {
-    "ticker": "sz300603",
+    "ticker": "sz300383",
     "category": "STOCK",
     "best_params": {
-        "strength_alpha": 80,
+        "strength_alpha": 54,
         "confirm_n": 1,
-        "model_th": 0.4,
-        "atr_stop": 4.0,
-        "risk": 0.008,
-        "kelly": 0.2,
-        "slope": 0.012,
-        "max_stop": 0.12,
-        "slope_min": 0.0001,
-        "predict_up": -0.05,
-        "tp1": 1.05,
-        "tp2": 1.2,
-        "init_pt": 0.01
+        "model_th": 0.4367897439696813,
+        "atr_stop": 3.557794035081917,
+        "risk": 0.007145478220189915,
+        "kelly": 0.19594081002205918,
+        "slope": 0.01893717082580666,
+        "max_stop": 0.14184215918951826,
+        "slope_min": 0.003653412076244269,
+        "predict_up": -0.016669620753175136,
+        "tp1": 1.050328611996778,
+        "tp2": 1.109915445229907,
+        "init_pt": 0.011836115251985326
     },
     "intercept_stats": {
-        "success_count": 4,
+        "success_count": 0,
         "intercept_report": {
-            "model_confidence": 0,
-            "slope_filter": 12,
+            "model_confidence": 1,
+            "slope_filter": 19,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 8,
+            "zero_strength_ghost": 0,
             "other_error": 0
         },
         "scan_days": 20,
         "total_scans": 20,
-        "success_rate": "20.0%"
+        "success_rate": "0.0%"
     },
     "search_space": {
         "strength_alpha": {
@@ -103,8 +103,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-02 07:33:43",
-        "best_value": -42.63578,
-        "status": "ACTIVE"
+        "last_optimized": "2026-04-02 07:33:00",
+        "best_value": -66.3796,
+        "status": "SIGNAL_BLOCKED"
     }
 }

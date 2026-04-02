@@ -70,7 +70,7 @@ class DiagnosticScanner:
                         / len(median_prices)
                         / current_price
                     )
-
+                    
                     # --- 诊断决策流 ---
                     if conf < settings.MODEL_TH:
                         reject_reasons["model_confidence"] += 1

@@ -1,0 +1,24 @@
+{
+    "_META": {
+        "ticker": "sz159515",
+        "best_value": -53.3146,
+        "date": "2026-04-02 11:51"
+    },
+    "MODEL_TH": 0.38,
+    "SLOPE": 0.0005,
+    "PREDICT_UP": 0.0,
+    "INIT_PT": 0.01,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.87,
+    "TP1": 1.02,
+    "TP2": 1.08,
+    "KELLY": 0.5,
+    "RISK": 0.008,
+    "ATR_STOP": 2.0,
+    "MAX_STOP": 0.03,
+    "MIN_STOP": 0.005,
+    "STRENGTH_ALPHA": 1.2,
+    "SLOPE_MIN": 0.0001,
+    "CONFIRM_N": 1,
+    "TREND_PT": 0.0566
+}

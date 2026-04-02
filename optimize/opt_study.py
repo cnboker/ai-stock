@@ -29,7 +29,7 @@ def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100):
     
     # 注意：best_params 通常是不带前缀的大写或小写，
     # 确保 DiagnosticScanner 能处理这种格式。
-    best_report = DiagnosticScanner.run_body_check(ticker, study.best_params)
+    best_report = DiagnosticScanner.run_body_check(ticker, ticker_interval, study.best_params)
 
     # 4. 一键存档 (记录最优得分、最优参数及其拦截表现)
     ConfigFactory.save_results(

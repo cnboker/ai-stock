@@ -1,10 +1,9 @@
-import numpy as np
-from pandas import DataFrame, Series
+from pandas import DataFrame
+from config.settings import LOOKBACK_WINDOW
 from infra.core.trade_session import TradingSession
-from infra.persistence.live_positions import persist_live_positions
+from infra.utils.time_profile import timer_decorator
 from log import signal_log, risk_log
 from predict.chronos_predict import run_prediction
-from predict.predict_result import PredictionResult
 from risk.risk_manager import risk_mgr
 from strategy.decision_builder import DecisionContextBuilder
 from strategy.signal_debouncer import debouncer_manager
@@ -13,7 +12,7 @@ from strategy.signal_mgr import SignalManager
 from strategy.gate import gater
 from plot.decision_debugger import DecisionDebugger
 from trade.trade_system import TradingSystem
-from data.loader import load_stock_df
+
 
 """
     Chronos 区间
@@ -53,6 +52,7 @@ debugger = DecisionDebugger()
 
 
 # 2️ 实盘主循环,每次行情 / 预测更新
+#@timer_decorator, 如果想测单次决策耗时，可以打开这个装饰器：0.04s 左右，主要耗在模型推理上
 def execute_stock_decision(
     *,
     ticker: str,
@@ -65,10 +65,26 @@ def execute_stock_decision(
     返回 dict，用于动态表格显示
     """
     
+    # 1. 首先明确“当前”要处理的参考对象（即个股数据）
+    recent_df = ticker_df
+    history_len = len(recent_df)
+     # ========== HS300 对齐 ==========
+    if hs300_df is not None and not hs300_df.empty:
+        hs300_df = hs300_df.tail(history_len)
+        hs300_series = (
+            hs300_df["close"]
+            .reindex(recent_df.index, method="nearest")
+            .interpolate("linear")
+            .ffill()
+            .values
+        )
+    else:
+        hs300_series = recent_df["close"].values
+        
     # 模型预测
     pre_result = run_prediction(
         df=ticker_df,
-        hs300_df=hs300_df,
+        hs300_df=hs300_series,
         ticker=ticker,
         period=session.period,
         eq_feat=session.eq_feat,

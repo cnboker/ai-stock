@@ -17,7 +17,7 @@ class ConfigFactory:
         if ticker.startswith(("sz00", "sz30", "sh60", "sh68")):
             return "STOCK"
         # ETF基金：51, 15, 58 开头
-        elif ticker.startswith(("sh51", "sz15", "sh58")):
+        elif ticker.startswith(("sh51", "sz15", "sh58", "sh56")):
             return "ETF"
         else:
             return "DEFAULT"

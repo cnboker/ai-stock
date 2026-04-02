@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from infra.core.runtime import RunMode
 from infra.core.trade_session import TradingSession
+from infra.utils.time_profile import timer_decorator
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
@@ -74,6 +75,7 @@ class BacktestRunner:
         
         return train_res, test_res
 
+    @timer_decorator
     def _execute_loop(self, target_dates):
         self._reset_engine()
         start_price = None
@@ -93,26 +95,35 @@ class BacktestRunner:
             
         return self._report(start_price, end_price)
 
+    # 模拟一天的交易，完全复用实盘逻辑
+    #@timer_decorator 0.34s 左右，主要耗在模型推理上
     def _simulate_day(self, trade_day):
         # 这里的 get_history 会自动利用 df_all 中的历史数据，即使是测试集第一天也能向上回溯
         df_today = self.df_all[self.df_all.index.date == trade_day]
+        df_hs300_today = self.hs300_df[self.hs300_df.index.date == trade_day]
         df_history_fixed = self.get_history(trade_day, self.df_all)
         hs300_history = self.get_history(trade_day, self.hs300_df)
-
+        #print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history_fixed)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
             self.eq_recorder.add(self.position_mgr.equity)
             df_slice = df_today.iloc[: i + 1]
+            hs300_slice = df_hs300_today.iloc[: i + 1]
             ticker_df = pd.concat([df_history_fixed, df_slice])
-
+            hs300_df = pd.concat([hs300_history,hs300_slice])   
+            # 强制只取最后 LOOKBACK_WINDOW 个点
+            ticker_df = pd.concat([df_history_fixed, df_slice]).iloc[-LOOKBACK_WINDOW:]
+            hs300_df = pd.concat([hs300_history, hs300_slice]).iloc[-LOOKBACK_WINDOW:]
             execute_stock_decision(
                 ticker=self.ticker,
-                hs300_df = hs300_history,
+                hs300_df = hs300_df,
                 ticker_df=ticker_df,
                 session=self.session,
             )
 
+    #它就返回过去LOOKBACK_WINDOW个单位（天或分钟）的数据
     def get_history(self, trade_day, df):
         trade_day = pd.to_datetime(trade_day)
+        #找到当天的开盘第一分钟（如果是分钟级数据）或当天的时间点
         today_start_ts = df[df.index.date == trade_day.date()].index[0]
         return df[df.index < today_start_ts].tail(LOOKBACK_WINDOW)
 
