@@ -10,10 +10,18 @@ from simulator.run_backtest import run_backtest
 
 
 def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100):
+    study_name=f"opt_{ticker}"
+    storage=ConfigFactory.get_db_url(ticker)
+    try:
+        optuna.delete_study(study_name=study_name, storage=storage)
+        print(f"成功移除旧的任务: {study_name}")
+    except KeyError:
+        print(f"没有找到名为 {study_name} 的任务，可以直接开始。")
+
     # 1. 创建研究
     study = optuna.create_study(
-        study_name=f"opt_{ticker}",
-        storage=ConfigFactory.get_db_url(ticker),
+        study_name=study_name,
+        storage=storage,
         load_if_exists=True,
         direction="maximize",
     )

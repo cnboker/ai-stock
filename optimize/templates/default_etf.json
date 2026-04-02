@@ -1,20 +1,69 @@
 {
     "search_space": {
-        "model_th": {"low": 0.35, "high": 0.45},
-        "slope": {"low": -0.005, "high": 0.005},
-        "slope_min": {"low": 0.0, "high": 0.0005},
-        "predict_up": {"low": -0.005, "high": 0.005},
-        "init_pt": {"low": 0.005, "high": 0.02},
-        "trend_pt": {"low": 0.01, "high": 0.10},
-        "tp1": {"low": 1.01, "high": 1.03},
-        "tp2": {"low": 1.05, "high": 1.15},
-        "kelly": {"low": 0.2, "high": 0.6},
-        "risk": {"low": 0.005, "high": 0.01},
-        "atr_stop": {"low": 1.5, "high": 2.5},
-        "max_stop": {"low": 0.02, "high": 0.05},
-        "min_stop": {"low": 0.005, "high": 0.01},
-        "strength_alpha": {"low": 1.2, "high": 1.5},
-        "confirm_n": {"low": 1, "high": 1, "type": "int"}
+        "model_th": {
+            "low": 0.35,
+            "high": 0.45
+        },
+        "slope": {
+            "low": -0.005,
+            "high": 0.005
+        },
+        "slope_min": {
+            "low": 0.0,
+            "high": 0.0005
+        },
+        "predict_up": {
+            "low": -0.005,
+            "high": 0.005
+        },
+        "init_pt": {
+            "low": 0.005,
+            "high": 0.02
+        },
+        "trend_pt": {
+            "low": 0.01,
+            "high": 0.10
+        },
+        "tp1": {
+            "low": 1.01,
+            "high": 1.03
+        },
+        "tp2": {
+            "low": 1.05,
+            "high": 1.15
+        },
+        "kelly": {
+            "low": 0.2,
+            "high": 0.6
+        },
+        "risk": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "atr_stop": {
+            "low": 1.5,
+            "high": 2.5
+        },
+        "max_stop": {
+            "low": 0.02,
+            "high": 0.05
+        },
+        "min_stop": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "strength_alpha": {
+            "low": 1.2,
+            "high": 1.5
+        },
+        "confirm_n": {
+            "low": 1,
+            "high": 1
+        },
+        "atr_mult": {
+            "low": 2.5,
+            "high": 4.5
+        }
     },
     "initial_trial": {
         "model_th": 0.38,

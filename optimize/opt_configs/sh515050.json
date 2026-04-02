@@ -90,12 +90,15 @@
         },
         "confirm_n": {
             "low": 1,
-            "high": 1,
-            "type": "int"
+            "high": 1
+        },
+        "atr_mult": {
+            "low": 2.5,
+            "high": 4.5
         }
     },
     "initial_trial": {
-        "model_th": 0.45,
+        "model_th": 0.55,
         "slope": 0.0018,
         "slope_min": 0.0005,
         "predict_up": 0.001,

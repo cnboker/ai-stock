@@ -90,8 +90,11 @@
         },
         "confirm_n": {
             "low": 1,
-            "high": 1,
-            "type": "int"
+            "high": 1
+        },
+        "atr_mult": {
+            "low": 2.5,
+            "high": 4.5
         }
     },
     "initial_trial": {
