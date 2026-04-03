@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 from infra.core.runtime import RunMode
 from infra.notify.order import OrderEvent, notify_order
+from position import position
 from position.position import Position
 from log import order_log, risk_log
 from infra.core.dynamic_settings import settings
@@ -196,7 +197,7 @@ class PositionManager:
         # TP1：只减30%
         if not position.tp1_hit and price >= tp1:
             position.tp1_hit = True
-            return 0.3
+            return 0.5
 
         # TP2：再减30%
         if not position.tp2_hit and price >= tp2:
@@ -241,7 +242,16 @@ class PositionManager:
 
         pos = self.positions.get(ticker)
         if pos and pos.size > 0:
+          
             # ==== 加仓 ====
+            if pos.tp1_hit:
+                print(f"⚠️ {ticker} 已触及 TP1，当前价格 {price}，加仓操作将被拒绝以保护利润。")
+                return
+            # 🚨 价格步长检查：当前价必须比上次成交价高出 1.5%
+            if price < pos.entry_price * 1.015 :
+                print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.015} 的要求")
+                return 
+        
             add_size = 0
             if size is not None:
                 add_size = size
@@ -298,7 +308,7 @@ class PositionManager:
                 open_time=datetime.now(),
                 contract_size=contract_size,
                 stop_loss=stop_loss,     
-                highest_price=price,           
+                highest_price=price,          
             )
             self.positions[ticker] = pos
             self.cash -= cost

@@ -4,12 +4,12 @@ from google import genai
 import json
 
 # 1. 配置 API
-client =genai.Client(api_key="AIzaSyAPlDZVb3-0URPoqZLVvZyu16Yzo2z8gQ4")
+client =genai.Client(api_key="AIzaSyC5Lp2o-V6kmE2QsvyDpPANPjJqOSdWwK4")
 
 
 def get_ai_market_picks(market_context):
     # 使用目前最稳定的 Flash 模型名
-    model_id = "gemini-2.0-flash" # 或者根据官网最新的 gemini-3-flash
+    model_id = "gemini-3-flash-preview" # 或者根据官网最新的 gemini-3-flash
 
     prompt = f"""
     你是顶级量化分析师。基于以下市场上下文，筛选出10只最值得量化模型(Optuna)寻优的标的。
@@ -37,7 +37,7 @@ def get_ai_market_picks(market_context):
         return None
 
 # 模拟测试
-market_info = "A股算力板块异动，低估值红利指数回调，北向资金净流入电子元件行业。"
+market_info = "A股通讯设备板块异动，低估值红利指数回调，北向资金净流入电子元件行业。"
 picks = get_ai_market_picks(market_info)
 
 if picks:

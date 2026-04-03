@@ -253,3 +253,39 @@ ERROR:root:Traceback (most recent call last):
     ConfigFactory.enqueue_experience(study, ticker)
 UnboundLocalError: local variable 'study' referenced before assignment
 
+ERROR:root:❌ [Error] sz300497 失败: Expecting property name enclosed in double quotes: line 91 column 5 (char 2167)
+ERROR:root:Traceback (most recent call last):
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 64, in <module>
+    tune(ticker)
+  File "/home/scott/code/stock-model/optimize/auto_tune.py", line 41, in tune
+    run_optuna_study(ticker,ticker_interval, 100, reset_study=False) # 100 次尝试，重置旧的 Study
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 34, in run_optuna_study
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/study.py", line 490, in optimize
+    _optimize(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 68, in _optimize
+    _optimize_sequential(
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 165, in _optimize_sequential
+    frozen_trial_id = _run_trial(study, func, catch)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 263, in _run_trial
+    raise func_err
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/site-packages/optuna/study/_optimize.py", line 206, in _run_trial
+    value_or_values = func(trial)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 34, in <lambda>
+    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+  File "/home/scott/code/stock-model/optimize/opt_study.py", line 68, in objective
+    optuna_config = ConfigFactory.suggest_config(trial, main_ticker)
+  File "/home/scott/code/stock-model/optimize/config_factory_v2.py", line 72, in suggest_config
+    cfg = ConfigFactory.load_ticker_config(ticker)
+  File "/home/scott/code/stock-model/optimize/config_factory_v2.py", line 112, in load_ticker_config
+    user_cfg = json.load(f)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/home/scott/miniconda3/envs/chronos/lib/python3.10/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 91 column 5 (char 2167)
+
