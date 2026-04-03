@@ -1,5 +1,5 @@
 import time
-from optimize.config_factory_v2 import ConfigFactory
+from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 
 class SmartOptimizer:

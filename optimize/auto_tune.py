@@ -2,7 +2,7 @@ import sys
 import traceback
 
 import optuna
-from optimize.config_factory_v2 import ConfigFactory
+from optimize.config_factory import ConfigFactory
 from optimize.opt_study import run_optuna_study
 from optimize.smart_optimizer import SmartOptimizer
 import logging

@@ -3,7 +3,7 @@ import optuna
 
 from infra.core.dynamic_settings import use_config
 from optimize import advanced_score
-from optimize.config_factory_v2 import ConfigFactory
+from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 from optimize.persist_manager import PersistManager
 from simulator.run_backtest import run_backtest

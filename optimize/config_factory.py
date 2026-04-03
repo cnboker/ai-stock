@@ -1,7 +1,15 @@
-import optuna
-
+import json
+import os
+from datetime import datetime
 
 class ConfigFactory:
+    CONFIG_DIR = "optimize/opt_configs"
+    TEMPLATE_DIR = "optimize/templates"
+
+    @classmethod
+    def _get_ticker_file(cls, ticker: str) -> str:
+        os.makedirs(cls.CONFIG_DIR, exist_ok=True)
+        return f"{cls.CONFIG_DIR}/{ticker}.json"
     @staticmethod
     def get_ticker_category(ticker: str) -> str:
         """根据代码前缀判断标的类型"""
@@ -9,123 +17,136 @@ class ConfigFactory:
         if ticker.startswith(("sz00", "sz30", "sh60", "sh68")):
             return "STOCK"
         # ETF基金：51, 15, 58 开头
-        elif ticker.startswith(("sh51", "sz15", "sh58")):
+        elif ticker.startswith(("sh51", "sz15", "sh58", "sh56")):
             return "ETF"
         else:
             return "DEFAULT"
-
     # --- 新增 1: 数据库路由逻辑 ---
     @classmethod
     def get_db_url(cls, ticker: str) -> str:
         category = cls.get_ticker_category(ticker).lower()
         # 结果：sqlite:///stock.sqlite3 或 sqlite:///etf.sqlite3
         return f"sqlite:///sqllite/{category}.sqlite3"
-
-    # --- 新增 2: 初始经验分发逻辑 ---
+    # --- 1. 从外部模板加载 ---
     @classmethod
-    def enqueue_initial_trial(cls, study: optuna.Study, ticker: str):
-        category = cls.get_ticker_category(ticker).lower()
+    def _load_template(cls, category: str):
+        path = f"{cls.TEMPLATE_DIR}/default_{category.lower()}.json"
+        if os.path.exists(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        # 兜底：如果模板文件丢了，返回最简结构
+        return {"search_space": {}, "initial_trial": {}}
+    
+    @staticmethod
+    def enqueue_experience(study, ticker: str):
+        """
+        将 JSON 配置中的 initial_trial 作为第一个 Trial 注入 Optuna。
+        """
+        try:
+            cfg = ConfigFactory.load_ticker_config(ticker)
+            initial_params = cfg.get("initial_trial", {})
+            search_space = cfg.get("search_space", {})
 
-        # 1. 通用参数 (不需要加前缀的)
-        base_params = {
-            "strength_alpha": 1.3,
-            "tp2": 1.20,
-        }
+            if not initial_params:
+                print(f"⚠️ {ticker}: No initial_trial found, skipping enqueue.")
+                return
 
-        # 2. 类别特有参数 (必须与 suggest_config 中的前缀 Key 严格对应)
-        if category == "stock":
-            specific_params = {
-                f"{category}_model_th": 0.40,  # 个股门槛设高点
-                f"{category}_atr_stop": 4,  # 个股止损设宽点
-                f"{category}_risk": 0.008,  # 个股仓位设轻点
-                f"{category}_kelly": 0.2,
-                f"{category}_slope": 0.012,
-                f"{category}_max_stop": 0.12,
-                f"{category}_slope_min": 0.0001,  # 强度斜率阈值
-                f"{category}_predict_up": -0.05, # 基础上涨预期 (0.1%)
-                f"{category}_confirm_n": 1, # 减少确认天数，避免行情走完。
-                f"{category}_init_pt": 0.01,  # 利润触发第一阶段保护
-            }
-        else:  # ETF
-            specific_params = {
-                f"{category}_model_th": 0.45,
-                f"{category}_atr_stop": 3.5,
-                f"{category}_risk": 0.015,
-                f"{category}_kelly": 0.5,
-                f"{category}_slope": 0.0001,
-                f"{category}_max_stop": 0.08,
-                f"{category}_slope_min": 0.02,
-                f"{category}_predict_up": 0.001,
-                f"{category}_confirm_n": 3, # 减少确认天数，避免行情走完。
-                f"{category}_init_pt": 0.035,  # 利润触发第一阶段保护
+            # 过滤掉不在搜索空间内的参数，防止 Optuna 报错
+            valid_initial = {
+                k: v for k, v in initial_params.items() 
+                if k in search_space
             }
 
-        # 3. 其他默认参数补全 (这里要确认你的 Factory 里这些有没有加前缀)
-        other_params = {
-            f"tp1": 1.05,  # 5% 利润处进行第一次止盈/减仓
-            f"trend_stage": 0.15,  # 15% 利润进入趋势跟踪模式
-            f"min_stop": 0.01,  # 最小止损位 1% (防止滑点和手续费覆盖)
-            f"atr_mult": 3.5,  # 经典的 3.5 倍 ATR 移动止损
-        }
-
-        # 合并并注入
-        initial_trial = {**base_params, **specific_params, **other_params}
-        study.enqueue_trial(initial_trial)
-        print(f"✅ 已为 {ticker} ({category}) 注入初始经验。")
-
+            if valid_initial:
+                study.enqueue_trial(valid_initial)
+                print(f"📥 {ticker}: 已将初始经验 (Initial Trial) 注入 Optuna 队列。")
+                
+        except Exception as e:
+            print(f"❌ {ticker} 注入经验失败: {e}")
+            
+    @staticmethod
+    def suggest_config(trial, ticker: str):
+        """
+        根据 ticker 加载 search_space，并从 trial 中采样参数
+        """
+        cfg = ConfigFactory.load_ticker_config(ticker)
+        search_space = cfg.get("search_space", {})
+        
+        params = {}
+        for key, space in search_space.items():
+            low = space.get("low")
+            high = space.get("high")
+            
+            # 根据参数类型和数值特征自动判断采样方式
+            if isinstance(low, int) and isinstance(high, int):
+                params[key] = trial.suggest_int(key, low, high)
+            else:
+                # 针对极其微小的数值（如 slope_min），可以启用 log 采样以提高精度
+                # 如果 low > 0 且跨度很大，可以用 log=True
+                use_log = space.get("log", False)
+                params[key] = trial.suggest_float(key, float(low), float(high), log=use_log)
+                
+        return params
+   
     @classmethod
-    def suggest_config(cls, trial: optuna.Trial, ticker: str):
-        category = cls.get_ticker_category(ticker).lower()
-
-        # 1. 共有参数 (Shared Parameters)
-        config = {
-            "STRENGTH_ALPHA": trial.suggest_float("strength_alpha", 1.2, 1.5),
-            "CONFIRM_N": trial.suggest_int("confirm_n", 2, 5),
-            "TP2": trial.suggest_float("tp2", 1.1, 1.25),
+    def load_ticker_config(cls, ticker: str):
+        file_path = cls._get_ticker_file(ticker)
+        # 修正：调用你之前的 get_ticker_category
+        category = "STOCK" if ticker.startswith(("sz00", "sz30", "sh60", "sh68")) else "ETF"
+        
+        # 加载基础模板
+        template = cls._load_template(category)
+        
+        full_cfg = {
+            "ticker": ticker,
+            "category": category,
+            "best_params": {},
+            "intercept_stats": {}, # 初始化拦截统计
+            "search_space": template.get("search_space", {}),
+            "initial_trial": template.get("initial_trial", {})
         }
 
-        # 2. 分类差异化参数 (Category-Specific Parameters)
-        if category == "stock":
-            # 个股逻辑：高门槛、宽止损、低杠杆 (防噪音)
-            slope_min = trial.suggest_float("slope_min", 0, 0.005)
-            config.update(
-                {
-                    "MODEL_TH": trial.suggest_float(f"{category}_model_th", 0.4, 0.55),
-                    "ATR_STOP": trial.suggest_float(f"{category}_atr_stop", 3.5, 4.5),
-                    "RISK": trial.suggest_float(f"{category}_risk", 0.005, 0.01),
-                    "KELLY": trial.suggest_float(f"{category}_kelly", 0.15, 0.3),
-                    "SLOPE": trial.suggest_float(f"{category}_slope", 0.006, 0.02),
-                    "MAX_STOP": trial.suggest_float(f"{category}_max_stop", 0.08, 0.15),
-                    "SLOPE_MIN": slope_min,
-                    "PREDICT_UP": trial.suggest_float(f"predict_up", -0.05, 0.01),
-                }
-            )
-        else:
-            # ETF逻辑：低门槛、窄止损、高杠杆 (抢趋势)
-            config.update(
-                {
-                    "MODEL_TH": trial.suggest_float(f"{category}_model_th", 0.42, 0.48),
-                    "ATR_STOP": trial.suggest_float(f"{category}_atr_stop", 2.5, 3.5),
-                    "RISK": trial.suggest_float(f"{category}_risk", 0.01, 0.015),
-                    "KELLY": trial.suggest_float(f"{category}_kelly", 0.4, 0.6),
-                    "SLOPE": trial.suggest_float(f"{category}_slope", -0.001, 0.002),
-                    "MAX_STOP": trial.suggest_float(f"{category}_max_stop", 0.03, 0.08),
-                    "SLOPE_MIN": trial.suggest_float(
-                        f"{category}_slope_min", 0.01, 0.05
-                    ),
-                    "PREDICT_UP": trial.suggest_float(f"predict_up", 0.0, 0.005),
-                }
-            )
+        # 如果有专属配置，则覆盖
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                user_cfg = json.load(f)
+                if "search_space" in user_cfg: full_cfg["search_space"].update(user_cfg["search_space"])
+                if "initial_trial" in user_cfg: full_cfg["initial_trial"].update(user_cfg["initial_trial"])
+                full_cfg["best_params"] = user_cfg.get("best_params", {})
+                full_cfg["intercept_stats"] = user_cfg.get("intercept_stats", {})
+        
+        return full_cfg
 
-        # 3. 补充其他通用建议
-        config.update(
-            {
-                "INIT_PT": trial.suggest_float(f"init_pt", 0.02, 0.05),
-                "TP1": trial.suggest_float(f"tp1", 1.02, 1.06),
-                "TREND_STAGE": trial.suggest_float(f"trend_stage", 0.12, 0.25),
-                "MIN_STOP": trial.suggest_float(f"min_stop", 0.005, 0.02),
-                "ATR_MULT": trial.suggest_float(f"atr_mult", 2.5, 4.5),
+    # --- 2. 强化保存逻辑 (含拦截分析) ---
+    @classmethod
+    def save_results(cls, ticker: str, best_params: dict, best_value: float, intercept_report: dict = None):
+        """
+        intercept_report: 传入 {'slope_filter': 12, 'model_confidence': 8, 'success_count': 0}
+        """
+        file_path = cls._get_ticker_file(ticker)
+        current_cfg = cls.load_ticker_config(ticker)
+        
+        # 更新最优参数
+        current_cfg["best_params"] = best_params
+        
+        # 更新拦截诊断统计
+        if intercept_report:
+            total = sum(v for k, v in intercept_report.items() if isinstance(v, int) and k != 'success_count')
+            success = intercept_report.get('success_count', 0)
+            current_cfg["intercept_stats"] = {
+                **intercept_report,
+                "total_scans": total,
+                "success_rate": f"{(success/total*100):.1f}%" if total > 0 else "0%"
             }
-        )
 
-        return config
+        # 更新元数据
+        current_cfg["_META"] = {
+            "last_optimized": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "best_value": round(best_value, 5),
+            "status": "ACTIVE" if (intercept_report and intercept_report.get('success_count', 0) > 0) else "SIGNAL_BLOCKED"
+        }
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(current_cfg, f, indent=4, ensure_ascii=False)
+        
+        print(f"💾 [JSON] {ticker} 档案已更新。状态: {current_cfg['_META']['status']}")
