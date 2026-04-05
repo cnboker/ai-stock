@@ -2,39 +2,74 @@
     "ticker": "sh600938",
     "category": "STOCK",
     "best_params": {
-        "strength_alpha": 34,
+        "strength_alpha": 80,
         "confirm_n": 1,
-        "model_th": 0.440943261677697,
-        "atr_stop": 3.907097052310276,
-        "risk": 0.009725156488449401,
-        "kelly": 0.2581501195996172,
-        "slope": 0.010440098957314096,
-        "max_stop": 0.1071460378562088,
-        "slope_min": 0.004196101706238219,
-        "predict_up": -0.04269014065835701,
-        "tp1": 1.0256840674503929,
-        "tp2": 1.1441066776248097,
-        "init_pt": 0.04467238885380219
+        "atr_mult": 3.5,
+        "model_th": 0.4,
+        "atr_stop": 4.0,
+        "risk": 0.008,
+        "kelly": 0.2,
+        "slope": 0.012,
+        "max_stop": 0.12,
+        "slope_min": 0.0001,
+        "predict_up": -0.05,
+        "tp1": 1.05,
+        "tp2": 1.2,
+        "init_pt": 0.01
     },
     "intercept_stats": {
-        "success_count": 0,
+        "ticker": "sh600938",
+        "status": "HEALTHY",
+        "success_count": 33,
+        "total_scans": 25,
         "intercept_report": {
-            "model_confidence": 1,
-            "slope_filter": 19,
+            "model_confidence": 9,
+            "slope_filter": 137,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 0,
+            "zero_strength_ghost": 21,
             "other_error": 0
         },
-        "scan_days": 20,
-        "total_scans": 20,
-        "success_rate": "0.0%"
+        "current_config": {
+            "strength_alpha": 80,
+            "confirm_n": 1,
+            "atr_mult": 3.5,
+            "model_th": 0.4,
+            "atr_stop": 4.0,
+            "risk": 0.008,
+            "kelly": 0.2,
+            "slope": 0.012,
+            "max_stop": 0.12,
+            "slope_min": 0.0001,
+            "predict_up": -0.05,
+            "tp1": 1.05,
+            "tp2": 1.2,
+            "init_pt": 0.01
+        },
+        "sample_details": [
+            {
+                "day": "2026-03-03 10:30:00",
+                "slope": 0.0007855667572127965,
+                "strength": 0.03290720434621423
+            },
+            {
+                "day": "2026-03-03 11:00:00",
+                "slope": 0.0007497926216262803,
+                "strength": 0.031190045838061453
+            },
+            {
+                "day": "2026-03-03 11:30:00",
+                "slope": 0.00398413970486356,
+                "strength": 0.18643870583345087
+            }
+        ],
+        "success_rate": "132.0%"
     },
     "search_space": {
         "strength_alpha": {
             "low": 10,
             "high": 80
         },
-         "confirm_n": {
+        "confirm_n": {
             "low": 1,
             "high": 1
         },
@@ -106,8 +141,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-03-31 01:07:25",
-        "best_value": -122.6603,
-        "status": "SIGNAL_BLOCKED"
+        "last_optimized": "2026-04-05 21:43:28",
+        "best_value": -148.4114,
+        "status": "ACTIVE"
     }
 }

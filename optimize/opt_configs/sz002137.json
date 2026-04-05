@@ -2,31 +2,50 @@
     "ticker": "sz002137",
     "category": "STOCK",
     "best_params": {
-        "strength_alpha": 57,
+        "strength_alpha": 77,
         "confirm_n": 1,
-        "model_th": 0.4812104320298613,
-        "atr_stop": 4.3187305419193045,
-        "risk": 0.008548652465170373,
-        "kelly": 0.24848324987327672,
-        "slope": 0.006195006815138953,
-        "max_stop": 0.08098193077725138,
-        "slope_min": 0.003967896706745327,
-        "predict_up": -0.029613494622298366,
-        "tp1": 1.0381412813046669,
-        "tp2": 1.1853836523005685,
-        "init_pt": 0.04946125108114846
+        "atr_mult": 3.9669059651446315,
+        "model_th": 0.411801815188504,
+        "atr_stop": 4.357587179239281,
+        "risk": 0.005642891686200112,
+        "kelly": 0.15144612600748478,
+        "slope": 0.006946230297145019,
+        "max_stop": 0.14671755869205216,
+        "slope_min": 0.002848532913604362,
+        "predict_up": -0.03691043396016676,
+        "tp1": 1.0434549800353201,
+        "tp2": 1.16818700903585,
+        "init_pt": 0.023135031220129283
     },
     "intercept_stats": {
+        "ticker": "sz002137",
+        "status": "ANEMIC",
         "success_count": 0,
+        "total_scans": 25,
         "intercept_report": {
-            "model_confidence": 1,
-            "slope_filter": 19,
+            "model_confidence": 3,
+            "slope_filter": 197,
             "predict_up_filter": 0,
             "zero_strength_ghost": 0,
             "other_error": 0
         },
-        "scan_days": 20,
-        "total_scans": 20,
+        "current_config": {
+            "strength_alpha": 77,
+            "confirm_n": 1,
+            "atr_mult": 3.9669059651446315,
+            "model_th": 0.411801815188504,
+            "atr_stop": 4.357587179239281,
+            "risk": 0.005642891686200112,
+            "kelly": 0.15144612600748478,
+            "slope": 0.006946230297145019,
+            "max_stop": 0.14671755869205216,
+            "slope_min": 0.002848532913604362,
+            "predict_up": -0.03691043396016676,
+            "tp1": 1.0434549800353201,
+            "tp2": 1.16818700903585,
+            "init_pt": 0.023135031220129283
+        },
+        "sample_details": [],
         "success_rate": "0.0%"
     },
     "search_space": {
@@ -106,8 +125,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-03-30 20:31:46",
-        "best_value": -13.72917,
+        "last_optimized": "2026-04-05 19:18:19",
+        "best_value": -52.76955,
         "status": "SIGNAL_BLOCKED"
     }
 }

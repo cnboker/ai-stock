@@ -1,15 +1,15 @@
 {
     "_META": {
         "ticker": "sh600771",
-        "best_value": -36.4469,
-        "date": "2026-03-30 23:59"
+        "best_value": -16.5145,
+        "date": "2026-04-05 21:36"
     },
     "MODEL_TH": 0.4,
     "SLOPE": 0.012,
     "PREDICT_UP": -0.05,
     "INIT_PT": 0.01,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.87,
+    "ATR_MULT": 3.5,
     "TP1": 1.05,
     "TP2": 1.2,
     "KELLY": 0.2,

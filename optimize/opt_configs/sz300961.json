@@ -18,17 +18,51 @@
         "init_pt": 0.01
     },
     "intercept_stats": {
-        "success_count": 0,
+        "ticker": "sz300961",
+        "status": "HEALTHY",
+        "success_count": 55,
+        "total_scans": 25,
         "intercept_report": {
-            "model_confidence": 0,
-            "slope_filter": 0,
+            "model_confidence": 15,
+            "slope_filter": 115,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 0,
-            "other_error": 20
+            "zero_strength_ghost": 15,
+            "other_error": 0
         },
-        "scan_days": 20,
-        "total_scans": 20,
-        "success_rate": "0.0%"
+        "current_config": {
+            "strength_alpha": 80,
+            "confirm_n": 1,
+            "atr_mult": 3.5,
+            "model_th": 0.4,
+            "atr_stop": 4.0,
+            "risk": 0.008,
+            "kelly": 0.2,
+            "slope": 0.012,
+            "max_stop": 0.12,
+            "slope_min": 0.0001,
+            "predict_up": -0.05,
+            "tp1": 1.05,
+            "tp2": 1.2,
+            "init_pt": 0.01
+        },
+        "sample_details": [
+            {
+                "day": "2026-03-02 10:00:00",
+                "slope": 0.0007375728943399726,
+                "strength": 0.03060349892831868
+            },
+            {
+                "day": "2026-03-02 10:30:00",
+                "slope": 0.0017677760769516393,
+                "strength": 0.08005325169367868
+            },
+            {
+                "day": "2026-03-02 11:00:00",
+                "slope": 0.0006732509855861781,
+                "strength": 0.027516047308136546
+            }
+        ],
+        "success_rate": "220.0%"
     },
     "search_space": {
         "strength_alpha": {
@@ -107,8 +141,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-04 01:29:35",
+        "last_optimized": "2026-04-05 19:25:22",
         "best_value": 26.9119,
-        "status": "SIGNAL_BLOCKED"
+        "status": "ACTIVE"
     }
 }

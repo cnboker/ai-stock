@@ -4,6 +4,7 @@
     "best_params": {
         "strength_alpha": 80,
         "confirm_n": 1,
+        "atr_mult": 3.5,
         "model_th": 0.4,
         "atr_stop": 4.0,
         "risk": 0.008,
@@ -17,24 +18,58 @@
         "init_pt": 0.01
     },
     "intercept_stats": {
-        "success_count": 2,
+        "ticker": "sh601882",
+        "status": "HEALTHY",
+        "success_count": 10,
+        "total_scans": 25,
         "intercept_report": {
-            "model_confidence": 1,
-            "slope_filter": 14,
+            "model_confidence": 8,
+            "slope_filter": 168,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 6,
+            "zero_strength_ghost": 14,
             "other_error": 0
         },
-        "scan_days": 20,
-        "total_scans": 20,
-        "success_rate": "10.0%"
+        "current_config": {
+            "strength_alpha": 80,
+            "confirm_n": 1,
+            "atr_mult": 3.5,
+            "model_th": 0.4,
+            "atr_stop": 4.0,
+            "risk": 0.008,
+            "kelly": 0.2,
+            "slope": 0.012,
+            "max_stop": 0.12,
+            "slope_min": 0.0001,
+            "predict_up": -0.05,
+            "tp1": 1.05,
+            "tp2": 1.2,
+            "init_pt": 0.01
+        },
+        "sample_details": [
+            {
+                "day": "2026-03-03 11:30:00",
+                "slope": 0.0003937573501750541,
+                "strength": 0.014100352808402597
+            },
+            {
+                "day": "2026-03-03 13:30:00",
+                "slope": 0.0003965883133941726,
+                "strength": 0.014236239042920287
+            },
+            {
+                "day": "2026-03-10 14:00:00",
+                "slope": 0.0010766504017729738,
+                "strength": 0.04687921928510274
+            }
+        ],
+        "success_rate": "40.0%"
     },
     "search_space": {
         "strength_alpha": {
             "low": 10,
             "high": 80
         },
-         "confirm_n": {
+        "confirm_n": {
             "low": 1,
             "high": 1
         },
@@ -106,8 +141,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-03-31 02:15:51",
-        "best_value": -41.088,
+        "last_optimized": "2026-04-05 21:50:33",
+        "best_value": -48.58065,
         "status": "ACTIVE"
     }
 }
