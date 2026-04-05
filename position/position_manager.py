@@ -248,8 +248,8 @@ class PositionManager:
                 print(f"⚠️ {ticker} 已触及 TP1，当前价格 {price}，加仓操作将被拒绝以保护利润。")
                 return
             # 🚨 价格步长检查：当前价必须比上次成交价高出 1.5%
-            if price < pos.entry_price * 1.015 :
-                print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.015} 的要求")
+            if price < pos.entry_price * 1.01 :
+                print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.01} 的要求")
                 return 
         
             add_size = 0

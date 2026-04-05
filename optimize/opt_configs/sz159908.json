@@ -1,15 +1,32 @@
 {
     "ticker": "sz159908",
     "category": "ETF",
-    "best_params": {},
+    "best_params": {
+        "model_th": 0.3624216634994318,
+        "slope": 0.000276657224397324,
+        "slope_min": 0.0003230975841693202,
+        "predict_up": 0.001233067213359583,
+        "init_pt": 0.010196516658416784,
+        "trend_pt": 0.053716862975713625,
+        "tp1": 1.0385541143848143,
+        "tp2": 1.1072562618009543,
+        "kelly": 0.10636242448285392,
+        "risk": 0.005980076135067449,
+        "atr_stop": 1.9060869434012184,
+        "max_stop": 0.06970286497307604,
+        "min_stop": 0.008384714218757168,
+        "strength_alpha": 0.7926753336618484,
+        "confirm_n": 1,
+        "atr_mult": 3.846685554690044
+    },
     "intercept_stats": {
         "success_count": 0,
         "intercept_report": {
-            "model_confidence": 2,
-            "slope_filter": 11,
-            "predict_up_filter": 5,
-            "zero_strength_ghost": 4,
-            "other_error": 0
+            "model_confidence": 0,
+            "slope_filter": 0,
+            "predict_up_filter": 0,
+            "zero_strength_ghost": 0,
+            "other_error": 20
         },
         "scan_days": 20,
         "total_scans": 20,
@@ -29,8 +46,8 @@
             "high": 0.0005
         },
         "predict_up": {
-            "low": -0.002,
-            "high": 0.005
+            "low": 0.001,
+            "high": 0.003
         },
         "init_pt": {
             "low": 0.005,
@@ -41,16 +58,16 @@
             "high": 0.1
         },
         "tp1": {
-            "low": 1.01,
-            "high": 1.03
+            "low": 1.03,
+            "high": 1.05
         },
         "tp2": {
             "low": 1.05,
             "high": 1.12
         },
         "kelly": {
-            "low": 0.3,
-            "high": 0.6
+            "low": 0.1,
+            "high": 0.15
         },
         "risk": {
             "low": 0.005,
@@ -61,8 +78,8 @@
             "high": 2.8
         },
         "max_stop": {
-            "low": 0.02,
-            "high": 0.05
+            "low": 0.05,
+            "high": 0.08
         },
         "min_stop": {
             "low": 0.005,
@@ -88,20 +105,20 @@
         "predict_up": 0.001,
         "init_pt": 0.01,
         "trend_stage": 0.05,
-        "tp1": 1.02,
+        "tp1": 1.03,
         "tp2": 1.08,
-        "kelly": 0.5,
+        "kelly": 0.1,
         "risk": 0.008,
         "atr_stop": 2.2,
-        "max_stop": 0.04,
+        "max_stop": 0.06,
         "min_stop": 0.008,
         "strength_alpha": 1.0,
         "confirm_n": 1,
         "atr_mult": 2.8
     },
     "_META": {
-        "last_optimized": "2026-03-31 08:52:47",
-        "best_value": -137.169,
+        "last_optimized": "2026-04-03 22:42:39",
+        "best_value": -81.55651,
         "status": "SIGNAL_BLOCKED"
     }
 }

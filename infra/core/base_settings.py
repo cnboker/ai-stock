@@ -27,4 +27,4 @@ class BaseSettings:
    
     STRENGTH_ALPHA = 1.34
     SLOPE_MIN = 0.02
-    CONFIRM_N = 3
+    CONFIRM_N = 1

@@ -37,6 +37,25 @@ class PersistManager:
     ]
 
     @staticmethod
+    def save_ticker_config(ticker, advice_object,config_path:str = "./config/optimized_params"):
+        """将 Gemini 建议的参数和空间保存到本地"""
+        config_file = f"{config_path}/{ticker}.json"
+        
+        # 构造要保存的完整字典
+        data_to_save = {
+            "ticker": ticker,
+            "last_optimized": datetime.now(), # 记录时间
+            "search_space": advice_object.suggest_search_space,
+            "initial_trial": advice_object.recommended_initial_trial,
+            "analysis": advice_object.analysis
+        }
+        
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump(data_to_save, f, indent=4, ensure_ascii=False)
+        print(f"💾 配置文件已更新: {config_file}")
+
+    @staticmethod
     def save_best_config(
         study, ticker: str, config_root: str = "./config/optimized_params"
     ):

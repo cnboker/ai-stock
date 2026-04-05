@@ -30,12 +30,14 @@ def run_prediction(
     
     target_values = df["close"].values[-history_len:].astype(float)
     volume_values = df["volume"].values[-history_len:].astype(float)
+    hs300_df = hs300_df[-history_len:].astype(float) if hs300_df is not None else None
     # recent_df = df.iloc[-history_len:].copy()
     # recent_df.index = recent_df.index.tz_localize(None)
     # ========== 极简标准化 (Vectorized) ==========
     vol_norm = (volume_values - np.mean(volume_values)) / (np.std(volume_values) + 1e-6)
 
     # 假设 hs300_series_aligned 已经在外部对齐好长度
+    # 推荐写法：使用 .iloc[0] 获取第一行数据
     h_start = hs300_df[0] if hs300_df[0] != 0 else 1e-6
     t_start = target_values[0] if target_values[0] != 0 else 1e-6
     hs300_relative = (hs300_df / h_start) / (target_values / t_start)
@@ -70,7 +72,7 @@ def run_prediction(
         # 兜底：填充全 0 数组
         df_input["eq_drawdown"] = np.zeros(history_len)
         df_input["eq_slope"] = np.zeros(history_len)
-    
+    #print(f"🔍 输入数据构建完成，长度: {history_len} | 包含特征: {list(df_input.keys())}")
     input_df = pd.DataFrame(df_input)
 
     pipeline = load_chronos_model(MODEL_NAME)

@@ -1,6 +1,6 @@
 import numpy as np
 import optuna
-
+from optuna.samplers import CmaEsSampler
 from infra.core.dynamic_settings import use_config
 from optimize import advanced_score
 from optimize.config_factory import ConfigFactory
@@ -9,7 +9,11 @@ from optimize.persist_manager import PersistManager
 from simulator.run_backtest import run_backtest
 
 
-def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100, reset_study=False):
+def run_optuna_study(ticker: str, 
+                     ticker_interval="30", 
+                     n_trials=100, 
+                     reset_study=False):
+    
     study_name=f"opt_{ticker}"
     storage=ConfigFactory.get_db_url(ticker)
     if reset_study:
@@ -19,12 +23,16 @@ def run_optuna_study(ticker: str, ticker_interval="30", n_trials=100, reset_stud
         except KeyError:
             print(f"没有找到名为 {study_name} 的任务，可以直接开始。")
 
+    # 1. 定义采样器
+    # warn_independent_sampling=False 可以减少初期的警告输出
+    #sampler = CmaEsSampler(warn_independent_sampling=False)
     # 1. 创建研究
     study = optuna.create_study(
         study_name=study_name,
         storage=storage,
         load_if_exists=True,
         direction="maximize",
+        #sampler=sampler
     )
         
     # 2. 注入经验
@@ -90,9 +98,19 @@ def objective(trial, tickers: list, ticker_interval="30"):
                 test_return = test_stats.get("Strategy_Return", 0)
                 ticker_score = (train_val * 0.7) + (test_val * 0.3)
 
-                if test_return < -0.05:
-                    penalty = (abs(test_return) - 0.05) * 100
+                # 2. 平滑惩罚逻辑
+                # 对于创业板股票，建议将容忍度放宽到 -8% 到 -10%
+                tolerance = -0.08 
+
+                if test_return < tolerance:
+                    # 采用平方惩罚或者更温和的倍数，避免分值瞬间跳变导致 Optuna 失去方向
+                    # 只有当亏损真正扩大时（如超过 8%），才开始显著扣分
+                    penalty = (abs(test_return) - abs(tolerance)) * 50 # 倍数从 100 降到 50
                     ticker_score -= penalty
+
+                # 3. 额外奖励：如果验证集盈利且跑赢了 BuyHold (Alpha > 0)
+                if test_return > 0 and test_stats.get("Alpha", 0) > 0:
+                    ticker_score += 10.0 # 给予泛化能力优秀的额外加分
 
                 scores.append(ticker_score)
 
