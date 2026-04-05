@@ -39,7 +39,7 @@ def run_optuna_study(ticker: str,
     ConfigFactory.enqueue_experience(study, ticker)
 
     # 3. 运行优化 (50 次尝试)
-    study.optimize(lambda t: objective(t, [ticker], ticker_interval), n_trials)
+    study.optimize(lambda t: objective(t, ticker, ticker_interval), n_trials)
 
     # --- 关键修正：体检对象改为 study.best_params ---
     print(f"🎯 优化结束，正在对最优参数进行深度体检...")
@@ -67,16 +67,16 @@ def run_optuna_study(ticker: str,
     vis.plot_optimization_history(study).show()
 
     print(f"⭐ {ticker} 存档成功 | 最佳分值: {study.best_value:.4f}")
+    return study
 
-def objective(trial, tickers: list, ticker_interval="30"):
+def objective(trial, ticker: str, ticker_interval="30"):
     # 使用列表中的第一个标的来决定参数分类 (ETF 或 STOCK)
-    main_ticker = tickers[0]
-
+  
     # 1. 获取动态配置 (带前缀)
-    optuna_config = ConfigFactory.suggest_config(trial, main_ticker)
+    optuna_config = ConfigFactory.suggest_config(trial, ticker)
 
     # 2. 参数平铺化 (转大写并去前缀)
-    category = ConfigFactory.get_ticker_category(main_ticker).lower()
+    category = ConfigFactory.get_ticker_category(ticker).lower()
     final_config = {
         k.replace(f"{category}_", "").upper(): v for k, v in optuna_config.items()
     }
@@ -84,39 +84,37 @@ def objective(trial, tickers: list, ticker_interval="30"):
     scores = []
     # 3. 声明式注入并循环跑分
     with use_config(final_config):
-        
-        for t_code in tickers:
-            try:
-                # 运行回测
-                train_stats, test_stats = run_backtest(t_code,period=ticker_interval)
+        try:
+            # 运行回测
+            train_stats, test_stats = run_backtest(ticker,period=ticker_interval)
 
-                # 评分逻辑
-                train_val = max(-200, advanced_score.get_advanced_score(train_stats, is_test=False))
-                test_val = max(-200, advanced_score.get_advanced_score(test_stats, is_test=True))
+            # 评分逻辑
+            train_val = max(-200, advanced_score.get_advanced_score(train_stats, is_test=False))
+            test_val = max(-200, advanced_score.get_advanced_score(test_stats, is_test=True))
 
-                # 惩罚项计算
-                test_return = test_stats.get("Strategy_Return", 0)
-                ticker_score = (train_val * 0.7) + (test_val * 0.3)
+            # 惩罚项计算
+            test_return = test_stats.get("Strategy_Return", 0)
+            ticker_score = (train_val * 0.7) + (test_val * 0.3)
 
-                # 2. 平滑惩罚逻辑
-                # 对于创业板股票，建议将容忍度放宽到 -8% 到 -10%
-                tolerance = -0.08 
+            # 2. 平滑惩罚逻辑
+            # 对于创业板股票，建议将容忍度放宽到 -8% 到 -10%
+            tolerance = -0.08 
 
-                if test_return < tolerance:
-                    # 采用平方惩罚或者更温和的倍数，避免分值瞬间跳变导致 Optuna 失去方向
-                    # 只有当亏损真正扩大时（如超过 8%），才开始显著扣分
-                    penalty = (abs(test_return) - abs(tolerance)) * 50 # 倍数从 100 降到 50
-                    ticker_score -= penalty
+            if test_return < tolerance:
+                # 采用平方惩罚或者更温和的倍数，避免分值瞬间跳变导致 Optuna 失去方向
+                # 只有当亏损真正扩大时（如超过 8%），才开始显著扣分
+                penalty = (abs(test_return) - abs(tolerance)) * 50 # 倍数从 100 降到 50
+                ticker_score -= penalty
 
-                # 3. 额外奖励：如果验证集盈利且跑赢了 BuyHold (Alpha > 0)
-                if test_return > 0 and test_stats.get("Alpha", 0) > 0:
-                    ticker_score += 10.0 # 给予泛化能力优秀的额外加分
+            # 3. 额外奖励：如果验证集盈利且跑赢了 BuyHold (Alpha > 0)
+            if test_return > 0 and test_stats.get("Alpha", 0) > 0:
+                ticker_score += 10.0 # 给予泛化能力优秀的额外加分
 
-                scores.append(ticker_score)
+            scores.append(ticker_score)
 
-            except Exception as e:
-                print(f"Error on {t_code}: {e}")
-                scores.append(-300.0)  # 报错给极低分，让 Optuna 避开
+        except Exception as e:
+            print(f"Error on {ticker}: {e}")
+            scores.append(-300.0)  # 报错给极低分，让 Optuna 避开
 
     # 4. 汇总：均值 - 0.5 * 标准差 (追求多标的普适性，防止偏科)
     return np.mean(scores) - 0.5 * np.std(scores)

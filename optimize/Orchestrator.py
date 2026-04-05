@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Dict, Any
 from dotenv import load_dotenv
 from optimize.opt_study import run_optuna_study
+from optimize.persist_manager import PersistManager
 
 load_dotenv()
 gemini_api_key = os.getenv("gemini_api_key")
@@ -53,7 +54,7 @@ class GeminiOptimizationResponse(BaseModel):
   
     analysis: str
     action_taken: str
-    suggested_search_space: SearchSpaceConfig
+    suggest_search_space: SearchSpaceConfig
     # 核心修正：这里从 Dict 改为 InitialTrialConfig
     recommended_initial_trial: InitialTrialConfig 
     give_up: bool
@@ -98,7 +99,7 @@ def ask_gemini_to_fix_config(report: Dict[str, Any]):
         ### 输出要求 (JSON ONLY):
     请严格按照定义的 Schema 返回 JSON，包含 analysis (瓶颈分析), action_taken (采取动作), suggested_search_space (修正空间), recommended_initial_trial (推荐初始值), give_up (是否放弃)。
     """
-    
+
     model_id = "gemini-3-flash-preview" # 或者根据官网最新的 gemini-3-flash
 
     try:
@@ -136,7 +137,7 @@ def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: boo
             return
         initial_trial = advice.recommended_initial_trial
         # 更新配置以便下一步 Optuna 使用
-        ConfigFactory.save_ticker_config(ticker, advice)
+        PersistManager.save_ticker_config(ticker, advice)
 
     # --- 3. 运行 Optuna ---
     study = run_optuna_study(ticker, ticker_interval, n_trials=10, reset_study=reset_study)
@@ -144,10 +145,10 @@ def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: boo
     # --- 4. 核心改动：检查 Optuna 运行后的“出勤率” ---
     # 假设你的 backtest 函数会将交易次数存在 study 的 user_attr 里，或者通过 study 的结果判断
     # 如果 10 次 Trial 后，最好的结果依然是“无交易”（Trade Count = 0）
-    best_trial = study.best_trial
+    best_value = study.best_value
     
     # 判断逻辑：如果最好的一次 Trial 收益为 0 且成交数为 0
-    if best_trial.value == 0 or best_trial.user_attrs.get("trade_count", 0) == 0:
+    if best_value < 0:
         print(f"⚠️ Optuna 运行 10 次后仍无成交。正在进行【深度反馈优化】...")
         
         # 构造一个更深度的数据包给 Gemini
@@ -157,7 +158,7 @@ def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: boo
             "total_scans": 10,
             "success_count": 0,
             "intercept_report": report["intercept_report"], # 沿用之前的诊断
-            "current_config": best_trial.params, # 喂给它 Optuna 刚尝试失败的参数
+            "current_config": study.best_params, # 喂给它 Optuna 刚尝试失败的参数
             "failure_note": "Optuna tried 10 combinations but couldn't find a single trade. Filters might be too tight for the full backtest period."
         }
         
@@ -166,7 +167,7 @@ def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: boo
         
         if new_advice and not new_advice.give_up:
             print(f"♻️ Gemini 重新调整了搜索空间。写入文件并尝试最后一次 Optuna...")
-            ConfigFactory.save_ticker_config(ticker, new_advice)
+            PersistManager.save_ticker_config(ticker, new_advice)
             
             # 使用全新的空间再跑 20 次
             run_optuna_study(ticker, ticker_interval, n_trials=20, reset_study=True)

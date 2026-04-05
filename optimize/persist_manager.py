@@ -40,16 +40,16 @@ class PersistManager:
     def save_ticker_config(ticker, advice_object,config_path:str = "./config/optimized_params"):
         """将 Gemini 建议的参数和空间保存到本地"""
         config_file = f"{config_path}/{ticker}.json"
-        
-        # 构造要保存的完整字典
+        advice_data = advice_object.model_dump()
         data_to_save = {
             "ticker": ticker,
-            "last_optimized": datetime.now(), # 记录时间
-            "search_space": advice_object.suggest_search_space,
-            "initial_trial": advice_object.recommended_initial_trial,
-            "analysis": advice_object.analysis
+            # 核心修复点 2：将 datetime 转化为字符串
+            "last_optimized": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "search_space": advice_data["suggest_search_space"],
+            "initial_trial": advice_data["recommended_initial_trial"],
+            "analysis": advice_data["analysis"]
         }
-        
+      
         os.makedirs(os.path.dirname(config_path), exist_ok=True)
         with open(config_file, "w", encoding="utf-8") as f:
             json.dump(data_to_save, f, indent=4, ensure_ascii=False)

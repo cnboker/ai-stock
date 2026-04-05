@@ -12,11 +12,13 @@ if __name__ == "__main__":
     task_queue = list(dict.fromkeys(watchlist + live_tickers)) # 保持顺序去重
 
     # task_queue = ['sz300383','sz300603','sh515050','sh588200', 'sh561330','sh512760', 'sz159515']
-    task_queue = ['sh603123']
+    #task_queue = ['sh603123']
    
     print(f"当前观察池: {task_queue}")
     for ticker in task_queue:
         try:
+            if ticker == "sh603123":
+                continue
             print(f"🚀 [Start] 正在调优: {ticker}...")
             # 你的 Optuna 调优主逻辑
             start_optimization_cycle(ticker, "30", reset_study=True) # 30 分钟级别的调优

@@ -10,3 +10,4 @@ logs
 state/backup
 outputs
 .cache_data
+.env    
