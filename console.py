@@ -31,12 +31,11 @@ warnings.filterwarnings(
 
 # ========================== 初始化全局状态 ==========================
 sync_account_and_watchlist()
-position_mgr = create_position_manager(0, RunMode.LIVE)
-eq_recorder = create_equity_recorder(RunMode.LIVE)
+position_mgr = create_position_manager(0)
+eq_recorder = create_equity_recorder()
 
 def run_trade_cycle():
-    """单次分析循环核心逻辑 - 2026 优化版"""
-    
+   
     # 打印周期开始时间（建议使用更简洁的格式）
     now_str = time.strftime('%H:%M:%S')
     print(f"\n🚀 [Cycle Start] {now_str}")

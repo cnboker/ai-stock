@@ -19,8 +19,8 @@ def init_session(period=TICKER_PERIOD):
         初始化 TradingSession，用于回测
         """
         hs300_df = load_index_df(str(period))
-        position_mgr = create_position_manager(0, RunMode.BACKTEST)
-        eq_recorder = create_equity_recorder(RunMode.BACKTEST)
+        position_mgr = create_position_manager(0)
+        eq_recorder = create_equity_recorder()
         eq_feat = equity_features(eq_recorder.to_series())
         tradeIntent = equity_engine.decide(eq_feat,position_mgr.has_any_position())
         session = TradingSession(

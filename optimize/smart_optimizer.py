@@ -3,9 +3,9 @@ from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 
 class SmartOptimizer:
-    def __init__(self, ticker, ticker_interval="30"):
+    def __init__(self, ticker, ticker_period="30"):
         self.ticker = ticker
-        self.ticker_interval = ticker_interval
+        self.ticker_period = ticker_period
         self.max_retries = 10  # 最大自动扩张次数
 
     def adapt_search_space(self, report):
@@ -73,7 +73,7 @@ class SmartOptimizer:
             #print(f"cfg={cfg}")
             # 2. 执行真实体检
             # 使用配置中的 initial_trial 作为测试样本
-            report = DiagnosticScanner.run_body_check(self.ticker, self.ticker_interval, cfg["initial_trial"])
+            report = DiagnosticScanner.run_body_check(self.ticker, self.ticker_period, cfg["initial_trial"])
 
             # 3. 判断是否具备调优条件 (成功入场次数 > 0)
             if report['success_count'] > 0:

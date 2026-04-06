@@ -26,9 +26,7 @@ MODEL_NAME = "chronos-2"
 #MODEL_NAME = "chronos-t5-large"
 ENABLE_LIVE_PERSIST = True
 
-# 设定一个固定的回溯窗口，比如 5 天 (5 * 48 = 240 条)
-# 或者是 Chronos 推荐的 512 条
-LOOKBACK_WINDOW = 200
+
 # ================= CUDA 优化 =================
 if is_torch_available():
     import torch

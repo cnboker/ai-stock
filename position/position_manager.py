@@ -1,10 +1,8 @@
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from infra.core.runtime import RunMode, GlobalState
+from infra.core.runtime import GlobalState
 from infra.notify.order import OrderEvent, notify_order
-from position import position
 from position.position import Position
 from log import order_log, risk_log
 from infra.core.dynamic_settings import settings

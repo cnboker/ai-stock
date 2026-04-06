@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
+from infra.core.runtime import GlobalState
 from model_torch import optional_inference_mode
-from config.settings import MODEL_NAME, LOOKBACK_WINDOW
+from config.settings import MODEL_NAME
 from predict.chronos_model import load_chronos_model
 from predict.predict_result import PredictionResult
 from predict.price_alpha import chronos2_to_large_style
 from predict.time_utils import calc_atr
 
-
+#GlobalState.chronos_context_length
 @optional_inference_mode()
 def run_prediction(
     df: pd.DataFrame,
@@ -26,7 +27,7 @@ def run_prediction(
         "2026-01-01", periods=2000, freq=f"{period}min"
     )
 
-    history_len = min(LOOKBACK_WINDOW, len(df))
+    history_len = min(GlobalState.chronos_context_length, len(df))
     
     target_values = df["close"].values[-history_len:].astype(float)
     volume_values = df["volume"].values[-history_len:].astype(float)

@@ -3,8 +3,7 @@ from infra.core.runtime import GlobalState, RunMode
 import os
 
 def create_equity_recorder(
-    ticker: str | None = None,
-    trade_date: str | None = None
+    
 ):
     if GlobalState.mode == RunMode.LIVE:
         path = "data/live/equity.csv"

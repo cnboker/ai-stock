@@ -1,5 +1,5 @@
 from pandas import DataFrame
-from config.settings import LOOKBACK_WINDOW
+from infra.core.runtime import GlobalState
 from infra.core.trade_session import TradingSession
 from infra.utils.time_profile import timer_decorator
 from log import signal_log, risk_log
@@ -66,10 +66,8 @@ def execute_stock_decision(
     """
 
     # 1. 首先明确“当前”要处理的参考对象（即个股数据）
-   
-   
-    hs300_df = hs300_df.iloc[-LOOKBACK_WINDOW:]
-    ticker_df = ticker_df.iloc[-LOOKBACK_WINDOW:]
+    hs300_df = hs300_df.iloc[-GlobalState.chronos_context_length:]
+    ticker_df = ticker_df.iloc[-GlobalState.chronos_context_length:]
     # ========== HS300 对齐 ==========
     if hs300_df is not None and not hs300_df.empty:
         hs300_series = (
@@ -90,7 +88,7 @@ def execute_stock_decision(
         period=session.period,
         eq_feat=session.eq_feat,
     )
-
+    #print(f"pre_result={pre_result}")
     position_mgr = session.position_mgr
     # ===== 1️⃣ 最新价格 =====
     price = float(ticker_df["close"].iloc[-1])

@@ -14,13 +14,10 @@ load_dotenv()
 gemini_api_key = os.getenv("gemini_api_key")
 
 class ParameterSpace(BaseModel):
-    # 同样禁用额外属性
-  
     low: float
     high: float
 
 class InitialTrialConfig(BaseModel):
-
     strength_alpha: float
     model_th: float
     atr_stop: float
@@ -35,8 +32,6 @@ class InitialTrialConfig(BaseModel):
     init_pt: float
 
 class SearchSpaceConfig(BaseModel):
-    # 同样禁用额外属性
-   
     strength_alpha: ParameterSpace
     model_th: ParameterSpace
     atr_stop: ParameterSpace
@@ -51,11 +46,9 @@ class SearchSpaceConfig(BaseModel):
     init_pt: ParameterSpace
 
 class GeminiOptimizationResponse(BaseModel):
-  
     analysis: str
     action_taken: str
     suggest_search_space: SearchSpaceConfig
-    # 核心修正：这里从 Dict 改为 InitialTrialConfig
     recommended_initial_trial: InitialTrialConfig 
     give_up: bool
 
@@ -122,12 +115,12 @@ def ask_gemini_to_fix_config(report: Dict[str, Any]):
         print(f"❌ 调用 Gemini 失败: {e}")
         return None
 
-def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: bool = False):
+def start_optimization_cycle(ticker: str, ticker_period: str, reset_study: bool = False):
     cfg = ConfigFactory.load_ticker_config(ticker)
     initial_trial = cfg["initial_trial"]
 
     # --- 1. 初次诊断 ---
-    report = DiagnosticScanner.run_body_check(ticker, ticker_interval, initial_trial)
+    report = DiagnosticScanner.run_body_check(ticker, ticker_period, initial_trial)
     
     # --- 2. 如果诊断不合格，先让 Gemini 改一版参数 ---
     if report["status"] == "ANEMIC":
@@ -140,15 +133,15 @@ def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: boo
         PersistManager.save_ticker_config(ticker, advice)
 
     # --- 3. 运行 Optuna ---
-    study = run_optuna_study(ticker, ticker_interval, n_trials=10, reset_study=reset_study)
+    study = run_optuna_study(ticker, ticker_period, n_trials=10, reset_study=reset_study)
     
     # --- 4. 核心改动：检查 Optuna 运行后的“出勤率” ---
     # 假设你的 backtest 函数会将交易次数存在 study 的 user_attr 里，或者通过 study 的结果判断
     # 如果 10 次 Trial 后，最好的结果依然是“无交易”（Trade Count = 0）
     best_value = study.best_value
-    
+    best_trial = study.best_trial
     # 判断逻辑：如果最好的一次 Trial 收益为 0 且成交数为 0
-    if best_value < 0:
+    if best_value < 0 or best_trial.user_attrs.get("train_trade_count", 0) == 0:
         print(f"⚠️ Optuna 运行 10 次后仍无成交。正在进行【深度反馈优化】...")
         
         # 构造一个更深度的数据包给 Gemini
@@ -170,7 +163,7 @@ def start_optimization_cycle(ticker: str, ticker_interval: str, reset_study: boo
             PersistManager.save_ticker_config(ticker, new_advice)
             
             # 使用全新的空间再跑 20 次
-            run_optuna_study(ticker, ticker_interval, n_trials=20, reset_study=True)
+            run_optuna_study(ticker, ticker_period, n_trials=20, reset_study=True)
         else:
             print(f"🛑 深度优化失败，彻底放弃 {ticker}。")
 

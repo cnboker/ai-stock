@@ -2,6 +2,7 @@ import traceback
 
 import pandas as pd
 import numpy as np
+from data.loader import GlobalState
 from simulator.run_backtest import BacktestRunner
 from infra.core.dynamic_settings import settings, use_config
 from predict.chronos_predict import run_prediction
@@ -11,7 +12,7 @@ from strategy.strength import compute_strength
 
 class DiagnosticScanner:
     @staticmethod
-    def run_body_check(ticker, ticker_interval, test_config):
+    def run_body_check(ticker, ticker_period, test_config):
         """
         核心诊断逻辑：通过上下文注入确保参数生效，并提供深度调参指南
         """
@@ -34,12 +35,13 @@ class DiagnosticScanner:
         }
 
         sample_details = []  # 用于存储入场时的详细数据
-
+        # 1. 确保扫描范围与回测区间对齐 (13天 = 104根)
+        scan_length = 104
         # 3. 使用上下文注入执行体检
         with use_config(final_inject_config):
             try:
-                runner = BacktestRunner(ticker=ticker, period=ticker_interval)
-                trade_bars = runner.df_all.index[-200:]
+                runner = BacktestRunner(ticker=ticker, period=ticker_period)
+                trade_bars = runner.df_all.index[-scan_length:]
             except Exception as e:
                 print(f"❌ 初始化数据失败: {e}")
                 return {"success_count": 0, "intercept_report": {"init_error": 1}}
@@ -48,20 +50,16 @@ class DiagnosticScanner:
                 try:
                     # 1. 严格切分历史：只取当前 Bar 之前的数据
                     # 确保预测模型看不到 current_time 之后的价格
-                    df_context = runner.df_all[:current_time]
-                    hs300_values = (
-                        runner.hs300_df["close"][:current_time]
-                        .reindex(df_context.index, method="nearest")
-                        .interpolate("linear")
-                        .ffill()
-                        .values
-                    )
+                    df_context = runner.full_pool_df[:current_time]
+                    df_context = runner.full_pool_df[runner.full_pool_df.index <= current_time].tail(GlobalState.strategy_window)
+                    hs300_context = runner.full_pool_hs300["close"].reindex(df_context.index).ffill().values
+                 
                     # 2. 传入预测（确保包含当前的最后一根 Bar 用于特征计算）
                     pre_result = run_prediction(
                         df=df_context,
-                        hs300_df=hs300_values,
+                        hs300_df=hs300_context,
                         ticker=ticker,
-                        period=ticker_interval,
+                        period=ticker_period,
                         eq_feat=None,
                     )
                    

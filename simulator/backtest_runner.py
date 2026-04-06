@@ -9,36 +9,41 @@ from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
 from global_state import equity_engine
 from data.loader import load_stock_df, load_index_df
-from predict.chronos_predict import run_prediction
 from trade.trade_engine import execute_stock_decision
-from config.settings import LOOKBACK_WINDOW
 from infra.core.runtime import GlobalState, RunMode
 class BacktestRunner:
-    def __init__(self, ticker, period, total_limit=760):
-         
-        GlobalState.mode = RunMode.BACKTEST
+    def __init__(self, ticker, period):
+        GlobalState.mode = RunMode.SIM
         self.ticker = ticker
         self.period = period
-        # 多加载一点数据，为第一天提供 Chronos 的 LOOKBACK 背景
-        self.total_limit = total_limit + LOOKBACK_WINDOW 
-        
-        # 1. 加载数据
-        full_df = load_stock_df(ticker=self.ticker, period=self.period).sort_index()
-        self.df_all = full_df.tail(self.total_limit)
-        self.hs300_df = load_index_df(self.period).tail(self.total_limit)
-      
-        if len(self.df_all) < self.total_limit:
-            print(f"警告: 数据量不足，仅有 {len(self.df_all)} 条")
 
-        # 2. 计算 2/8 切分点（基于 K 线索引）
-        # 训练集从 LOOKBACK_WINDOW 开始，确保第一天就有历史数据
-        self.train_start_idx = LOOKBACK_WINDOW
-        self.split_idx = self.train_start_idx + int((len(self.df_all) - LOOKBACK_WINDOW) * 0.8)
+        # 1. 加载全量数据池 (假设有 1000 根线)
+        self.full_pool_df = load_stock_df(ticker=self.ticker, period=self.period).sort_index()
+        self.full_pool_hs300 = load_index_df(self.period).sort_index()
+
+        # 2. 定义固定的“实战考试区”长度 (9天训练 + 4天验证 = 13天)
+        # A股一天8根K线，13 * 8 = 104
+        self.net_backtest_size = 104 
+        
+        # 3. 动态计算总需长度：实战区 + 策略窗口(预热区)
+        # 这样无论 window 是 20 还是 160，都能保证最后 104 根线是用来考试的
+        required_size = self.net_backtest_size + GlobalState.strategy_window
+        
+        # 4. 截取用于本次 Trial 的数据子集
+        self.df_all = self.full_pool_df.tail(required_size)
+        self.hs300_df = self.full_pool_hs300.tail(required_size)
+
+        # 5. 确定 8/2 切分点 (基于 104 根净回测数据)
+        # 我们从 df_all 的末尾向前数 104 根作为起点
+        self.backtest_start_idx = len(self.df_all) - self.net_backtest_size
+        # 训练集占净回测区的 80% (约 83 根，即 10.4 天，实际按日期切分更准)
+        self.split_rel_idx = int(self.net_backtest_size * 0.8)
+      
 
     def _reset_engine(self):
         """重置引擎，确保训练集和测试集资金互不干扰"""
-        self.eq_recorder = create_equity_recorder(RunMode.SIM, self.ticker)
-        self.position_mgr = create_position_manager(1000000, RunMode.SIM)
+        self.eq_recorder = create_equity_recorder()
+        self.position_mgr = create_position_manager(1000000)
         
         # 初始化 Session
         eq_feat = equity_features(self.eq_recorder.to_series())
@@ -56,22 +61,23 @@ class BacktestRunner:
         self.equity_curve = []
 
     def run_split_backtest(self):
-        """执行 2/8 验证逻辑"""
-        # 提取所有可交易的日期
-        all_dates = pd.Series(self.df_all.index.date).drop_duplicates().tolist()
+        """执行 2/8 验证逻辑：9天训练 + 4天验证"""
+        # 提取当前 df_all 中的所有日期
+        all_dates = pd.Series(self.df_all.index.date).unique().tolist()
         
-        # 根据 split_idx 找到切分日期
-        split_date = self.df_all.index[self.split_idx].date()
+        # 确保我们只在最后 13 天进行回测，之前的日期全部留作 window 预热
+        battle_dates = all_dates[-13:] if len(all_dates) >= 13 else all_dates
         
-        # 划分日期集合（跳过最开始的预留窗口日期）
-        train_dates = [d for d in all_dates if d < split_date][5:] # 略微多跳几天确保 buffer
-        test_dates = [d for d in all_dates if d >= split_date]
+        # 严格执行 9+4 分类
+        train_dates = battle_dates[:9]
+        test_dates = battle_dates[9:]
 
-        # 分别运行
-        print(f"--- 运行训练集 ({len(train_dates)} 天) ---")
+        # 打印调试信息，确认数据对齐
+        print(f"--- 策略窗口(Window): {GlobalState.strategy_window} ---")
+        print(f"--- 训练集 ({len(train_dates)} 天): {train_dates[0]} ~ {train_dates[-1]} ---")
         train_res = self._execute_loop(train_dates)
         
-        print(f"--- 运行验证集 ({len(test_dates)} 天) ---")
+        print(f"--- 验证集 ({len(test_dates)} 天): {test_dates[0]} ~ {test_dates[-1]} ---")
         test_res = self._execute_loop(test_dates)
         
         return train_res, test_res
@@ -100,10 +106,10 @@ class BacktestRunner:
     #@timer_decorator 0.34s 左右，主要耗在模型推理上
     def _simulate_day(self, trade_day):
         # 这里的 get_history 会自动利用 df_all 中的历史数据，即使是测试集第一天也能向上回溯
-        df_today = self.df_all[self.df_all.index.date == trade_day]
-        df_hs300_today = self.hs300_df[self.hs300_df.index.date == trade_day]
-        df_history_fixed = self.get_history(trade_day, self.df_all)
-        hs300_history = self.get_history(trade_day, self.hs300_df)
+        df_today = self.full_pool_df[self.full_pool_df.index.date == trade_day]
+        df_hs300_today = self.full_pool_hs300[self.full_pool_hs300.index.date == trade_day]
+        df_history_fixed = self.get_history(trade_day, self.full_pool_df)
+        hs300_history = self.get_history(trade_day, self.full_pool_hs300)
         #print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history_fixed)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
             self.eq_recorder.add(self.position_mgr.equity)
@@ -117,8 +123,8 @@ class BacktestRunner:
             ticker_df = pd.concat([df_history_fixed, df_slice])
             hs300_df = pd.concat([hs300_history,hs300_slice])   
             # 强制只取最后 LOOKBACK_WINDOW 个点
-            ticker_df = pd.concat([df_history_fixed, df_slice]).iloc[-LOOKBACK_WINDOW:]
-            hs300_df = pd.concat([hs300_history, hs300_slice]).iloc[-LOOKBACK_WINDOW:]
+            ticker_df = pd.concat([df_history_fixed, df_slice]).iloc[-GlobalState.chronos_context_length:]
+            hs300_df = pd.concat([hs300_history, hs300_slice]).iloc[-GlobalState.chronos_context_length:]
             execute_stock_decision(
                 ticker=self.ticker,
                 hs300_df = hs300_df,
@@ -127,11 +133,11 @@ class BacktestRunner:
             )
 
     #它就返回过去LOOKBACK_WINDOW个单位（天或分钟）的数据
-    def get_history(self, trade_day, df):
+    def get_history(self, trade_day, df_pool):
         trade_day = pd.to_datetime(trade_day)
         #找到当天的开盘第一分钟（如果是分钟级数据）或当天的时间点
-        today_start_ts = df[df.index.date == trade_day.date()].index[0]
-        return df[df.index < today_start_ts].tail(LOOKBACK_WINDOW)
+        today_start_ts = df_pool[df_pool.index.date == trade_day.date()].index[0]
+        return df_pool[df_pool.index < today_start_ts].tail(GlobalState.chronos_context_length)
 
     def _report(self, start_price, end_price):
         equity = np.array(self.equity_curve)
