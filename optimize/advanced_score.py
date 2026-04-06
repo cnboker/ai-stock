@@ -11,8 +11,8 @@ def get_advanced_score(stats, is_test=False):
     ret = stats.get("Strategy_Return", 0.0)  
     mdd = abs(stats.get("Max_Drawdown", 0.001)) # ETF回撤小，调低默认值
     alpha = stats.get("Alpha", 0.0)           
-    if trades == 0:
-        return -200
+    # if trades == 0:
+    #     return -200
     # --- 1. 基础收益分 (强化版卡玛比率) ---
     # 针对 ETF 收益率低（如 0.3%）的特点，将系数从 5.0 提至 10.0
     # 这样即使是 0.5% 的小利，在低回撤下也能贡献显著正分

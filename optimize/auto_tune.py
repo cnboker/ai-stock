@@ -20,7 +20,7 @@ if __name__ == "__main__":
           
             print(f"🚀 [Start] 正在调优: {ticker}...")
             # 你的 Optuna 调优主逻辑
-            start_optimization_cycle(ticker, "30", reset_study=True) # 30 分钟级别的调优
+            start_optimization_cycle(ticker, "30", reset_study=False) # 30 分钟级别的调优
             print(f"✅ [Success] {ticker} 调优完成")
 
         except KeyboardInterrupt:

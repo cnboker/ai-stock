@@ -2,7 +2,7 @@
     "ticker": "sz000980",
     "category": "STOCK",
     "best_params": {
-        "window": 116,
+        "window": 72,
         "strength_alpha": 80,
         "confirm_n": 1,
         "atr_mult": 3.5,
@@ -21,17 +21,17 @@
     "intercept_stats": {
         "ticker": "sz000980",
         "status": "HEALTHY",
-        "success_count": 42,
+        "success_count": 52,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 1,
-            "slope_filter": 54,
+            "model_confidence": 10,
+            "slope_filter": 30,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 7,
+            "zero_strength_ghost": 12,
             "other_error": 0
         },
         "current_config": {
-            "window": 116,
+            "window": 72,
             "strength_alpha": 80,
             "confirm_n": 1,
             "atr_mult": 3.5,
@@ -50,21 +50,21 @@
         "sample_details": [
             {
                 "day": "2026-03-18 10:00:00",
-                "slope": 0.002208852184172791,
-                "strength": 0.10122490484029398
+                "slope": 0.000606606298722184,
+                "strength": 0.024317102338664832
             },
             {
                 "day": "2026-03-18 10:30:00",
-                "slope": 0.001945349970789811,
-                "strength": 0.08857679859791093
+                "slope": 0.0015056588978485297,
+                "strength": 0.06747162709672942
             },
             {
                 "day": "2026-03-18 11:00:00",
-                "slope": 0.0025063844469304267,
-                "strength": 0.11550645345266049
+                "slope": 0.0012285159363483007,
+                "strength": 0.05416876494471843
             }
         ],
-        "success_rate": "323.1%"
+        "success_rate": "400.0%"
     },
     "search_space": {
         "strength_alpha": {
@@ -143,7 +143,7 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-06 20:08:29",
+        "last_optimized": "2026-04-06 21:04:16",
         "best_value": -200.0,
         "status": "ACTIVE"
     }

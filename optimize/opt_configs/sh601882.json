@@ -2,6 +2,7 @@
     "ticker": "sh601882",
     "category": "STOCK",
     "best_params": {
+        "window": 112,
         "strength_alpha": 80,
         "confirm_n": 1,
         "atr_mult": 3.5,
@@ -20,16 +21,17 @@
     "intercept_stats": {
         "ticker": "sh601882",
         "status": "HEALTHY",
-        "success_count": 10,
-        "total_scans": 25,
+        "success_count": 37,
+        "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 8,
-            "slope_filter": 168,
+            "model_confidence": 16,
+            "slope_filter": 40,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 14,
+            "zero_strength_ghost": 11,
             "other_error": 0
         },
         "current_config": {
+            "window": 112,
             "strength_alpha": 80,
             "confirm_n": 1,
             "atr_mult": 3.5,
@@ -47,22 +49,22 @@
         },
         "sample_details": [
             {
-                "day": "2026-03-03 11:30:00",
-                "slope": 0.0003937573501750541,
-                "strength": 0.014100352808402597
+                "day": "2026-03-18 10:00:00",
+                "slope": 0.0008884885270769397,
+                "strength": 0.0378474492996931
             },
             {
-                "day": "2026-03-03 13:30:00",
-                "slope": 0.0003965883133941726,
-                "strength": 0.014236239042920287
+                "day": "2026-03-18 10:30:00",
+                "slope": 0.000524926884848776,
+                "strength": 0.020396490472741245
             },
             {
-                "day": "2026-03-10 14:00:00",
-                "slope": 0.0010766504017729738,
-                "strength": 0.04687921928510274
+                "day": "2026-03-18 11:30:00",
+                "slope": 0.0006017267258308768,
+                "strength": 0.02408288283988208
             }
         ],
-        "success_rate": "40.0%"
+        "success_rate": "284.6%"
     },
     "search_space": {
         "strength_alpha": {
@@ -141,8 +143,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-05 21:50:33",
-        "best_value": -48.58065,
+        "last_optimized": "2026-04-06 21:31:19",
+        "best_value": -200.0,
         "status": "ACTIVE"
     }
 }
