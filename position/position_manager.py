@@ -542,6 +542,8 @@ class PositionManager:
         self.max_occupied = max(self.max_occupied, self.get_ticker_value(symbol, price) )
         ts = self.current_market_time if self.current_market_time else datetime.now()
 
+            # 动态增加计数
+        self.total_trade_count += 1
         self.trade_log.append(
             {
                 "ts": ts,

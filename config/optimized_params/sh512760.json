@@ -1,24 +1,25 @@
 {
     "_META": {
         "ticker": "sh512760",
-        "best_value": 53.6143,
-        "date": "2026-04-05 20:31"
+        "best_value": 124.0189,
+        "date": "2026-04-06 20:42"
     },
-    "MODEL_TH": 0.3546,
-    "SLOPE": 0.0009,
-    "PREDICT_UP": -0.0029,
-    "INIT_PT": 0.0069,
+    "MODEL_TH": 0.4248,
+    "SLOPE": -0.0029,
+    "PREDICT_UP": 0.0031,
+    "INIT_PT": 0.0136,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 2.6076,
-    "TP1": 1.0239,
-    "TP2": 1.12,
-    "KELLY": 0.417,
-    "RISK": 0.0092,
-    "ATR_STOP": 2.2753,
-    "MAX_STOP": 0.0468,
-    "MIN_STOP": 0.0083,
-    "STRENGTH_ALPHA": 1.2304,
+    "ATR_MULT": 4.1671,
+    "TP1": 1.0141,
+    "TP2": 1.0907,
+    "KELLY": 0.447,
+    "RISK": 0.0059,
+    "ATR_STOP": 1.9368,
+    "MAX_STOP": 0.0214,
+    "MIN_STOP": 0.0079,
+    "STRENGTH_ALPHA": 1.3019,
     "SLOPE_MIN": 0.0001,
     "CONFIRM_N": 1,
-    "TREND_PT": 0.0741
+    "WINDOW": 20,
+    "TREND_PT": 0.0867
 }

@@ -1,24 +1,25 @@
 {
     "_META": {
         "ticker": "sz159908",
-        "best_value": -64.643,
-        "date": "2026-04-05 19:54"
+        "best_value": -72.4938,
+        "date": "2026-04-06 20:34"
     },
-    "MODEL_TH": 0.3694,
-    "SLOPE": 0.005,
+    "MODEL_TH": 0.4231,
+    "SLOPE": -0.001,
     "PREDICT_UP": 0.002,
-    "INIT_PT": 0.015,
+    "INIT_PT": 0.0052,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 2.8542,
-    "TP1": 1.0412,
-    "TP2": 1.0987,
-    "KELLY": 0.129,
-    "RISK": 0.01,
-    "ATR_STOP": 2.7277,
-    "MAX_STOP": 0.0589,
-    "MIN_STOP": 0.0098,
-    "STRENGTH_ALPHA": 1.4,
+    "ATR_MULT": 4.4094,
+    "TP1": 1.0325,
+    "TP2": 1.117,
+    "KELLY": 0.1333,
+    "RISK": 0.0089,
+    "ATR_STOP": 1.9192,
+    "MAX_STOP": 0.0729,
+    "MIN_STOP": 0.0059,
+    "STRENGTH_ALPHA": 1.7076,
     "SLOPE_MIN": 0.0004,
     "CONFIRM_N": 1,
-    "TREND_PT": 0.089
+    "WINDOW": 56,
+    "TREND_PT": 0.0747
 }

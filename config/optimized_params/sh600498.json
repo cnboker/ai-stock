@@ -1,0 +1,24 @@
+{
+    "_META": {
+        "ticker": "sh600498",
+        "best_value": 35.8725,
+        "date": "2026-04-06 19:46"
+    },
+    "MODEL_TH": 0.5034,
+    "SLOPE": 0.0065,
+    "PREDICT_UP": -0.0243,
+    "INIT_PT": 0.042,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 2.6864,
+    "TP1": 1.0363,
+    "TP2": 1.1799,
+    "KELLY": 0.1708,
+    "RISK": 0.0098,
+    "ATR_STOP": 4.131,
+    "MAX_STOP": 0.1493,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 52,
+    "SLOPE_MIN": 0.0013,
+    "CONFIRM_N": 1,
+    "WINDOW": 128
+}

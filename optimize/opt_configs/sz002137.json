@@ -2,51 +2,69 @@
     "ticker": "sz002137",
     "category": "STOCK",
     "best_params": {
-        "strength_alpha": 77,
+        "window": 52,
+        "strength_alpha": 80,
         "confirm_n": 1,
-        "atr_mult": 3.9669059651446315,
-        "model_th": 0.411801815188504,
-        "atr_stop": 4.357587179239281,
-        "risk": 0.005642891686200112,
-        "kelly": 0.15144612600748478,
-        "slope": 0.006946230297145019,
-        "max_stop": 0.14671755869205216,
-        "slope_min": 0.002848532913604362,
-        "predict_up": -0.03691043396016676,
-        "tp1": 1.0434549800353201,
-        "tp2": 1.16818700903585,
-        "init_pt": 0.023135031220129283
+        "atr_mult": 3.5,
+        "model_th": 0.4,
+        "atr_stop": 4.0,
+        "risk": 0.008,
+        "kelly": 0.2,
+        "slope": 0.012,
+        "max_stop": 0.12,
+        "slope_min": 0.0001,
+        "predict_up": -0.05,
+        "tp1": 1.05,
+        "tp2": 1.2,
+        "init_pt": 0.01
     },
     "intercept_stats": {
         "ticker": "sz002137",
-        "status": "ANEMIC",
-        "success_count": 0,
-        "total_scans": 25,
+        "status": "HEALTHY",
+        "success_count": 8,
+        "total_scans": 13,
         "intercept_report": {
             "model_confidence": 3,
-            "slope_filter": 197,
+            "slope_filter": 78,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 0,
+            "zero_strength_ghost": 15,
             "other_error": 0
         },
         "current_config": {
-            "strength_alpha": 77,
+            "window": 52,
+            "strength_alpha": 80,
             "confirm_n": 1,
-            "atr_mult": 3.9669059651446315,
-            "model_th": 0.411801815188504,
-            "atr_stop": 4.357587179239281,
-            "risk": 0.005642891686200112,
-            "kelly": 0.15144612600748478,
-            "slope": 0.006946230297145019,
-            "max_stop": 0.14671755869205216,
-            "slope_min": 0.002848532913604362,
-            "predict_up": -0.03691043396016676,
-            "tp1": 1.0434549800353201,
-            "tp2": 1.16818700903585,
-            "init_pt": 0.023135031220129283
+            "atr_mult": 3.5,
+            "model_th": 0.4,
+            "atr_stop": 4.0,
+            "risk": 0.008,
+            "kelly": 0.2,
+            "slope": 0.012,
+            "max_stop": 0.12,
+            "slope_min": 0.0001,
+            "predict_up": -0.05,
+            "tp1": 1.05,
+            "tp2": 1.2,
+            "init_pt": 0.01
         },
-        "sample_details": [],
-        "success_rate": "0.0%"
+        "sample_details": [
+            {
+                "day": "2026-03-19 11:00:00",
+                "slope": 0.0003385543770565571,
+                "strength": 0.011450610098714743
+            },
+            {
+                "day": "2026-03-19 15:00:00",
+                "slope": 0.00031197683087417057,
+                "strength": 0.010174887881960186
+            },
+            {
+                "day": "2026-03-23 15:00:00",
+                "slope": 0.0004864904646987146,
+                "strength": 0.0185515423055383
+            }
+        ],
+        "success_rate": "61.5%"
     },
     "search_space": {
         "strength_alpha": {
@@ -125,8 +143,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-05 19:18:19",
-        "best_value": -52.76955,
-        "status": "SIGNAL_BLOCKED"
+        "last_optimized": "2026-04-06 20:14:56",
+        "best_value": -200.0,
+        "status": "ACTIVE"
     }
 }

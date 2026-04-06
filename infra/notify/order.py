@@ -31,12 +31,6 @@ def notify_order(event: OrderEvent, position_mgr):
         f"Reason: {event.reason}\n"
         f"Time:   {event.ts:%Y-%m-%d %H:%M:%S}"
     )
-
-    if event.status == "FILLED":
-        if event.action in {"OPEN", "ADD"}:
-            # 动态增加计数
-            position_mgr.total_trade_count += 1
-
     print("\n" + "=" * 50)
     print(headline)
     print(detail)
@@ -50,9 +44,10 @@ def notify_order(event: OrderEvent, position_mgr):
     ):
        asyncio.run(play_sound())
 
-
+from infra.core.runtime import GlobalState,RunMode
 async def play_sound():
-    return
+    if GlobalState.mode != RunMode.LIVE:
+        return
     # This starts the process without stopping your whole program
     process = await asyncio.create_subprocess_exec("xdg-open", "data/tick.mp3")
     

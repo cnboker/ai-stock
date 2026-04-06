@@ -11,7 +11,8 @@ def get_advanced_score(stats, is_test=False):
     ret = stats.get("Strategy_Return", 0.0)  
     mdd = abs(stats.get("Max_Drawdown", 0.001)) # ETF回撤小，调低默认值
     alpha = stats.get("Alpha", 0.0)           
-
+    if trades == 0:
+        return -200
     # --- 1. 基础收益分 (强化版卡玛比率) ---
     # 针对 ETF 收益率低（如 0.3%）的特点，将系数从 5.0 提至 10.0
     # 这样即使是 0.5% 的小利，在低回撤下也能贡献显著正分
@@ -24,12 +25,12 @@ def get_advanced_score(stats, is_test=False):
 
     # --- 3. 活跃度与质量阶梯 ---
     # 验证集只要 1 次交易，训练集只要 5 次交易
-    threshold = 1 if is_test else 5  
+    threshold = 1 if is_test else 2  
     
     if trades < threshold: 
         # 🚨 引导梯度优化：增加 alpha 的引导权重
         # 即使没成交，如果模型预判的方向（Alpha）在变好，评分也该上升
-        return -50.0 + (trades * 10.0) + (alpha * 5.0)
+        return -100.0 + (trades * 10.0) + (alpha * 5.0)
 
     # --- 4. 稳定性奖励 (ETF 回撤惩罚) ---
     # 对于 ETF，15% 的回撤太宽松了，建议改为 8%

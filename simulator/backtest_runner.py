@@ -64,13 +64,14 @@ class BacktestRunner:
         """执行 2/8 验证逻辑：9天训练 + 4天验证"""
         # 提取当前 df_all 中的所有日期
         all_dates = pd.Series(self.df_all.index.date).unique().tolist()
-        
+        battle_days = 21
+        split_battle_days = 14
         # 确保我们只在最后 13 天进行回测，之前的日期全部留作 window 预热
-        battle_dates = all_dates[-13:] if len(all_dates) >= 13 else all_dates
+        battle_dates = all_dates[-battle_days:] if len(all_dates) >= battle_days else all_dates
         
         # 严格执行 9+4 分类
-        train_dates = battle_dates[:9]
-        test_dates = battle_dates[9:]
+        train_dates = battle_dates[:split_battle_days]
+        test_dates = battle_dates[split_battle_days:]
 
         # 打印调试信息，确认数据对齐
         print(f"--- 策略窗口(Window): {GlobalState.strategy_window} ---")
@@ -87,8 +88,7 @@ class BacktestRunner:
         self._reset_engine()
         start_price = None
         end_price = None
-        # 记录初始资金，用于后续计算
-        self.initial_capital = self.position_mgr.equity
+
         for trade_day in target_dates:
             self._simulate_day(trade_day)
             
@@ -108,36 +108,34 @@ class BacktestRunner:
         # 这里的 get_history 会自动利用 df_all 中的历史数据，即使是测试集第一天也能向上回溯
         df_today = self.full_pool_df[self.full_pool_df.index.date == trade_day]
         df_hs300_today = self.full_pool_hs300[self.full_pool_hs300.index.date == trade_day]
-        df_history_fixed = self.get_history(trade_day, self.full_pool_df)
+        df_history = self.get_history(trade_day, self.full_pool_df)
         hs300_history = self.get_history(trade_day, self.full_pool_hs300)
         #print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history_fixed)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
-            self.eq_recorder.add(self.position_mgr.equity)
             current_k = df_today.iloc[i]
             #提取行情时间撮
-            current_market_time = current_k.name
-            self.position_mgr.current_market_time = current_market_time
+            self.position_mgr.current_market_time = current_k.name
+
             df_slice = df_today.iloc[: i + 1]
-          
             hs300_slice = df_hs300_today.iloc[: i + 1]
-            ticker_df = pd.concat([df_history_fixed, df_slice])
+
+            ticker_df = pd.concat([df_history, df_slice])
             hs300_df = pd.concat([hs300_history,hs300_slice])   
-            # 强制只取最后 LOOKBACK_WINDOW 个点
-            ticker_df = pd.concat([df_history_fixed, df_slice]).iloc[-GlobalState.chronos_context_length:]
-            hs300_df = pd.concat([hs300_history, hs300_slice]).iloc[-GlobalState.chronos_context_length:]
+    
             execute_stock_decision(
                 ticker=self.ticker,
                 hs300_df = hs300_df,
                 ticker_df=ticker_df,
                 session=self.session,
             )
+            self.eq_recorder.add(self.position_mgr.equity)
 
     #它就返回过去LOOKBACK_WINDOW个单位（天或分钟）的数据
     def get_history(self, trade_day, df_pool):
         trade_day = pd.to_datetime(trade_day)
         #找到当天的开盘第一分钟（如果是分钟级数据）或当天的时间点
         today_start_ts = df_pool[df_pool.index.date == trade_day.date()].index[0]
-        return df_pool[df_pool.index < today_start_ts].tail(GlobalState.chronos_context_length)
+        return df_pool[df_pool.index < today_start_ts]
 
     def _report(self, start_price, end_price):
         equity = np.array(self.equity_curve)

@@ -2,69 +2,55 @@
     "ticker": "sz300497",
     "category": "STOCK",
     "best_params": {
-        "strength_alpha": 36,
+        "window": 160,
+        "strength_alpha": 10,
         "confirm_n": 1,
-        "atr_mult": 4.097976583794721,
-        "model_th": 0.5277942053440069,
-        "atr_stop": 5.461360187254341,
-        "risk": 0.011337292983759848,
-        "kelly": 0.1420243324207822,
-        "slope": 0.013738565692601602,
-        "max_stop": 0.1338539619580304,
-        "slope_min": 0.0017087540417239395,
-        "predict_up": -0.03470263721508739,
-        "tp1": 1.1164681982611004,
-        "tp2": 1.203335299139815,
-        "init_pt": 0.0475761391861503,
-        "min_stop": 0.024749312537280577
+        "atr_mult": 4.794926635697795,
+        "model_th": 0.4958169334840198,
+        "atr_stop": 5.721967915874393,
+        "risk": 0.013405601990412994,
+        "kelly": 0.11781652124106627,
+        "slope": 0.010571721109605739,
+        "max_stop": 0.10656677947941431,
+        "slope_min": 0.004978796463520788,
+        "predict_up": -0.034829490764197724,
+        "tp1": 1.090400645748945,
+        "tp2": 1.2578117118555439,
+        "init_pt": 0.025185684280212173,
+        "min_stop": 0.020646865364929115
     },
     "intercept_stats": {
         "ticker": "sz300497",
-        "status": "HEALTHY",
-        "success_count": 4,
-        "total_scans": 25,
+        "status": "ANEMIC",
+        "success_count": 0,
+        "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 36,
-            "slope_filter": 157,
+            "model_confidence": 8,
+            "slope_filter": 96,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 3,
+            "zero_strength_ghost": 0,
             "other_error": 0
         },
         "current_config": {
-            "strength_alpha": 36,
+            "window": 160,
+            "strength_alpha": 10,
             "confirm_n": 1,
-            "atr_mult": 4.097976583794721,
-            "model_th": 0.5277942053440069,
-            "atr_stop": 5.461360187254341,
-            "risk": 0.011337292983759848,
-            "kelly": 0.1420243324207822,
-            "slope": 0.013738565692601602,
-            "max_stop": 0.1338539619580304,
-            "slope_min": 0.0017087540417239395,
-            "predict_up": -0.03470263721508739,
-            "tp1": 1.1164681982611004,
-            "tp2": 1.203335299139815,
-            "init_pt": 0.0475761391861503,
-            "min_stop": 0.024749312537280577
+            "atr_mult": 4.794926635697795,
+            "model_th": 0.4958169334840198,
+            "atr_stop": 5.721967915874393,
+            "risk": 0.013405601990412994,
+            "kelly": 0.11781652124106627,
+            "slope": 0.010571721109605739,
+            "max_stop": 0.10656677947941431,
+            "slope_min": 0.004978796463520788,
+            "predict_up": -0.034829490764197724,
+            "tp1": 1.090400645748945,
+            "tp2": 1.2578117118555439,
+            "init_pt": 0.025185684280212173,
+            "min_stop": 0.020646865364929115
         },
-        "sample_details": [
-            {
-                "day": "2026-03-03 10:00:00",
-                "slope": 0.0040044684754443295,
-                "strength": 0.049587431768360425
-            },
-            {
-                "day": "2026-03-03 10:30:00",
-                "slope": 0.005852545421159322,
-                "strength": 0.08950589379580424
-            },
-            {
-                "day": "2026-03-03 11:00:00",
-                "slope": 0.002232982071837938,
-                "strength": 0.01132332545046237
-            }
-        ],
-        "success_rate": "16.0%"
+        "sample_details": [],
+        "success_rate": "0.0%"
     },
     "search_space": {
         "strength_alpha": {
@@ -147,8 +133,8 @@
         "atr_mult": 4.5
     },
     "_META": {
-        "last_optimized": "2026-04-05 20:01:58",
-        "best_value": -167.80915,
-        "status": "ACTIVE"
+        "last_optimized": "2026-04-06 20:37:27",
+        "best_value": -123.58345,
+        "status": "SIGNAL_BLOCKED"
     }
 }

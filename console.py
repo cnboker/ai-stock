@@ -17,7 +17,7 @@ from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
 from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC
 from predict.time_utils import is_market_break
-from data.loader import load_index_df, load_stock_df
+from data.loader import GlobalState, load_index_df, load_stock_df
 from trade.trade_engine import execute_stock_decision
 from typing import List, Tuple
 from infra.core.config_manager import dynamic_config_manager
@@ -79,6 +79,7 @@ def run_trade_cycle():
                 # 2. 假设我们要为创业板 ETF 开启交易
                 # 它会寻找 sz159908.json -> category_ETF.json -> default
                 final_config = dynamic_config_manager.load_params(ticker)
+                GlobalState.chronos_context_length = final_config.WINDOW
                 #print(f'current_params={final_config}')
                 best_value = final_config.get("_META", {}).get("best_value", 0) 
                 print(f"🔍 [Config] {ticker} best_value={best_value}")
