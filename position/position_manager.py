@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from infra.core.runtime import RunMode
+from infra.core.runtime import RunMode, GlobalState
 from infra.notify.order import OrderEvent, notify_order
 from position import position
 from position.position import Position
@@ -17,11 +17,10 @@ class PositionManager:
     3. 执行明确动作（OPEN / ADD / REDUCE / CLOSE / SHORT）
     """
 
-    def __init__(self, init_cash: float = 0.0, run_mode: RunMode = RunMode.LIVE):
+    def __init__(self, init_cash: float = 0.0):
         # ===== 资金 =====
         self.cash: float = init_cash
         self.frozen_cash: float = 0.0
-        self.run_mode: RunMode = run_mode
         self.account_name: str = ""
         self.max_occupied = 0.0  # 回测时统计最大占用率
         # ===== 仓位 =====
@@ -554,7 +553,7 @@ class PositionManager:
                 "price": price,
                 "value": value,
                 "reason": reason,
-                "run_mode": self.run_mode,
+                "run_mode": GlobalState.mode,
             }
         )
 

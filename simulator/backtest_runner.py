@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-from infra.core.runtime import RunMode
+from infra.core.runtime import GlobalState, RunMode
 from infra.core.trade_session import TradingSession
 from infra.utils.time_profile import timer_decorator
 from position.position_factory import create_position_manager
@@ -12,9 +12,11 @@ from data.loader import load_stock_df, load_index_df
 from predict.chronos_predict import run_prediction
 from trade.trade_engine import execute_stock_decision
 from config.settings import LOOKBACK_WINDOW
-
+from infra.core.runtime import GlobalState, RunMode
 class BacktestRunner:
     def __init__(self, ticker, period, total_limit=760):
+         
+        GlobalState.mode = RunMode.BACKTEST
         self.ticker = ticker
         self.period = period
         # 多加载一点数据，为第一天提供 Chronos 的 LOOKBACK 背景
@@ -44,7 +46,6 @@ class BacktestRunner:
         eq_decision = equity_engine.decide(eq_feat, self.position_mgr.has_any_position())
         
         self.session = TradingSession(
-            run_mode=RunMode.SIM,
             position_mgr=self.position_mgr,
             eq_recorder=self.eq_recorder,
             period=self.period,

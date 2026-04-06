@@ -2,9 +2,8 @@ import shutil
 import numpy as np
 import yaml
 import hashlib
-from datetime import datetime
 from pathlib import Path
-from infra.core.runtime import RunMode
+from infra.core.runtime import RunMode, GlobalState
 LIVE_FILE = Path("state/live_positions.yaml")
 SIM_FILE = Path("state/sim_positions.yaml")
 BACKUP_DIR = Path("state/backup")
@@ -52,15 +51,8 @@ def persist_live_positions(position_mgr):
 
     _last_hash = new_hash
 
-    file = LIVE_FILE if position_mgr.run_mode == RunMode.LIVE else SIM_FILE
+    file = LIVE_FILE if GlobalState.mode == RunMode.LIVE else SIM_FILE
 
-    # ===== 1. 备份旧版本 =====
-    # if file.exists() and position_mgr.run_mode == RunMode.LIVE:
-    #     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    #     backup_file = BACKUP_DIR / f"live_positions_{ts}.yaml"
-    #     shutil.copy2(file, backup_file)
-
-    # ===== 2. 原子写入 =====
     tmp_file = file.with_suffix(".tmp")
 
     with open(tmp_file, "w", encoding="utf8") as f:

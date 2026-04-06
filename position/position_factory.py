@@ -6,7 +6,6 @@ from position.position_manager import PositionManager
 
 def create_position_manager(
     init_cash:0,
-    run_mode: RunMode
 ) -> PositionManager:
     """
     创建独立的 PositionManager 实例
@@ -14,7 +13,7 @@ def create_position_manager(
     - 不复用任何全局状态
     """
 
-    pm = PositionManager(init_cash=init_cash,run_mode=run_mode.value)    
+    pm = PositionManager(init_cash=init_cash)    
     pm.clear()
 
     return pm

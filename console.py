@@ -65,7 +65,6 @@ def run_trade_cycle():
 
         # 4. 初始化交易会话上下文
         session = TradingSession(
-            run_mode=RunMode.LIVE,
             period=period,
             hs300_df=hs300_df,
             eq_feat=eq_feat,
@@ -116,7 +115,8 @@ def run_trade_cycle():
 def main_loop():
     """主程序循环"""
     print("🚀 Chronos 后台引擎启动中...")
-   
+    from infra.core.runtime import GlobalState
+    GlobalState.mode = RunMode.LIVE
     pos_loader = LivePositionLoader("state/live_positions.yaml", position_mgr)
     pos_loader.sync()
     watchlist_loader.live_watchlist_hot_load(position_mgr)

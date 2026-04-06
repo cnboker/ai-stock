@@ -104,7 +104,6 @@ def update_graph(_):
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
 
     session = TradingSession(
-        run_mode=RunMode.LIVE,
         period=str(period),
         hs300_df=hs300_df,
         eq_feat=eq_feat,

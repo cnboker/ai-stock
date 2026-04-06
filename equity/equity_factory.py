@@ -1,13 +1,12 @@
 from equity.equity_recorder import EquityRecorder
-from infra.core.runtime import RunMode
+from infra.core.runtime import GlobalState, RunMode
 import os
 
 def create_equity_recorder(
-    run_mode: RunMode,
     ticker: str | None = None,
     trade_date: str | None = None
 ):
-    if run_mode == RunMode.LIVE:
+    if GlobalState.mode == RunMode.LIVE:
         path = "data/live/equity.csv"
     else:
         path = f"data/sim/equity.csv"

@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 import numpy as np
 from numpy import ndarray
-from infra.core.runtime import RunMode
 from pandas import DataFrame
 from position.position_manager import PositionManager
 from equity.equity_recorder import EquityRecorder
@@ -11,7 +10,6 @@ from strategy.trade_intent import TradeIntent
 
 @dataclass
 class TradingSession:
-    run_mode: RunMode
     period: str
     hs300_df: DataFrame   
 

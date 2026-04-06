@@ -24,7 +24,6 @@ def init_session(period=TICKER_PERIOD):
         eq_feat = equity_features(eq_recorder.to_series())
         tradeIntent = equity_engine.decide(eq_feat,position_mgr.has_any_position())
         session = TradingSession(
-            run_mode=RunMode.BACKTEST,
             period=str(period),
             hs300_df=hs300_df,
             eq_feat=eq_feat,
