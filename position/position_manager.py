@@ -118,7 +118,7 @@ class PositionManager:
         # 增加对 price 的有效性检查
         if not position or atr is None or price is None:
             return
-        if position.highest_price is None or position.stop_loss is None:
+        if position.highest_price is None :
             print(f"\n[DEBUG] 捕获到 NoneType 污染!")
             print(f"Ticker: {ticker}")
             print(f"Position Object: {position.__dict__}") # 打印对象所有属性

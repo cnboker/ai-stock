@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 import httpx
 from http.client import HTTPException
-
+import re
 
 # 2. 调用批量接口 (假设你已经定义了该异步函数)
 # 注意：这里返回的是我们之前定义的 List[MarketDepth]
@@ -15,7 +15,6 @@ async def fetch_prices_as_dict(symbols: str):
     return parse_xueqiu_batch_to_dict(batch_data)
    
    
-
 def parse_xueqiu_batch_to_dict(raw_json: Dict[str, Any]) -> Dict[str, float]:
     """
     将雪球批量接口返回的原始 JSON 转换为 {ticker: current_price} 字典
@@ -42,15 +41,21 @@ def parse_xueqiu_batch_to_dict(raw_json: Dict[str, Any]) -> Dict[str, float]:
             
     return price_map
 
+xueqiu_token = None
+
 #批量获取当前价格
 async def get_batch_quotes(symbols: str):
     """
     symbols 格式: "SH600096,SZ000001"
     """
+    global xueqiu_token
     # 雪球需要相关的 Cookie (xq_a_token)，建议从环境变量获取
+    if xueqiu_token is None:
+        xueqiu_token = await refresh_xueqiu_token()
+
     headers = {
         "User-Agent": "Mozilla/5.0",
-        "Cookie": "xq_a_token=c9d37c71ae91b784fb5573fef5ef372d4ba77e5a" 
+        "Cookie": f"xq_a_token={xueqiu_token}" 
     }
     
     url = f"https://stock.xueqiu.com/v5/stock/batch/quote.json?symbol={symbols}"
@@ -124,3 +129,33 @@ def parse_xueqiu_item(quote: dict) -> MarketDepth:
         diff=float(quote.get("diff") or 0.0),
         ratio=float(quote.get("ratio") or 0.0)
     )
+
+
+
+async def refresh_xueqiu_token():
+    """
+    自动访问雪球首页并获取最新的 xq_a_token
+    """
+    url = "https://xueqiu.com/about"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    }
+
+    async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
+        try:
+            response = await client.get(url, timeout=10.0)
+            # 从响应的 cookies 中提取 xq_a_token
+            token = response.cookies.get("xq_a_token")
+            
+            if token:
+                print(f"✅ 成功自动获取雪球 Token: {token[:10]}...")
+                return token
+            else:
+                print("❌ 未能从响应中提取到 xq_a_token")
+                return None
+          
+        except Exception as e:
+            print(f"❌ 获取雪球 Token 失败: {e}")
+            return None
+        
