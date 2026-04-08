@@ -114,6 +114,7 @@ class PositionManager:
     #移动止损核心函数
     def update_trailing_stop(self, ticker, price, atr):
         position = self.positions.get(ticker)
+        #print(f"position={position}")
         # 增加对 price 的有效性检查
         if not position or atr is None or price is None:
             return

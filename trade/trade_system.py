@@ -24,7 +24,6 @@ class TradingSystem:
             low=pre_result.low,
             median=pre_result.median,
             high=pre_result.high,
-            latest_price=GlobalState.tickers_price[ticker],
             atr=pre_result.atr,
             model_score=pre_result.model_score,
             close_df=close_df,

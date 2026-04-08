@@ -1,4 +1,5 @@
 import numpy as np
+from infra.core.runtime import GlobalState
 from strategy.calc_predicted_up import calc
 from strategy.decision_context import DecisionContext
 from strategy.slope import compute_slope
@@ -46,13 +47,12 @@ class DecisionContextBuilder:
         low,
         median,
         high,
-        latest_price: float,
         atr: float,
         model_score: float,
         close_df,
         eq_decision: TradeIntent,  # 外部 EquityRiskEngine 传入
     ) -> DecisionContext:
-
+        latest_price=GlobalState.tickers_price[ticker]
         # 1. 结构筛选 (Gater)
         gate_result = self.gater.evaluate(
             lower=low, mid=median, upper=high, close_df=close_df.values

@@ -109,7 +109,7 @@ async def run_trade_cycle():
 
             except Exception as e:
                 print(f"❌ [Error] {ticker} 分析失败: {e}")
-                # traceback.print_exc() # 实盘时建议只记日志，不刷屏
+                traceback.print_exc() # 实盘时建议只记日志，不刷屏
 
         print(f"🏁 [Cycle End] 处理标的总数: {len(task_queue)}")
 
