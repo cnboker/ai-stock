@@ -1,0 +1,146 @@
+{
+    "ticker": "sh515260",
+    "category": "ETF",
+    "best_params": {
+        "window": 32,
+        "model_th": 0.43487882831764485,
+        "slope": -0.00217348184192528,
+        "slope_min": 0.0001042345590419949,
+        "predict_up": 0.004303793494858021,
+        "init_pt": 0.007090950652758412,
+        "trend_pt": 0.0551318143694879,
+        "tp1": 1.0257249745290546,
+        "tp2": 1.1377230584186866,
+        "kelly": 0.39256355360561784,
+        "risk": 0.005032569393996263,
+        "atr_stop": 2.336563616385443,
+        "max_stop": 0.03282690614052663,
+        "min_stop": 0.006445107222830408,
+        "strength_alpha": 1.2675390040772063,
+        "confirm_n": 1,
+        "atr_mult": 3.9418161472975046
+    },
+    "intercept_stats": {
+        "ticker": "sh515260",
+        "status": "ANEMIC",
+        "success_count": 0,
+        "total_scans": 13,
+        "intercept_report": {
+            "model_confidence": 25,
+            "slope_filter": 25,
+            "predict_up_filter": 46,
+            "zero_strength_ghost": 8,
+            "other_error": 0
+        },
+        "current_config": {
+            "window": 32,
+            "model_th": 0.43487882831764485,
+            "slope": -0.00217348184192528,
+            "slope_min": 0.0001042345590419949,
+            "predict_up": 0.004303793494858021,
+            "init_pt": 0.007090950652758412,
+            "trend_pt": 0.0551318143694879,
+            "tp1": 1.0257249745290546,
+            "tp2": 1.1377230584186866,
+            "kelly": 0.39256355360561784,
+            "risk": 0.005032569393996263,
+            "atr_stop": 2.336563616385443,
+            "max_stop": 0.03282690614052663,
+            "min_stop": 0.006445107222830408,
+            "strength_alpha": 1.2675390040772063,
+            "confirm_n": 1,
+            "atr_mult": 3.9418161472975046
+        },
+        "sample_details": [],
+        "success_rate": "0.0%"
+    },
+    "search_space": {
+        "model_th": {
+            "low": 0.35,
+            "high": 0.45
+        },
+        "slope": {
+            "low": -0.005,
+            "high": 0.005
+        },
+        "slope_min": {
+            "low": 0.0,
+            "high": 0.0005
+        },
+        "predict_up": {
+            "low": -0.005,
+            "high": 0.005
+        },
+        "init_pt": {
+            "low": 0.005,
+            "high": 0.02
+        },
+        "trend_pt": {
+            "low": 0.01,
+            "high": 0.1
+        },
+        "tp1": {
+            "low": 1.01,
+            "high": 1.03
+        },
+        "tp2": {
+            "low": 1.05,
+            "high": 1.15
+        },
+        "kelly": {
+            "low": 0.2,
+            "high": 0.6
+        },
+        "risk": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "atr_stop": {
+            "low": 1.5,
+            "high": 2.5
+        },
+        "max_stop": {
+            "low": 0.02,
+            "high": 0.05
+        },
+        "min_stop": {
+            "low": 0.005,
+            "high": 0.01
+        },
+        "strength_alpha": {
+            "low": 1.2,
+            "high": 1.5
+        },
+        "confirm_n": {
+            "low": 1,
+            "high": 1
+        },
+        "atr_mult": {
+            "low": 2.5,
+            "high": 4.5
+        }
+    },
+    "initial_trial": {
+        "model_th": 0.38,
+        "slope": 0.0005,
+        "slope_min": 0.0001,
+        "predict_up": 0.0,
+        "init_pt": 0.01,
+        "trend_stage": 0.05,
+        "tp1": 1.02,
+        "tp2": 1.08,
+        "kelly": 0.5,
+        "risk": 0.008,
+        "atr_stop": 2.0,
+        "max_stop": 0.03,
+        "min_stop": 0.005,
+        "strength_alpha": 1.2,
+        "confirm_n": 1,
+        "atr_mult": 2.5
+    },
+    "_META": {
+        "last_optimized": "2026-04-08 09:06:40",
+        "best_value": -16.46175,
+        "status": "SIGNAL_BLOCKED"
+    }
+}

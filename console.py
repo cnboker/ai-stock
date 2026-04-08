@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import os
 import time
@@ -21,6 +22,7 @@ from data.loader import GlobalState, load_index_df, load_stock_df
 from trade.trade_engine import execute_stock_decision
 from typing import List, Tuple
 from infra.core.config_manager import dynamic_config_manager
+from data.xueqiu_api import fetch_prices_as_dict
 # 环境变量与警告忽略
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
@@ -34,7 +36,7 @@ sync_account_and_watchlist()
 position_mgr = create_position_manager(0)
 eq_recorder = create_equity_recorder()
 
-def run_trade_cycle():
+async def run_trade_cycle():
    
     # 打印周期开始时间（建议使用更简洁的格式）
     now_str = time.strftime('%H:%M:%S')
@@ -58,6 +60,10 @@ def run_trade_cycle():
             # 获取当前资金状态
             has_pos = position_mgr.has_any_position()
 
+        tickers = [item[0] for item in task_queue]
+        symbols_str = ",".join(tickers)
+        symbols_price = await fetch_prices_as_dict(symbols_str)
+        GlobalState.tickers_price = symbols_price
         # 3. 更新 Equity 决策引擎
         eq_feat = equity_features(eq_recorder.to_series())
         eq_decision = equity_engine.decide(eq_feat, has_pos)
@@ -79,13 +85,13 @@ def run_trade_cycle():
                 # 2. 假设我们要为创业板 ETF 开启交易
                 # 它会寻找 sz159908.json -> category_ETF.json -> default
                 final_config = dynamic_config_manager.load_params(ticker)
-                GlobalState.chronos_context_length = final_config.WINDOW
+                GlobalState.chronos_context_length = final_config.get("WINDOW",128)
                 #print(f'current_params={final_config}')
                 best_value = final_config.get("_META", {}).get("best_value", 0) 
                 print(f"🔍 [Config] {ticker} best_value={best_value}")
-                if best_value < 0:
-                    print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
-                    continue
+                # if best_value < 0:
+                #     print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
+                #     continue
                 # 加载数据 (如果这里慢，考虑增加多线程读取)
                 df = load_stock_df(ticker, session.period)
                 if df is None or df.empty:
@@ -112,7 +118,7 @@ def run_trade_cycle():
         traceback.print_exc()
 
 
-def main_loop():
+async def main_loop():
     """主程序循环"""
     print("🚀 Chronos 后台引擎启动中...")
     from infra.core.runtime import GlobalState
@@ -125,7 +131,7 @@ def main_loop():
     try:
         while True:
             start_time = time.time()
-            run_trade_cycle()
+            await run_trade_cycle()
 
             # 计算补偿时间，确保循环间隔准确
             elapsed = time.time() - start_time
@@ -138,4 +144,4 @@ def main_loop():
 
 
 if __name__ == "__main__":
-    main_loop()
+    asyncio.run(main_loop())

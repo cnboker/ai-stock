@@ -15,3 +15,4 @@ class GlobalState:
     chronos_context_length:int = 20
     #回测窗口
     strategy_window:int = 20
+    tickers_price:dict

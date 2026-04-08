@@ -1,0 +1,25 @@
+{
+    "_META": {
+        "ticker": "sh515260",
+        "best_value": -16.4617,
+        "date": "2026-04-08 09:06"
+    },
+    "MODEL_TH": 0.4349,
+    "SLOPE": -0.0022,
+    "PREDICT_UP": 0.0043,
+    "INIT_PT": 0.0071,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.9418,
+    "TP1": 1.0257,
+    "TP2": 1.1377,
+    "KELLY": 0.3926,
+    "RISK": 0.005,
+    "ATR_STOP": 2.3366,
+    "MAX_STOP": 0.0328,
+    "MIN_STOP": 0.0064,
+    "STRENGTH_ALPHA": 1.2675,
+    "SLOPE_MIN": 0.0001,
+    "CONFIRM_N": 1,
+    "WINDOW": 32,
+    "TREND_PT": 0.0551
+}

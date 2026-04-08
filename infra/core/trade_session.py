@@ -15,7 +15,9 @@ class TradingSession:
 
     position_mgr: PositionManager
     eq_recorder: EquityRecorder
+    
     eq_feat: Optional[DataFrame] = field(default=None)
     tradeIntent:Optional[TradeIntent] = field(default=None)
     prices_today: ndarray = field(default_factory=lambda: np.empty(0))
+
    

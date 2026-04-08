@@ -10,4 +10,3 @@ class PredictionResult:
     high: Union[float, pd.Series]
     model_score: float
     atr:float
-    price: float

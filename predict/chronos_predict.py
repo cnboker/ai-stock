@@ -102,7 +102,7 @@ def run_prediction(
             context=context,
         )
 
-    latest_price = df["close"].iloc[-1]
+    latest_price = GlobalState.tickers_price[ticker]
     atr = calc_atr(df)
     model_score = model_score_from_quantiles_trend(
         low=low, median=median, high=high, latest_price=latest_price, atr=atr
@@ -114,7 +114,6 @@ def run_prediction(
         high=high,
         model_score=model_score,
         atr=atr,
-        price=latest_price,
     )
     # return low, median, high, model_score
 

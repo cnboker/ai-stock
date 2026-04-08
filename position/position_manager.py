@@ -209,7 +209,7 @@ class PositionManager:
     def update_price(self, symbol: str, price: float):
         self.price_cache[symbol] = price
 
-    def _require_price(self, symbol: str) -> float:
+    def get_price(self, symbol: str) -> float:
         price = self.price_cache.get(symbol)
         if price is None:
             raise RuntimeError(f"No price for {symbol}")

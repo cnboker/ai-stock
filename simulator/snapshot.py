@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from strategy.decision_context import DecisionContext
 from strategy.gate import gater
 import matplotlib.dates as mdates
+from infra.core.runtime import GlobalState
 @dataclass
 class DecisionSnapshot:
     timestamp: str
@@ -60,7 +61,7 @@ def prediction_to_csv(ticker,period, pre_result,close_df, decision:dict):
     high = pre_result.high
     model_score = pre_result.model_score
     atr = pre_result.atr
-    price = pre_result.price
+    price = GlobalState.tickers_price[ticker]
 
     gate_result = gater.evaluate(
             lower=low,

@@ -65,7 +65,7 @@ class DiagnosticScanner:
                    
                     conf = pre_result.model_score
                     median_prices = pre_result.median
-                    current_price = pre_result.price
+                    current_price = GlobalState.tickers_price[ticker]
                     up_pct = (median_prices[0] - current_price) / current_price
                     slope = (
                         (median_prices[-1] - median_prices[0])

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from infra.core.runtime import GlobalState
 from log import signal_log
 from infra.core.dynamic_settings import settings
 
@@ -7,7 +8,7 @@ from infra.core.dynamic_settings import settings
 class TradePlan:
     allow_trade: bool
     reason: str = ""
-    # 股数
+    # 手数
     size: int = 0
     stop_loss: float = 0.0
 
@@ -22,7 +23,6 @@ class RiskManager:
     def evaluate(
         self,
         ticker: str,
-        last_price: float,
         chronos_low: float,
         chronos_high: float,
         atr: float,
@@ -31,6 +31,7 @@ class RiskManager:
     ) -> TradePlan:
 
         try:
+            last_price = GlobalState.tickers_price[ticker]
             if ticker in position_mgr.cooldown:
                 return TradePlan(allow_trade=False, reason="COOLDOWN")
             if atr <= 0:
@@ -79,22 +80,23 @@ class RiskManager:
 
             # 4. 修正 A 股手数逻辑：这里的 size 应该是股数，不是手数！
             # 如果你的下游执行函数需要的是“股数”，这里必须乘回 100
-            actual_lots = allowed_shares // self.lot_size
-          
-            if allowed_shares < 100 and available_cash > (last_price * 80):
-                # 如果预算不足以买一手，但又不是完全没钱了，允许买入少于一手的股数（比如 50 股）
-                actual_lots = 1
-            # signal_log(
-            #     f"price={last_price}, max_shares={max_shares}, risk_shares={risk_shares}, "
-            #     f"lots={actual_lots}, final_shares={final_shares}, stop_loss={stop_loss}"
-            # )
+            theoretical_lots = allowed_shares // self.lot_size
 
-            if actual_lots <= 0:
-                return TradePlan(False, "持仓过大，风控导致资金不足以购买一手(100股)")
+            # 【新增：保底判断】
+            if theoretical_lots <= 0:
+                cost_one_lot = last_price * 100
+                # 如果钱够买 100 股，且风险只超出了一点点（风险金的 1.5 倍以内）
+                if available_cash >= cost_one_lot and (risk_per_share * 100) <= (risk_cash * 1.5):
+                    theoretical_lots = 1  # 强行给 1 手，不让它因为微小的风控溢出而报错
+
+            #final_shares = theoretical_lots * 100 # 换算回股数
+
+            # if actual_lots <= 0:
+            #     return TradePlan(False, "持仓过大，风控导致资金不足以购买一手(100股)")
 
             return TradePlan(
                 True,
-                size=actual_lots,  # <--- 注意：这里传回 final_shares (股数)
+                size=theoretical_lots,  # <--- 注意：这里传回 (手数)
                 stop_loss=round(stop_loss, 2),
             )
         except Exception:

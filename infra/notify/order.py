@@ -42,7 +42,13 @@ def notify_order(event: OrderEvent, position_mgr):
         and event.status == "FILLED"
         and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
     ):
-       asyncio.run(play_sound())
+       # 修正点：不要用 asyncio.run，而是获取当前的 loop 并创建任务
+        try:
+            loop = asyncio.get_running_loop()
+            loop.create_task(play_sound())
+        except RuntimeError:
+            # 如果当前没有运行的 loop（比如在某些测试环境），则回退处理
+            pass
 
 from infra.core.runtime import GlobalState,RunMode
 async def play_sound():

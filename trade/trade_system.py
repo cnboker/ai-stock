@@ -1,3 +1,4 @@
+from infra.core.runtime import GlobalState
 from infra.core.trade_session import TradingSession
 from infra.persistence.live_positions import persist_live_positions
 from log import signal_log
@@ -23,7 +24,7 @@ class TradingSystem:
             low=pre_result.low,
             median=pre_result.median,
             high=pre_result.high,
-            latest_price=pre_result.price,
+            latest_price=GlobalState.tickers_price[ticker],
             atr=pre_result.atr,
             model_score=pre_result.model_score,
             close_df=close_df,
@@ -57,8 +58,9 @@ class TradingSystem:
             
             self.stablizer.reset(ticker=ticker)
             # 0. 增加【单一标的持仓上限】硬约束 (例如单标的不得超过总资产 30%)
+            price = GlobalState.tickers_price[ticker]
             MAX_TICKER_WEIGHT = 0.15 
-            current_weight = self.position_mgr.get_ticker_value(ticker,pre_result.price) / self.position_mgr.equity
+            current_weight = self.position_mgr.get_ticker_value(ticker,price) / self.position_mgr.equity
             
             if current_weight >= MAX_TICKER_WEIGHT:
                 # 已经买够了，不再加仓，改为 HOLD
@@ -79,7 +81,6 @@ class TradingSystem:
             # B. 算股数 (考虑了止损距离、盈亏比和 A股一手限制)
             plan = self.risk_mgr.evaluate(
                 ticker=ticker,
-                last_price=ctx.latest_price,
                 chronos_low=float(pre_result.low[-1]),
                 chronos_high=float(pre_result.high[-1]),
                 atr=ctx.atr,
@@ -92,7 +93,6 @@ class TradingSystem:
             decision=intent,
             position_mgr=self.position_mgr,
             ticker=ticker,
-            last_price=ctx.latest_price,
             plan=plan,
         )
 

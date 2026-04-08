@@ -91,7 +91,8 @@ def execute_stock_decision(
     #print(f"pre_result={pre_result}")
     position_mgr = session.position_mgr
     # ===== 1️⃣ 最新价格 =====
-    price = float(ticker_df["close"].iloc[-1])
+    #price = float(ticker_df["close"].iloc[-1])
+    price = GlobalState.tickers_price[ticker]
     position_mgr.update_price(ticker, price)
 
     # ===== 2️⃣ 模型预测 + 信号处理 =====

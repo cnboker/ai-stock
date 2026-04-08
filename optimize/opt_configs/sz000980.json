@@ -2,7 +2,7 @@
     "ticker": "sz000980",
     "category": "STOCK",
     "best_params": {
-        "window": 72,
+        "window": 64,
         "strength_alpha": 80,
         "confirm_n": 1,
         "atr_mult": 3.5,
@@ -21,17 +21,17 @@
     "intercept_stats": {
         "ticker": "sz000980",
         "status": "HEALTHY",
-        "success_count": 52,
+        "success_count": 28,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 10,
-            "slope_filter": 30,
+            "model_confidence": 3,
+            "slope_filter": 58,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 12,
+            "zero_strength_ghost": 15,
             "other_error": 0
         },
         "current_config": {
-            "window": 72,
+            "window": 64,
             "strength_alpha": 80,
             "confirm_n": 1,
             "atr_mult": 3.5,
@@ -49,22 +49,22 @@
         },
         "sample_details": [
             {
-                "day": "2026-03-18 10:00:00",
-                "slope": 0.000606606298722184,
-                "strength": 0.024317102338664832
+                "day": "2026-03-19 10:00:00",
+                "slope": 0.0007663155824326686,
+                "strength": 0.031983147956768085
             },
             {
-                "day": "2026-03-18 10:30:00",
-                "slope": 0.0015056588978485297,
-                "strength": 0.06747162709672942
+                "day": "2026-03-19 10:30:00",
+                "slope": 0.0016471744268475208,
+                "strength": 0.074264372488681
             },
             {
-                "day": "2026-03-18 11:00:00",
-                "slope": 0.0012285159363483007,
-                "strength": 0.05416876494471843
+                "day": "2026-03-19 11:00:00",
+                "slope": 0.001610272139420404,
+                "strength": 0.0724930626921794
             }
         ],
-        "success_rate": "400.0%"
+        "success_rate": "215.4%"
     },
     "search_space": {
         "strength_alpha": {
@@ -143,8 +143,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-06 21:04:16",
-        "best_value": -200.0,
+        "last_optimized": "2026-04-07 12:29:09",
+        "best_value": -31.2473,
         "status": "ACTIVE"
     }
 }

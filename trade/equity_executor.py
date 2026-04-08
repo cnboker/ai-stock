@@ -1,4 +1,5 @@
 import pandas as pd
+from infra.core.runtime import GlobalState
 from log import signal_log
 from risk.risk_manager import TradePlan
 from strategy.trade_intent import TradeIntent
@@ -19,7 +20,6 @@ def execute_equity_action(
     decision: TradeIntent,
     position_mgr,
     ticker: str,
-    last_price: float,
     plan: TradePlan = None,
 ):
     """
@@ -29,7 +29,7 @@ def execute_equity_action(
     """
    # signal_log(f"CHECK: Available Cash={position_mgr.available_cash}, Order Value={last_price * plan.size }")
     final_action = "HOLD"
-
+    last_price = GlobalState.tickers_price[ticker]
     # ====================
     # 1️⃣ 强制清仓
     # ====================
