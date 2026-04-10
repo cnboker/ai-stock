@@ -22,7 +22,7 @@ from data.loader import GlobalState, load_index_df, load_stock_df
 from trade.trade_engine import execute_stock_decision
 from typing import List, Tuple
 from infra.core.config_manager import dynamic_config_manager
-from data.xueqiu_api import fetch_prices_as_dict
+from data.tencent_api import StockProvider
 # 环境变量与警告忽略
 os.environ["PYTORCH_ALLOC_CONF"] = "expandable_segments:True"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
@@ -35,6 +35,7 @@ warnings.filterwarnings(
 sync_account_and_watchlist()
 position_mgr = create_position_manager(0)
 eq_recorder = create_equity_recorder()
+stock_provider = StockProvider()
 
 async def run_trade_cycle():
    
@@ -61,8 +62,10 @@ async def run_trade_cycle():
             has_pos = position_mgr.has_any_position()
 
         tickers = [item[0] for item in task_queue]
-        symbols_str = ",".join(tickers)
-        symbols_price = await fetch_prices_as_dict(symbols_str)
+        symbols_price = await stock_provider.get_price_map(tickers)
+        
+
+
         GlobalState.tickers_price = symbols_price
         # 3. 更新 Equity 决策引擎
         eq_feat = equity_features(eq_recorder.to_series())
@@ -81,7 +84,7 @@ async def run_trade_cycle():
         # 5. 遍历任务队列 (统一逻辑)
         for ticker, pos_obj in task_queue:
             try:
-               
+                print(f"ticker={ticker},price={symbols_price[ticker]}")
                 # 2. 假设我们要为创业板 ETF 开启交易
                 # 它会寻找 sz159908.json -> category_ETF.json -> default
                 final_config = dynamic_config_manager.load_params(ticker)

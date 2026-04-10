@@ -86,6 +86,7 @@ def execute_equity_action(
                     strength=decision.confidence * decision.gate_mult,
                     price=last_price,
                     reason=decision.reason,
+                    stop_loss=plan.stop_loss
                 )
             final_action = "LONG"
 

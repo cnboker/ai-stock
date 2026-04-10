@@ -1,10 +1,8 @@
 
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from pydantic import BaseModel, Field
 import httpx
-from http.client import HTTPException
-import re
 
 # 2. 调用批量接口 (假设你已经定义了该异步函数)
 # 注意：这里返回的是我们之前定义的 List[MarketDepth]
@@ -60,7 +58,7 @@ async def get_batch_quotes(symbols: str):
     
     url = f"https://stock.xueqiu.com/v5/stock/batch/quote.json?symbol={symbols}"
     print(f"url={url}")
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(trust_env=False) as client:
         try:
             response = await client.get(url, headers=headers, timeout=10.0)
             
@@ -142,7 +140,7 @@ async def refresh_xueqiu_token():
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     }
 
-    async with httpx.AsyncClient(headers=headers, follow_redirects=True) as client:
+    async with httpx.AsyncClient(headers=headers, follow_redirects=True, trust_env=False) as client:
         try:
             response = await client.get(url, timeout=10.0)
             # 从响应的 cookies 中提取 xq_a_token
