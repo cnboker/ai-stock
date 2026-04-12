@@ -1,0 +1,24 @@
+{
+    "_META": {
+        "ticker": "sh601619",
+        "best_value": -34.0875,
+        "date": "2026-04-12 17:58"
+    },
+    "MODEL_TH": 0.4649,
+    "SLOPE": 0.0159,
+    "PREDICT_UP": -0.0153,
+    "INIT_PT": 0.0415,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.6424,
+    "TP1": 1.0363,
+    "TP2": 1.1718,
+    "KELLY": 0.2301,
+    "RISK": 0.0086,
+    "ATR_STOP": 4.481,
+    "MAX_STOP": 0.1182,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 56,
+    "SLOPE_MIN": 0.0022,
+    "CONFIRM_N": 1,
+    "WINDOW": 96
+}

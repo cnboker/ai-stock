@@ -24,6 +24,7 @@ COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc","#fa66ec","#f866c0","#a866a
 HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
 #MODEL_NAME = "chronos-t5-large"
+MODEL_NAME = "kronos"
 ENABLE_LIVE_PERSIST = True
 
 

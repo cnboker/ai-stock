@@ -3,7 +3,7 @@ import pandas as pd
 from infra.core.runtime import GlobalState
 from model_torch import optional_inference_mode
 from config.settings import MODEL_NAME
-from predict.chronos_model import load_chronos_model
+from predict.chronos_model import get_tsfm_pipeline
 from predict.predict_result import PredictionResult
 from predict.price_alpha import chronos2_to_large_style
 from predict.time_utils import calc_atr
@@ -28,69 +28,93 @@ def run_prediction(
     )
 
     history_len = min(GlobalState.chronos_context_length, len(df))
-    
-    target_values = df["close"].values[-history_len:].astype(float)
-    volume_values = df["volume"].values[-history_len:].astype(float)
-    hs300_df = hs300_df[-history_len:].astype(float) if hs300_df is not None else None
-    # recent_df = df.iloc[-history_len:].copy()
-    # recent_df.index = recent_df.index.tz_localize(None)
-    # ========== 极简标准化 (Vectorized) ==========
-    vol_norm = (volume_values - np.mean(volume_values)) / (np.std(volume_values) + 1e-6)
-
-    # 假设 hs300_series_aligned 已经在外部对齐好长度
-    # 推荐写法：使用 .iloc[0] 获取第一行数据
-    h_start = hs300_df[0] if hs300_df[0] != 0 else 1e-6
-    t_start = target_values[0] if target_values[0] != 0 else 1e-6
-    hs300_relative = (hs300_df / h_start) / (target_values / t_start)
+    recent_df = df.iloc[-history_len:]
     # ========== 构建输入 (跳过复杂的 pd.date_range) ==========
     # Chronos 其实对 timestamp 的要求只要是连续的即可
     # 如果不是为了展示，甚至可以用伪造的 range 提升速度
     perfect_index = GLOBAL_PERFECT_INDEX[:history_len]
-
-    df_input = {
-        "item_id": [ticker] * history_len,
-        "timestamp": perfect_index.values,  # 取 values
-        "target": target_values.astype(float),
-        "volume": vol_norm.astype(float),
-        "hs300": hs300_relative.astype(float),
-    }
     
-    if eq_feat is not None and not eq_feat.empty:
-        # 1. 先提取 values
-        drawdown_vals = eq_feat["eq_drawdown"].values * 10
-        slope_vals = eq_feat["eq_slope"].values
-        
-        # 2. 关键修复：如果长度不足 history_len，在左侧补 0
-        if len(drawdown_vals) < history_len:
-            pad_width = history_len - len(drawdown_vals)
-            drawdown_vals = np.pad(drawdown_vals, (pad_width, 0), 'constant', constant_values=0)
-            slope_vals = np.pad(slope_vals, (pad_width, 0), 'constant', constant_values=0)
-        
-        # 3. 如果长度超过 history_len，取最后一段
-        df_input["eq_drawdown"] = drawdown_vals[-history_len:]
-        df_input["eq_slope"] = slope_vals[-history_len:]
+    if MODEL_NAME.startswith("kronos"):
+        # Kronos 需要完整的 K 线张量 (OHLCV)
+        # 注意：Kronos 通常不需要像 Chronos 那样手动标准化 volume，
+        # 因为它的 Tokenizer 内部处理了 K 线形态。
+        df_input = {
+            "item_id": [ticker] * history_len,
+            "timestamp": perfect_index.values,
+            "open": recent_df["open"].values.astype(float),
+            "high": recent_df["high"].values.astype(float),
+            "low": recent_df["low"].values.astype(float),
+            "close": recent_df["close"].values.astype(float),
+            "volume": recent_df["volume"].values.astype(float),
+        }
     else:
-        # 兜底：填充全 0 数组
-        df_input["eq_drawdown"] = np.zeros(history_len)
-        df_input["eq_slope"] = np.zeros(history_len)
+        target_values = df["close"].values[-history_len:].astype(float)
+        volume_values = df["volume"].values[-history_len:].astype(float)
+        hs300_df = hs300_df[-history_len:].astype(float) if hs300_df is not None else None
+        # recent_df = df.iloc[-history_len:].copy()
+        # recent_df.index = recent_df.index.tz_localize(None)
+        # ========== 极简标准化 (Vectorized) ==========
+        vol_norm = (volume_values - np.mean(volume_values)) / (np.std(volume_values) + 1e-6)
+
+        # 假设 hs300_series_aligned 已经在外部对齐好长度
+        # 推荐写法：使用 .iloc[0] 获取第一行数据
+        h_start = hs300_df[0] if hs300_df[0] != 0 else 1e-6
+        t_start = target_values[0] if target_values[0] != 0 else 1e-6
+        hs300_relative = (hs300_df / h_start) / (target_values / t_start)
+ 
+
+        df_input = {
+            "item_id": [ticker] * history_len,
+            "timestamp": perfect_index.values,  # 取 values
+            "target": target_values.astype(float),
+            "volume": vol_norm.astype(float),
+            "hs300": hs300_relative.astype(float),
+        }
+        
+        if eq_feat is not None and not eq_feat.empty:
+            # 1. 先提取 values
+            drawdown_vals = eq_feat["eq_drawdown"].values * 10
+            slope_vals = eq_feat["eq_slope"].values
+            
+            # 2. 关键修复：如果长度不足 history_len，在左侧补 0
+            if len(drawdown_vals) < history_len:
+                pad_width = history_len - len(drawdown_vals)
+                drawdown_vals = np.pad(drawdown_vals, (pad_width, 0), 'constant', constant_values=0)
+                slope_vals = np.pad(slope_vals, (pad_width, 0), 'constant', constant_values=0)
+            
+            # 3. 如果长度超过 history_len，取最后一段
+            df_input["eq_drawdown"] = drawdown_vals[-history_len:]
+            df_input["eq_slope"] = slope_vals[-history_len:]
+        else:
+            # 兜底：填充全 0 数组
+            df_input["eq_drawdown"] = np.zeros(history_len)
+            df_input["eq_slope"] = np.zeros(history_len)
+       
     #print(f"🔍 输入数据构建完成，长度: {history_len} | 包含特征: {list(df_input.keys())}")
     input_df = pd.DataFrame(df_input)
-
-    pipeline = load_chronos_model(MODEL_NAME)
+    pipeline = get_tsfm_pipeline(MODEL_NAME)
     # ========== Chronos 推理 ==========
     pred = pipeline.predict_df(
         df=input_df,
         prediction_length=prediction_length,
     )
     # print('pre->',pred)
-    q10 = pred["0.1"].values
-    q50 = pred["0.5"].values
-    q90 = pred["0.9"].values
+    if MODEL_NAME.startswith("kronos"):
+        # 假设 Kronos 返回的是 Multi-index (分位数, 变量)
+        # 或者是在列名中包含了变量名，如 "0.5_close"
+        q10 = pred["0.1"]["close"].values
+        q50 = pred["0.5"]["close"].values
+        q90 = pred["0.9"]["close"].values
+    else:
+        # 原有的 Chronos 单变量逻辑
+        q10 = pred["0.1"].values
+        q50 = pred["0.5"].values
+        q90 = pred["0.9"].values
     low, median, high = q10, q50, q90
 
     is_t5_style = MODEL_NAME.startswith("chronos-t5")
 
-    if not is_t5_style:
+    if not MODEL_NAME.startswith("kronos") and not is_t5_style:
         # context = recent_df["close"].values
         context = target_values
         assert len(context) >= len(q50), "context too short"
@@ -107,7 +131,7 @@ def run_prediction(
     model_score = model_score_from_quantiles_trend(
         low=low, median=median, high=high, latest_price=latest_price, atr=atr
     )
-
+    print(f"tiker={ticker} low={low}, median={median}, high={high}, model_score={model_score}")
     return PredictionResult(
         low=low,
         median=median,

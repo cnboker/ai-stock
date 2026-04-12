@@ -26,10 +26,10 @@
         "success_count": 0,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 16,
-            "slope_filter": 51,
-            "predict_up_filter": 27,
-            "zero_strength_ghost": 10,
+            "model_confidence": 15,
+            "slope_filter": 76,
+            "predict_up_filter": 8,
+            "zero_strength_ghost": 5,
             "other_error": 0
         },
         "current_config": {
@@ -139,7 +139,7 @@
         "atr_mult": 2.8
     },
     "_META": {
-        "last_optimized": "2026-04-06 20:34:49",
+        "last_optimized": "2026-04-12 16:58:06",
         "best_value": -72.49379,
         "status": "SIGNAL_BLOCKED"
     }

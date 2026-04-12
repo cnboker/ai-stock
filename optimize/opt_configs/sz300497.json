@@ -22,13 +22,13 @@
     "intercept_stats": {
         "ticker": "sz300497",
         "status": "HEALTHY",
-        "success_count": 13,
+        "success_count": 12,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 10,
-            "slope_filter": 76,
+            "model_confidence": 22,
+            "slope_filter": 61,
             "predict_up_filter": 0,
-            "zero_strength_ghost": 5,
+            "zero_strength_ghost": 9,
             "other_error": 0
         },
         "current_config": {
@@ -51,22 +51,22 @@
         },
         "sample_details": [
             {
-                "day": "2026-03-27 11:00:00",
-                "slope": 0.0020201714000292323,
-                "strength": 0.014956470392823447
+                "day": "2026-03-27 14:00:00",
+                "slope": 0.0019210878033017965,
+                "strength": 0.01299461517762022
             },
             {
-                "day": "2026-03-27 11:30:00",
-                "slope": 0.0022200732872794363,
-                "strength": 0.018914527760377484
+                "day": "2026-03-30 11:30:00",
+                "slope": 0.0034426002996405976,
+                "strength": 0.043120562605128476
             },
             {
-                "day": "2026-03-27 13:30:00",
-                "slope": 0.0028949400767143527,
-                "strength": 0.03227689019118883
+                "day": "2026-03-30 13:30:00",
+                "slope": 0.0024865034779554106,
+                "strength": 0.024189845535761777
             }
         ],
-        "success_rate": "100.0%"
+        "success_rate": "92.3%"
     },
     "search_space": {
         "strength_alpha": {
@@ -149,7 +149,7 @@
         "atr_mult": 4.5
     },
     "_META": {
-        "last_optimized": "2026-04-07 12:46:01",
+        "last_optimized": "2026-04-12 17:01:09",
         "best_value": 847.09565,
         "status": "ACTIVE"
     }

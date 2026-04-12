@@ -2,59 +2,69 @@
     "ticker": "sz300961",
     "category": "STOCK",
     "best_params": {
-        "window": 52,
-        "strength_alpha": 63,
+        "window": 36,
+        "strength_alpha": 67,
         "confirm_n": 1,
-        "atr_mult": 4.235360855761634,
-        "model_th": 0.44333500578014456,
-        "atr_stop": 3.547316007985833,
-        "risk": 0.009390125279142368,
-        "kelly": 0.20978820775852472,
-        "slope": 0.01671266956056449,
-        "max_stop": 0.1306643353516702,
-        "slope_min": 0.0020871834011241715,
-        "predict_up": 0.00944159104446983,
-        "tp1": 1.0522239139943406,
-        "tp2": 1.1416312891993692,
-        "init_pt": 0.03660556451239857
+        "atr_mult": 4.366768905890957,
+        "model_th": 0.4413339052433775,
+        "atr_stop": 3.6332603800434105,
+        "risk": 0.007647598124248136,
+        "kelly": 0.2885484541740431,
+        "slope": 0.0140379961962254,
+        "max_stop": 0.1147275188578643,
+        "slope_min": 0.001894669905872514,
+        "predict_up": -0.001801799593744686,
+        "tp1": 1.059824834200594,
+        "tp2": 1.1592366366560256,
+        "init_pt": 0.040537401457919654
     },
     "intercept_stats": {
         "ticker": "sz300961",
-        "status": "ANEMIC",
-        "success_count": 1,
+        "status": "HEALTHY",
+        "success_count": 9,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 32,
-            "slope_filter": 62,
-            "predict_up_filter": 9,
-            "zero_strength_ghost": 0,
+            "model_confidence": 31,
+            "slope_filter": 59,
+            "predict_up_filter": 3,
+            "zero_strength_ghost": 2,
             "other_error": 0
         },
         "current_config": {
-            "window": 52,
-            "strength_alpha": 63,
+            "window": 36,
+            "strength_alpha": 67,
             "confirm_n": 1,
-            "atr_mult": 4.235360855761634,
-            "model_th": 0.44333500578014456,
-            "atr_stop": 3.547316007985833,
-            "risk": 0.009390125279142368,
-            "kelly": 0.20978820775852472,
-            "slope": 0.01671266956056449,
-            "max_stop": 0.1306643353516702,
-            "slope_min": 0.0020871834011241715,
-            "predict_up": 0.00944159104446983,
-            "tp1": 1.0522239139943406,
-            "tp2": 1.1416312891993692,
-            "init_pt": 0.03660556451239857
+            "atr_mult": 4.366768905890957,
+            "model_th": 0.4413339052433775,
+            "atr_stop": 3.6332603800434105,
+            "risk": 0.007647598124248136,
+            "kelly": 0.2885484541740431,
+            "slope": 0.0140379961962254,
+            "max_stop": 0.1147275188578643,
+            "slope_min": 0.001894669905872514,
+            "predict_up": -0.001801799593744686,
+            "tp1": 1.059824834200594,
+            "tp2": 1.1592366366560256,
+            "init_pt": 0.040537401457919654
         },
         "sample_details": [
             {
-                "day": "2026-03-26 11:00:00",
-                "slope": 0.006556452824435103,
-                "strength": 0.1689383842011532
+                "day": "2026-03-25 10:00:00",
+                "slope": 0.008193874656225663,
+                "strength": 0.25322803096419655
+            },
+            {
+                "day": "2026-03-25 10:30:00",
+                "slope": 0.0056555626368281825,
+                "strength": 0.15118788778441786
+            },
+            {
+                "day": "2026-03-25 11:00:00",
+                "slope": 0.004274121394344405,
+                "strength": 0.09565394983657001
             }
         ],
-        "success_rate": "7.7%"
+        "success_rate": "69.2%"
     },
     "search_space": {
         "strength_alpha": {
@@ -133,8 +143,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-07 12:39:00",
-        "best_value": -47.70535,
+        "last_optimized": "2026-04-12 16:41:53",
+        "best_value": -13.8746,
         "status": "ACTIVE"
     }
 }
