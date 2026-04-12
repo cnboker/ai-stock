@@ -1,24 +1,69 @@
 {
-    "_META": {
-        "ticker": "sh603123",
-        "best_value": -36.8526,
-        "date": "2026-04-07 12:26"
+    "ticker": "sh603123",
+    "last_optimized": "2026-04-12 16:16:39",
+    "search_space": {
+        "strength_alpha": {
+            "low": 10.0,
+            "high": 50.0
+        },
+        "model_th": {
+            "low": 0.05,
+            "high": 0.25
+        },
+        "atr_stop": {
+            "low": 1.5,
+            "high": 5.0
+        },
+        "risk": {
+            "low": 0.001,
+            "high": 0.05
+        },
+        "kelly": {
+            "low": 0.01,
+            "high": 0.5
+        },
+        "slope": {
+            "low": 0.001,
+            "high": 0.03
+        },
+        "max_stop": {
+            "low": 0.05,
+            "high": 0.2
+        },
+        "slope_min": {
+            "low": 0.0,
+            "high": 0.0002
+        },
+        "predict_up": {
+            "low": -0.1,
+            "high": 0.1
+        },
+        "tp1": {
+            "low": 1.01,
+            "high": 1.15
+        },
+        "tp2": {
+            "low": 1.05,
+            "high": 1.3
+        },
+        "init_pt": {
+            "low": 0.0,
+            "high": 0.005
+        }
     },
-    "MODEL_TH": 0.415,
-    "SLOPE": 0.0134,
-    "PREDICT_UP": -0.0493,
-    "INIT_PT": 0.0142,
-    "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.3969,
-    "TP1": 1.0549,
-    "TP2": 1.1942,
-    "KELLY": 0.2288,
-    "RISK": 0.0077,
-    "ATR_STOP": 3.9719,
-    "MAX_STOP": 0.1346,
-    "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 73,
-    "SLOPE_MIN": 0.0004,
-    "CONFIRM_N": 1,
-    "WINDOW": 28
+    "initial_trial": {
+        "strength_alpha": 30.0,
+        "model_th": 0.1,
+        "atr_stop": 3.0,
+        "risk": 0.01,
+        "kelly": 0.2,
+        "slope": 0.005,
+        "max_stop": 0.1,
+        "slope_min": 5e-05,
+        "predict_up": 0.0,
+        "tp1": 1.03,
+        "tp2": 1.1,
+        "init_pt": 0.001
+    },
+    "analysis": "The current strategy is failing to execute any trades primarily due to overly restrictive filters on slope (41 intercepts) and model confidence (23 intercepts). The high 'strength_alpha' (73) is likely suppressing signal generation at the source, and the 'init_pt' (0.014) is too demanding for a 30-minute timeframe, effectively preventing any entry triggers even when trends appear."
 }

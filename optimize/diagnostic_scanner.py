@@ -53,7 +53,8 @@ class DiagnosticScanner:
                     df_context = runner.full_pool_df[:current_time]
                     df_context = runner.full_pool_df[runner.full_pool_df.index <= current_time].tail(GlobalState.strategy_window)
                     hs300_context = runner.full_pool_hs300["close"].reindex(df_context.index).ffill().values
-                 
+                    # 1. 先更新价格
+                    GlobalState.tickers_price[ticker] = df_context['close'].iloc[-1]
                     # 2. 传入预测（确保包含当前的最后一根 Bar 用于特征计算）
                     pre_result = run_prediction(
                         df=df_context,

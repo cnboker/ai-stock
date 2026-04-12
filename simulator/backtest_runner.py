@@ -113,6 +113,8 @@ class BacktestRunner:
         #print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history_fixed)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
             current_k = df_today.iloc[i]
+            # 1. 先更新价格
+            GlobalState.tickers_price[self.ticker] = current_k['close']
             #提取行情时间撮
             self.position_mgr.current_market_time = current_k.name
 
@@ -121,7 +123,7 @@ class BacktestRunner:
 
             ticker_df = pd.concat([df_history, df_slice])
             hs300_df = pd.concat([hs300_history,hs300_slice])   
-    
+            
             execute_stock_decision(
                 ticker=self.ticker,
                 hs300_df = hs300_df,
