@@ -3,7 +3,7 @@ from infra.core.runtime import GlobalState
 from infra.core.trade_session import TradingSession
 from infra.utils.time_profile import timer_decorator
 from log import signal_log, risk_log
-from predict.chronos_predict import run_prediction
+from predict.inference import run_prediction
 from risk.risk_manager import risk_mgr
 from strategy.decision_builder import DecisionContextBuilder
 from strategy.signal_debouncer import debouncer_manager

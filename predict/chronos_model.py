@@ -8,7 +8,7 @@ import sys
 # 假设你的项目结构是：stock-model/predict/chronos_model.py
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # 向上跳一级到项目根目录 stock-model，再进入 Kronos_Source
-kronos_source_dir = os.path.abspath(os.path.join(current_dir, "../Kronos_Source"))
+kronos_source_dir = os.path.abspath(os.path.join(current_dir, "../models/Kronos_Source"))
 
 # 2. 将源码目录加入系统路径，这样 import model 才能生效
 if kronos_source_dir not in sys.path:

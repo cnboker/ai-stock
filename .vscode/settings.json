@@ -15,6 +15,7 @@
   "python-envs.defaultPackageManager": "ms-python.python:conda",
   "python.analysis.extraPaths": [
     "./Kronos",
-    "./Kronos/model"
+    "./Kronos/model",
+    "./models/Kronos_Source"
   ]
 }

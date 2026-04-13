@@ -5,7 +5,7 @@ import numpy as np
 from data.loader import GlobalState
 from simulator.run_backtest import BacktestRunner
 from infra.core.dynamic_settings import settings, use_config
-from predict.chronos_predict import run_prediction
+from predict.inference import run_prediction
 from optimize.config_factory import ConfigFactory
 from strategy.strength import compute_strength
 
