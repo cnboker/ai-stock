@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.api.deps import get_session
-from backend.models.user import User
+from api.deps import get_session
+from models.user import User
 from fastapi import status
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

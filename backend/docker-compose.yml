@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8080"
     # 注意：这里使用了 --reload，配合下面的 volumes 映射，改代码确实不需要重启
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8080 --reload
     volumes:
       - .:/app
       # --- 修改点2：映射图片上传目录 ---

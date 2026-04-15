@@ -1,10 +1,10 @@
 # FastAPI Entry Point
 from fastapi import Depends, FastAPI
-from backend.api.endpoints import api_router_public, api_router_private  # 导入聚合后的路由
+from api.endpoints import api_router_public, api_router_private  # 导入聚合后的路由
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from backend.core.security import verify_token
+from core.security import verify_token
 # for docker
 app = FastAPI(title="ai-stock")
 # 定义允许访问的源
@@ -29,8 +29,8 @@ app.include_router(
     dependencies=[Depends(verify_token)]
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 @app.get("/hi")
 async def root():
-    return {"message": "Welcome to My Sport App API"}
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
+    return {"message": "Welcome to ai-stock App API"}

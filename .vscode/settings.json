@@ -11,8 +11,8 @@
     "**/logs/**"
   ],
   "python.analysis.autoSearchPaths": false,
-  "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda",
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.defaultPackageManager": "ms-python.python:pip",
   "python.analysis.extraPaths": [
     "./Kronos",
     "./Kronos/model",
