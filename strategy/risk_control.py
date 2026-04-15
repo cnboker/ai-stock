@@ -1,0 +1,1 @@
+# 利用 Kronos 预测的 High/Low 进行动态止损

@@ -95,3 +95,14 @@
     "tp1": {"low": 1.10, "high": 1.20},          // 止盈设高点，不翻倍不走
     "strength_alpha": {"low": 2.0, "high": 15.0} // 降低止损随价格上涨的移动速度
 }
+
+
+### install hermes
+# 执行官方安装脚本
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+
+# 安装完成后刷新 shell
+source ~/.bashrc
+
+# 检查是否成功 (当前稳定版通常为 v0.7.0+)
+hermes --version

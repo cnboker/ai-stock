@@ -1,8 +1,4 @@
 hf_cache
-chronos-t5-large
-chronos-t5-base
-chronos-2
-chronos-bolt-base
 __pycache__/
 data/prediction_history.pkl
 data/equity.csv
@@ -12,4 +8,3 @@ outputs
 .cache_data
 .env    
 models
-Kronos_Source

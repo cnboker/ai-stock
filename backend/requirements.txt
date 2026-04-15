@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]  # 生产级服务器，包含高效的 uvloop
+python-multipart   # 如果你的设备管理系统需要上传说明书或图片
+python-jose[cryptography]
+passlib
+asyncpy
+sqlmodel
+sqlalchemy>=2.0    # 现代化的 ORM，支持异步
+psycopg2-binary    # 同步驱动（很多迁移工具如 Alembic 需要它）
+asyncpg            # 异步驱动（FastAPI 真正运行时的性能核心）
+alembic            # 数据库版本迁移工具，方便你后期修改“故障表”结构
+geoalchemy2
+Pillow
+pandas
