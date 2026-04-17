@@ -7,4 +7,4 @@ state/backup
 outputs
 .cache_data
 .env    
-models
+/models

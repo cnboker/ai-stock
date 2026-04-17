@@ -1,24 +1,24 @@
 {
     "_META": {
         "ticker": "sz000980",
-        "best_value": -20.1301,
-        "date": "2026-04-12 16:27"
+        "best_value": -16.2261,
+        "date": "2026-04-16 20:34"
     },
-    "MODEL_TH": 0.4062,
-    "SLOPE": 0.0078,
-    "PREDICT_UP": -0.0117,
-    "INIT_PT": 0.0353,
+    "MODEL_TH": 0.4478,
+    "SLOPE": 0.0064,
+    "PREDICT_UP": 0.0024,
+    "INIT_PT": 0.0413,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 4.4333,
-    "TP1": 1.0277,
-    "TP2": 1.176,
-    "KELLY": 0.267,
-    "RISK": 0.0078,
-    "ATR_STOP": 4.052,
-    "MAX_STOP": 0.1053,
+    "ATR_MULT": 4.4498,
+    "TP1": 1.0338,
+    "TP2": 1.1367,
+    "KELLY": 0.2825,
+    "RISK": 0.0064,
+    "ATR_STOP": 3.5612,
+    "MAX_STOP": 0.0929,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 55,
-    "SLOPE_MIN": 0.0036,
+    "STRENGTH_ALPHA": 44,
+    "SLOPE_MIN": 0.0041,
     "CONFIRM_N": 1,
-    "WINDOW": 36
+    "WINDOW": 116
 }
