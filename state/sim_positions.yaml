@@ -1,3 +1,11 @@
 account: ''
-cash: 1000000
-positions: {}
+cash: 667470.6
+positions:
+  sz399006:
+    direction: LONG
+    entry_price: 3325.294
+    highest_price: 3626.271
+    open_time: '2026-04-16T21:00:14.431771'
+    size: 1
+    stop_loss: 3325.29
+    tp1_hit: false
