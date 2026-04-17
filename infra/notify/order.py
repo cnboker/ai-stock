@@ -1,5 +1,6 @@
 from asyncio import subprocess
 import asyncio
+import httpx
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -62,7 +63,7 @@ async def play_sound():
 
 
     # 配置你的 API 地址
-API_URL = "http://localhost:8000/api/v1/analytics/orders"
+API_URL = "http://localhost:8080/api/v1/analytics/orders"
 
 def notify_order(event: OrderEvent, position_mgr):
     # 1. ===== 原有的控制台打印（保留）=====
