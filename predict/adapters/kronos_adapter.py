@@ -49,7 +49,7 @@ class KronosAdapter(BaseTSFMAdapter):
         y_ts = pd.Series(y_range) # 关键：将 DatetimeIndex 转为 Series
 
         # 4. 执行预测
-        res = self.predictor.predict(x_df, x_ts, y_ts, prediction_length, sample_count=5)
+        res = self.predictor.predict(x_df, x_ts, y_ts, prediction_length, sample_count=5,verbose=False)
         
         return pd.DataFrame({
             "low": res["close"].values * 0.99,

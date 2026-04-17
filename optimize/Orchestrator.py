@@ -1,16 +1,15 @@
 import os
 from typing import Any
-from pyparsing import Dict
 from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 from google import genai
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Dict, Any
-from dotenv import load_dotenv
+
 from optimize.opt_study import run_optuna_study
 from optimize.persist_manager import PersistManager
 
-load_dotenv()
+
 gemini_api_key = os.getenv("gemini_api_key")
 
 class ParameterSpace(BaseModel):

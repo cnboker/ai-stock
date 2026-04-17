@@ -1,5 +1,6 @@
 from asyncio import subprocess
 import asyncio
+import os
 import httpx
 from dataclasses import dataclass
 from datetime import datetime
@@ -43,7 +44,7 @@ def notify_order_v1(event: OrderEvent, position_mgr):
         and event.status == "FILLED"
         and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
     ):
-       # 修正点：不要用 asyncio.run，而是获取当前的 loop 并创建任务
+        # 修正点：不要用 asyncio.run，而是获取当前的 loop 并创建任务
         try:
             loop = asyncio.get_running_loop()
             loop.create_task(play_sound())
@@ -51,19 +52,24 @@ def notify_order_v1(event: OrderEvent, position_mgr):
             # 如果当前没有运行的 loop（比如在某些测试环境），则回退处理
             pass
 
-from infra.core.runtime import GlobalState,RunMode
+
+from infra.core.runtime import GlobalState, RunMode
+
+
 async def play_sound():
     if GlobalState.mode != RunMode.LIVE:
         return
     # This starts the process without stopping your whole program
     process = await asyncio.create_subprocess_exec("xdg-open", "data/tick.mp3")
-    
+
     # Optional: wait for the command to finish in the background
     await process.wait()
 
-
     # 配置你的 API 地址
-API_URL = "http://localhost:8080/api/v1/analytics/orders"
+
+
+API_URL = gemini_api_key = os.getenv("API_URL")
+
 
 def notify_order(event: OrderEvent, position_mgr):
     # 1. ===== 原有的控制台打印（保留）=====
@@ -93,7 +99,7 @@ def notify_order(event: OrderEvent, position_mgr):
             "side": event.side,  # "buy" or "sell"
             "entry_price": event.price,
             "entry_time": event.ts.isoformat(),
-            "actual_return": 0.0, # 初始值为0，收盘后由 analytics 接口更新
+            "actual_return": 0.0,  # 初始值为0，收盘后由 analytics 接口更新
             "status": "closed" if event.action in {"CLOSE", "REDUCE"} else "open",
             # 如果你有 trade_id 或关联的 prediction_id，也可以加上
         }
@@ -101,7 +107,7 @@ def notify_order(event: OrderEvent, position_mgr):
         # 4. 异步处理：写入数据库和播放声音
         try:
             loop = asyncio.get_running_loop()
-            
+
             # 定义一个内部协程，处理 HTTP 请求
             async def persist_and_notify():
                 # 写入数据库
@@ -114,13 +120,13 @@ def notify_order(event: OrderEvent, position_mgr):
                             print(f"⚠️ DB Persist Failed: {r.text}")
                     except Exception as e:
                         print(f"❌ Network Error during DB persist: {e}")
-                
+
                 # 播放声音
                 await play_sound()
 
             # 将任务加入事件循环
             loop.create_task(persist_and_notify())
-            
+
         except RuntimeError:
             # 如果当前没有 running loop，说明可能在脚本直接运行模式下
             pass

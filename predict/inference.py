@@ -76,7 +76,7 @@ def run_prediction(
         q10 = pred["low"].values
         q50 = pred["median"].values
         q90 = pred["high"].values
-        print(f"q10={q10[-1]},q50={q50[-1]},q90={q90[-1]},")
+        # print(f"q10={q10[-1]},q50={q50[-1]},q90={q90[-1]},")
     else:
         q10, q50, q90 = pred["0.1"].values, pred["0.5"].values, pred["0.9"].values
 
