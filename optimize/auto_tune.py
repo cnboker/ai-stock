@@ -3,9 +3,10 @@ import logging
 from optimize.Orchestrator import start_optimization_cycle
 from position.watchlist_loader import load_watchlist
 from position.position_loader import LivePositionLoader
+from dotenv import load_dotenv
 
 if __name__ == "__main__":
-   
+    load_dotenv()
     watchlist = load_watchlist("state/watchlist.csv")
     live_tickers = LivePositionLoader.load_tickers("state/live_positions.yaml")
 
