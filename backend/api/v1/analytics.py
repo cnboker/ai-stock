@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select, func
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from api.deps import get_session  # 假设你在 session.py 定义了 get_session
 from models.prediction import Prediction
 from models.order import Order
@@ -10,11 +10,18 @@ from models.order import Order
 router = APIRouter()
 
 @router.post("/predictions", response_model=Prediction)
-async def create_prediction(pred: Prediction, session: Session = Depends(get_session)):
+async def create_prediction(pred: Prediction, session: AsyncSession = Depends(get_session)):
+    # 强制检查并转换时间格式（防止驱动报错）
+    if isinstance(pred.timestamp, str):
+        try:
+            # 将字符串转换为 datetime 对象
+            pred.timestamp = datetime.fromisoformat(pred.timestamp.replace('Z', ''))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format.")
     """记录一次 Chronos 预测信号"""
     session.add(pred)
-    session.commit()
-    session.refresh(pred)
+    await session.commit()
+    await session.refresh(pred)
     return pred
 
 @router.get("/predictions", response_model=List[Prediction])
@@ -72,11 +79,9 @@ async def get_daily_review(
     Week 1 核心接口：获取每日预测与实盘对比数据，供 Hermes 审计
     """
     # 1. 处理日期：默认查询当天
-    # target_date = date if date else datetime.now().strftime("%Y-%m-%d")
     target_date = datetime.now().date()
     try:
         # 2. 查询当天的预测数据
-        # 注意：这里假设你的 timestamp 是 datetime 类型，我们需要 cast 或匹配日期部分
         pred_statement = select(Prediction).where(
             func.date(Prediction.timestamp) == target_date
         )
@@ -91,7 +96,6 @@ async def get_daily_review(
         # 4. 聚合逻辑：将预测与实际结果对齐
         review_data = []
         for pred in predictions:
-            # 在当天的订单中找到对应 symbol 的结果
             match = next((o for o in orders if o.symbol == pred.symbol), None)
             
             actual_ret = match.actual_return if match else 0.0
@@ -103,11 +107,9 @@ async def get_daily_review(
                 "actual_change": round(actual_ret, 4),
                 "error": round(error, 4) if error is not None else None,
                 "status": "matched" if match else "no_trade",
-                # 这里的 features 可以让 Hermes 知道当时的决策背景
                 "context": pred.features_snapshot 
             })
         
-        # 5. 宏观背景（示例逻辑：你可以根据所有 symbol 的平均表现或外部 API 获取）
         avg_error = sum([d["error"] for d in review_data if d["error"]]) / max(len(review_data), 1)
         
         return {

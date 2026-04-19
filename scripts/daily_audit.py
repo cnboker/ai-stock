@@ -160,8 +160,8 @@ def run_audit():
 
     # 审计指令
     1. **深度诊断**: 今日 {details[0]['symbol']} 预测变动为 {details[0]['pred_change']}, 但实际变动为 {details[0]['actual_change']}。
-    2. **结合上下文**: 请分析 context 中的 RSI({json.loads(details[0]['context'])['rsi']}) 和成交量比率({json.loads(details[0]['context'])['vol_ratio']})。
-    3. **因果分析**: 为什么在 vol_ratio 为 1.5（成交量有所放大）的情况下，实际价格却没有产生任何波动？是模型误读了成交量信号，还是市场在进行无效震荡？
+    2. **结合上下文**: 请分析 context 中的 confidence({json.loads(details[0]['context'])['confidence']}) 和atr({json.loads(details[0]['context'])['atr']})。
+    3. **因果分析**: 为什么在 confidence 为 0.76（成交量有所放大）的情况下，实际价格却没有产生任何波动？是模型误读了成交量信号，还是市场在进行无效震荡？
     4. **生成记忆**: 请生成一条格式为 [MEMORY_ENTRY] 的短语，针对这种“有量无价”的偏差给出未来调优建议。
     """
 
