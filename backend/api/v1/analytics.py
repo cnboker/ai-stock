@@ -72,22 +72,22 @@ async def get_daily_review(
     Week 1 核心接口：获取每日预测与实盘对比数据，供 Hermes 审计
     """
     # 1. 处理日期：默认查询当天
-    target_date = date if date else datetime.now().strftime("%Y-%m-%d")
-    
+    # target_date = date if date else datetime.now().strftime("%Y-%m-%d")
+    target_date = datetime.now().date()
     try:
         # 2. 查询当天的预测数据
         # 注意：这里假设你的 timestamp 是 datetime 类型，我们需要 cast 或匹配日期部分
         pred_statement = select(Prediction).where(
             func.date(Prediction.timestamp) == target_date
         )
-        predictions = session.exec(pred_statement).all()
-        
+        results = await session.exec(pred_statement)
+        predictions = results.all()
         # 3. 查询当天的成交/订单数据
         order_statement = select(Order).where(
             func.date(Order.entry_time) == target_date
         )
-        orders = session.exec(order_statement).all()
-        
+        result_1 = await session.exec(order_statement)
+        orders = result_1.all()
         # 4. 聚合逻辑：将预测与实际结果对齐
         review_data = []
         for pred in predictions:

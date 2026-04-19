@@ -1,12 +1,14 @@
-# Daily Review Script (Cron Task)
 import requests
 import json
+import subprocess # 用于调用本地 hermes cli
+import os
 from datetime import datetime
 
 # 配置
-API_BASE_URL = "http://localhost:8080/api/v1" # 你的 FastAPI 地址
-HERMES_API_URL = "你的模型API地址" # 如果是本地模型或 OpenAI 格式接口
+API_BASE_URL = "http://localhost:8080/api/v1"
 AUDIT_LOG_PATH = "logs/audit_records.md"
+# 假设你的 cli 命令是 'hermes'，如果是路径则写全称如 '/usr/local/bin/hermes'
+HERMES_CLI_CMD = "hermes" 
 
 def fetch_daily_data():
     """从 FastAPI 获取今日交易表现"""
@@ -15,33 +17,120 @@ def fetch_daily_data():
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"❌ 获取数据失败: {e}")
-        return None
+        # 调试用：如果接口没开，返回一个模拟结构
+        return {
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "summary": "本地接口连接失败，使用模拟数据调试",
+            "data": [{"symbol": "NVDA", "expected": 0.05, "actual": -0.01, "error": 0.06}]
+        }
 
-def ask_hermes(data):
-    """向 Hermes 发送审计请求"""
-    # 构造 Prompt，这是 Week 1 的核心
-    prompt = f"""
-    # 角色
-    你是一名资深的量化交易审计员 Hermes。
+def ask_hermes_cli(prompt_text):
+    """通过配置了特定代理的环境变量调用本地 Hermes CLI"""
     
-    # 任务
-    分析今日 {data['date']} 的交易预测偏差，并生成复盘记忆。
+    # 1. 构造独立的环境变量字典
+    # 拷贝当前系统的环境变量
+    env = os.environ.copy()
     
-    # 今日数据
-    市场概况: {data['summary']}
-    详细记录: {json.dumps(data['data'], ensure_ascii=False, indent=2)}
+    # 2. 先 unset（即从字典中删除旧的代理设置）
+    proxy_keys = [
+        "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", 
+        "http_proxy", "https_proxy", "all_proxy"
+    ]
+    for key in proxy_keys:
+        env.pop(key, None)
     
-    # 分析要求
-    1. 归因：找出 'error' 最大的标的，判断是模型过度拟合了某种特征，还是受大盘系统性影响。
-    2. 模式识别：是否存在“缩量必涨错”或“高开必杀跌”等规律？
-    3. 记忆：生成一条格式为 [MEMORY_ENTRY] 的短语，用于后续指导调优。
-    """
+    # 3. 设置新的代理
+    # 针对你本地的 Clash/代理端口 (7891)
+    new_proxy = "socks5://127.0.0.1:7891"
+    env["HTTP_PROXY"] = new_proxy
+    env["HTTPS_PROXY"] = new_proxy
+    env["ALL_PROXY"] = new_proxy
+
+    try:
+        process = subprocess.Popen(
+        [HERMES_CLI_CMD, "chat", "-q", prompt_text],   # 关键改动在这里
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
+        text=True,
+        encoding='utf-8'
+        )
+
+        stdout, stderr = process.communicate()
+        clean_stdout = stdout.strip()
+        if process.returncode != 0:
+            print("错误:", stderr)
+        else:
+            print("Hermes 输出:", stdout)
+        return clean_stdout
+    except Exception as e:
+        return f"❌ 无法启动 Hermes CLI: {e}"
+
+
+"""
+你完全可以只把结果存成一个本地的 .md 文件，但通过 gh 创建 Issue 有三个核心优势：
+
+版本化审计记录：每一天的复盘都变成了一个带编号的 Issue（例如 #12, #13）。你可以清晰地看到模型预测能力的演变过程。
+
+闭环调优：如果你根据 Hermes 的建议（比如 [MEMORY_ENTRY] 调低 RSI 权重）修改了代码，你可以在提交代码（Commit）时写上 Closes #12。这样，审计 -> 建议 -> 修复 -> 关闭 Issue 就形成了一个自动化的开发闭环。
+
+多端同步：Issue 提交后，你在手机上的 GitHub App 或电脑网页端都能随时看到 Hermes 的审计结果，无需非得盯着这台服务器。
+"""
+def create_gh_issue(date, analysis):
+    # --- 核心修复：强制检查 analysis 是否有效 ---
+    if analysis is None:
+        analysis = "Warning: Hermes CLI failed to return an analysis."
+    else:
+        analysis = str(analysis).strip()
+        if not analysis: # 处理空字符串
+            analysis = "Analysis returned empty content."
+    title = f"Audit {date}"
+    try:
+        # 使用列表模式，无需担心 analysis 里的引号导致命令断裂
+        subprocess.run([
+            "gh", "issue", "create", 
+            "--title", title, 
+            "--label", "hermes-audit,quant-review",
+            "--body", analysis
+        ], check=True)
+        print("✅ GitHub Issue 创建成功！")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ GitHub CLI 执行失败: {e}")
+
+import re
+
+def clean_hermes_output(text):
+    # 1. 移除 ANSI 颜色码
+    text = re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', text)
     
-    # 这里根据你的模型调用方式修改（例如 OpenAI SDK 或直接 requests）
-    print("🤖 Hermes 正在分析数据...")
-    # 示例返回
-    return "### Hermes 每日复盘报告\n" + "分析结果..." # 实际应调用接口返回
+    # 2. 定位有效内容的起点
+    # 我们找“深度诊断”或者“好的，Hermes”作为正文开始的标志
+    start_markers = ["好的", "深度诊断", "Hermes 量化审计", "Audit"]
+    start_index = 0
+    for marker in start_markers:
+        pos = text.find(marker)
+        if pos != -1:
+            start_index = pos
+            break
+            
+    # 截取正文
+    content = text[start_index:]
+    
+    # 3. 定位有效内容的终点
+    # 丢弃后面关于 Session, Duration 等统计信息
+    end_marker = "Resume this session with:"
+    end_index = content.find(end_marker)
+    if end_index != -1:
+        content = content[:end_index]
+
+    # 4. 最后清理掉残余的框线字符和点阵字符（那些盲文符号）
+    # [\u2800-\u28FF] 是 Unicode 里的盲文点阵列，也就是那个大 Logo 的组成部分
+    content = re.sub(r'[╭╮╰╯│─━═┐└┘┌┐┊░⚕\u2800-\u28FF]+', '', content)
+    
+    # 5. 将连续的空行压缩成一行
+    content = re.sub(r'\n\s*\n', '\n\n', content)
+    
+    return content.strip()
 
 def run_audit():
     # 1. 抓取数据
@@ -49,16 +138,62 @@ def run_audit():
     if not data or not data.get("data"):
         print("📭 今日无交易预测数据。")
         return
+    print(f"data={data}")
+    
+    # 2. 构造初始 Prompt
+    # 根据你提供的 JSON 结构解析数据
+    date = data['date']
+    summary = data['summary']
+    details = data['data']
 
-    # 2. 交互复盘
-    analysis = ask_hermes(data)
-    
-    # 3. 记录日志
-    with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as f:
-        f.write(f"\n\n## {data['date']} 复盘\n")
-        f.write(analysis)
-    
-    print(f"✅ 复盘完成，记忆已存入 {AUDIT_LOG_PATH}")
+    initial_prompt = f"""
+    # 角色
+    你是一名资深的量化审计员 Hermes。
+
+    # 今日交易复盘数据 ({date})
+    - 市场概况: {summary['market_sentiment']}
+    - 信号总数: {summary['total_signals']}
+    - 平均误差: {summary['avg_error']}
+
+    # 详细记录
+    {json.dumps(details, ensure_ascii=False, indent=2)}
+
+    # 审计指令
+    1. **深度诊断**: 今日 {details[0]['symbol']} 预测变动为 {details[0]['pred_change']}, 但实际变动为 {details[0]['actual_change']}。
+    2. **结合上下文**: 请分析 context 中的 RSI({json.loads(details[0]['context'])['rsi']}) 和成交量比率({json.loads(details[0]['context'])['vol_ratio']})。
+    3. **因果分析**: 为什么在 vol_ratio 为 1.5（成交量有所放大）的情况下，实际价格却没有产生任何波动？是模型误读了成交量信号，还是市场在进行无效震荡？
+    4. **生成记忆**: 请生成一条格式为 [MEMORY_ENTRY] 的短语，针对这种“有量无价”的偏差给出未来调优建议。
+    """
+
+    # 3. 第一次分析
+    print("🤖 Hermes CLI 正在分析...")
+    analysis = ask_hermes_cli(initial_prompt)
+    analysis = clean_hermes_output(analysis)
+    print(f"\n--- 初次审计结果 ---\n{analysis}")
+
+    # 4. 进入交互模式
+    while True:
+        user_input = input("\n💬 追问 Hermes (输入 's' 保存并同步 GitHub, 'q' 退出): ").strip()
+        
+        if user_input.lower() == 'q':
+            break
+        elif user_input.lower() == 's':
+            # 记录到本地
+            with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as f:
+                f.write(f"\n\n## {data['date']} 复盘\n{analysis}")
+            
+            # 使用 GitHub CLI 同步 (你的第二个 Skill)
+            print("🚀 正在通过 GitHub CLI 创建 Issue...")
+            create_gh_issue(data['date'],analysis)
+            
+            break
+        else:
+            # 将上下文带入追问
+            full_prompt = f"背景数据: {json.dumps(data['data'])}\n之前分析: {analysis}\n用户追问: {user_input}"
+            analysis = ask_hermes_cli(full_prompt)
+            print(f"\n--- Hermes 回复 ---\n{analysis}")
+
 
 if __name__ == "__main__":
     run_audit()
+  

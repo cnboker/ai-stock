@@ -7,7 +7,7 @@ from api.v1 import tasks
 api_router_public = APIRouter()
 api_router_private = APIRouter()
 
-api_router_private.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Audit"])
-api_router_private.include_router(tasks.router, prefix="/api/v1/tasks", tags=["Jobs"])
-api_router_private.include_router(trading.router, prefix="/api/v1/trading", tags=["Execution"])
+api_router_public.include_router(analytics.router, prefix="/analytics", tags=["Audit"])
+api_router_public.include_router(tasks.router, prefix="/tasks", tags=["Jobs"])
+api_router_public.include_router(trading.router, prefix="/trading", tags=["Execution"])
 
