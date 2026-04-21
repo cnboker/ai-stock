@@ -80,7 +80,7 @@ class EquityRiskEngine:
 
             gate_mult *= 0.7
 
-            reason = "equity_slope_break"
+            reason = "equity_slope_break-slope 崩坏保护"
 
         # ======================
         # 3️⃣ regime 风控

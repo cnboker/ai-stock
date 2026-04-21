@@ -1,4 +1,7 @@
 # Trading Order Models
+
+from pydantic import field_validator
+
 from sqlmodel import SQLModel, Field
 from datetime import datetime
 from typing import Optional
@@ -23,3 +26,15 @@ class Order(SQLModel, table=True):
     # 关联字段
     prediction_id: Optional[int] = Field(foreign_key="predictions.id") # 关联到预测ID
     status: str = "closed"                    # "open", "closed", "cancelled"
+
+    # --- 核心修复：自动解析字符串时间 ---
+    @field_validator("entry_time", "exit_time",mode="before")
+    def parse_datetime(cls, v):
+        if isinstance(v, str):
+            try:
+                # 兼容 ISO 格式字符串：'2026-04-21T15:07:50.445439'
+                return datetime.fromisoformat(v)
+            except ValueError:
+                # 如果带 Z 或者其他格式，可以用更通用的解析
+                return datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%f")
+        return v

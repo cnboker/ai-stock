@@ -148,23 +148,36 @@ def run_audit():
 
     initial_prompt = f"""
     # 角色
-    你是一名资深的量化审计员 Hermes。
+    你是一名深度量化审计专家 Hermes，专门负责识别“信号生成层”与“风险控制层”之间的逻辑断层。
 
-    # 今日交易复盘数据 ({date})
-    - 市场概况: {summary['market_sentiment']}
-    - 信号总数: {summary['total_signals']}
-    - 平均误差: {summary['avg_error']}
+    # 复盘数据概览 ({date})
+    - 市场情绪: {summary['market_sentiment']}
+    - 信号/误差: 共 {summary['total_signals']} 个信号，平均误差 {summary['avg_error']}
 
-    # 详细记录
-    {json.dumps(details, ensure_ascii=False, indent=2)}
+    # 原始数据集
+    {json.dumps(details, ensure_ascii=False)}
 
-    # 审计指令
-    1. **深度诊断**: 今日 {details[0]['symbol']} 预测变动为 {details[0]['pred_change']}, 但实际变动为 {details[0]['actual_change']}。
-    2. **结合上下文**: 请分析 context 中的 confidence({json.loads(details[0]['context'])['confidence']}) 和atr({json.loads(details[0]['context'])['atr']})。
-    3. **因果分析**: 为什么在 confidence 为 0.76（成交量有所放大）的情况下，实际价格却没有产生任何波动？是模型误读了成交量信号，还是市场在进行无效震荡？
-    4. **生成记忆**: 请生成一条格式为 [MEMORY_ENTRY] 的短语，针对这种“有量无价”的偏差给出未来调优建议。
+    # 审计逻辑 (通用型)
+    
+    1. **信号质量与分布 (Signal Quality)**:
+       - 识别数据中是否存在“低分过热”现象：即 ModelScore 接近 0.5 但频繁产生动作信号的情况。
+       - 分析预测值(Pred_Change)相对于该标的 ATR 的倍数。如果倍数 > 1 且 Score < 0.6，诊断是否存在“过度拟合波动”的倾向。
+
+    2. **风控拦截审计 (Risk Control Efficiency)**:
+       - 统计因 "equity_slope_break" 或其他风控原因被拦截(no_trade)的比例。
+       - **盈亏回溯**：对比被拦截信号的 Pred 与 Actual。如果 Actual 波动极小，判定风控为“精准防御”；如果 Actual 波动巨大且方向一致，判定风控为“过度抑制”。
+
+    3. **流动性与摩擦分析 (Friction & Churn)**:
+       - 针对“有预测无波动”（Actual_Change 接近 0）的案例，分析是否属于“无效成交量”导致的模型误导。
+       - 区分“突破失败”与“流动性黑洞”：在 A 股 ETF 或中小盘股中，这种现象往往代表市场处于深度分歧或庄家吸筹。
+
+    4. **系统级进化记忆**:
+       - 请根据今日所有信号的统计特征，生成一条 [SYSTEM_OPTIMIZATION]：给出关于置信度阈值(Gate)或风控灵敏度的具体调优建议。
+       - 请生成一条 [MODEL_BIAS_ALERT]：识别模型是否存在系统性的多头或空头偏向（例如在横盘期由于微小放量而习惯性看跌）。
+
+    # 输出要求
+    请保持冷峻、专业、数据驱动的语调，避免废话，直接指出系统逻辑中最薄弱的环节。
     """
-
     # 3. 第一次分析
     print("🤖 Hermes CLI 正在分析...")
     analysis = ask_hermes_cli(initial_prompt)

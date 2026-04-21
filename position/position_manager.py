@@ -228,7 +228,8 @@ class PositionManager:
         reason: str,
         contract_size: int = 100,
         size: int = None,
-        stop_loss: float = None,        
+        stop_loss: float = None,  
+        prediction_id: Optional[int] = None,      
         ):
         """
         打开新仓或加仓
@@ -280,6 +281,7 @@ class PositionManager:
                 price=price,
                 value=cost,
                 reason=reason,
+                prediction_id=prediction_id
             )
 
         else:
@@ -318,6 +320,7 @@ class PositionManager:
                 price=price,
                 value=cost,
                 reason=reason,
+                prediction_id=prediction_id
             )
 
     def open_short(
@@ -337,9 +340,10 @@ class PositionManager:
         ticker: str,
         strength: float,
         price: float,
-        reason: str
+        reason: str,
+        prediction_id: Optional[int]=None,
     ):
-        self._reduce(ticker, strength, price, reason)
+        self._reduce(ticker, strength, price, reason, prediction_id=prediction_id)
 
     def close(
         self,
@@ -434,6 +438,7 @@ class PositionManager:
         price: float = None,
         reason: str = "",
         size: int = 0,  # 新增参数，用于精确减仓
+        prediction_id: Optional[int] = None,
     ):
         """
         减仓逻辑
@@ -451,6 +456,9 @@ class PositionManager:
             # strength ∈ [0, 1] 表示减仓比例
             ratio = min(max(strength, 0.0), 1.0)
             reduce_size = int(pos.size * ratio)
+            #q 确保最后一手减掉
+            if reduce_size == 0:
+                reduce_size = 1
         else:
             # 默认减 30%
             reduce_size = int(pos.size * 0.3)
@@ -470,6 +478,7 @@ class PositionManager:
             price=price,
             value=cash_back,
             reason=reason,
+            prediction_id=prediction_id
         )
 
         # ===== 3️⃣ 仓位清空时移除 =====
@@ -539,6 +548,7 @@ class PositionManager:
         price: float,
         value: float,
         reason: str,
+        prediction_id: Optional[int] = None,
     ):
         self.max_occupied = max(self.max_occupied, self.get_ticker_value(symbol, price) )
         ts = self.current_market_time if self.current_market_time else datetime.now()
@@ -563,11 +573,12 @@ class PositionManager:
                 ts=ts,
                 symbol=symbol,
                 action=action,
-                side="LONG",
+                side="sell" if action in ["REDUCE", "CLOSE"] else "buy",
                 size=size,
                 price=price,
                 value=value,
                 reason=reason,
+                prediction_id=prediction_id
             ),
             self,
         )

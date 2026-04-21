@@ -1,11 +1,10 @@
-from asyncio import subprocess
 import asyncio
-import os
-import httpx
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Dict, Any
 from config.settings import ENABLE_LIVE_PERSIST
+from infra.api.client import api_save_order
+from infra.core.runtime import GlobalState, RunMode
 
 
 @dataclass
@@ -20,40 +19,7 @@ class OrderEvent:
     reason: str  # WHY（信号 / 止损 / 加仓）
     extra: Optional[Dict[str, Any]] = None
     status: str = "FILLED"  # 模拟成交
-
-
-def notify_order_v1(event: OrderEvent, position_mgr):
-    # ===== 控制台（高可读）=====
-    headline = f"🚨 ORDER {event.action} {event.side} 🚨"
-    detail = (
-        f"Symbol: {event.symbol}\n"
-        f"Size:   {event.size}\n"
-        f"Price:  {event.price:.2f}\n"
-        f"Value:  {event.value:.2f}\n"
-        f"Reason: {event.reason}\n"
-        f"Time:   {event.ts:%Y-%m-%d %H:%M:%S}"
-    )
-    print("\n" + "=" * 50)
-    print(headline)
-    print(detail)
-    print("=" * 50 + "\n")
-
-    # ===== 只在真实成交后写 =====
-    if (
-        ENABLE_LIVE_PERSIST
-        and event.status == "FILLED"
-        and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
-    ):
-        # 修正点：不要用 asyncio.run，而是获取当前的 loop 并创建任务
-        try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(play_sound())
-        except RuntimeError:
-            # 如果当前没有运行的 loop（比如在某些测试环境），则回退处理
-            pass
-
-
-from infra.core.runtime import GlobalState, RunMode
+    prediction_id: Optional[int] = None  # 关联的预测 ID（如果有的话）
 
 
 async def play_sound():
@@ -68,9 +34,6 @@ async def play_sound():
     # 配置你的 API 地址
 
 
-API_URL = gemini_api_key = os.getenv("API_URL")
-
-
 def notify_order(event: OrderEvent, position_mgr):
     # 1. ===== 原有的控制台打印（保留）=====
     headline = f"🚨 ORDER {event.action} {event.side} 🚨"
@@ -81,6 +44,7 @@ def notify_order(event: OrderEvent, position_mgr):
         f"Value:  {event.value:.2f}\n"
         f"Reason: {event.reason}\n"
         f"Time:   {event.ts:%Y-%m-%d %H:%M:%S}"
+        f"Prediction_id: {event.prediction_id}\n"
     )
     print("\n" + "=" * 50)
     print(headline)
@@ -93,34 +57,58 @@ def notify_order(event: OrderEvent, position_mgr):
         and event.status == "FILLED"
         and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
     ):
-        # 3. 构造要写入数据库的数据（对应 SQLModel 的 Order 模型）
-        order_data = {
-            "symbol": event.symbol,
-            "side": event.side,  # "buy" or "sell"
-            "entry_price": event.price,
-            "entry_time": event.ts.isoformat(),
-            "actual_return": 0.0,  # 初始值为0，收盘后由 analytics 接口更新
-            "status": "closed" if event.action in {"CLOSE", "REDUCE"} else "open",
-            # 如果你有 trade_id 或关联的 prediction_id，也可以加上
-        }
+        ts = position_mgr.current_market_time or datetime.now()
+        # 获取当前持仓信息
+        pos = position_mgr.positions.get(event.symbol)
 
+        actual_return = 0.0
+        pnl_amount = 0.0
+        entry_p: float = event.price
+        action = event.action
+        # --- 关键修复： entry_p 的取值 ---
+        if action in ["REDUCE", "CLOSE"]:
+            # 减仓或清仓时，必须使用【成交前】的持仓均价
+            # 如果 pos 还在，取 pos.entry_price
+            # 如果 pos 刚被 del 了（close 逻辑），你需要确保调用 _record 时 pos 对象还没销毁或者传了快照
+            entry_p = pos.entry_price if pos else event.price
+
+            # 计算该笔成交的盈亏
+            pnl_amount = (
+                (event.price - entry_p) * pos.size * (pos.contract_size if pos else 100)
+            )
+            actual_return = (event.price - entry_p) / entry_p if entry_p > 0 else 0
+
+        elif action == "ADD":
+            # 加仓时，我们关心的是“摊薄前”的成本与当前买入价的偏离，
+            # 或者简单记录 entry_p 为当前买入价（因为 side 是 buy，不计算 PnL）
+            entry_p = event.price
+        else:
+            # OPEN 阶段
+            entry_p = event.price
+
+        order_payload = {
+            "symbol": event.symbol,
+            "side": event.side,
+            "entry_price": event.price,
+            "exit_price": event.price if event.side == "sell" else None,
+            "entry_time": (
+                pos.open_time if (event.side == "sell" and pos) else event.ts
+            ).isoformat(),
+            "exit_time": event.ts.isoformat() if event.side == "sell" else None,
+            "actual_return": actual_return,
+            "pnl_amount": pnl_amount,
+            "prediction_id": event.prediction_id,
+            "status": action,
+        }
+        print(f"📤 Prepared order payload for API: {order_payload}")
+        # 调用之前写的 API 函数
+        api_save_order(order_payload)
         # 4. 异步处理：写入数据库和播放声音
         try:
             loop = asyncio.get_running_loop()
 
             # 定义一个内部协程，处理 HTTP 请求
             async def persist_and_notify():
-                # 写入数据库
-                async with httpx.AsyncClient() as client:
-                    try:
-                        r = await client.post(API_URL, json=order_data, timeout=5.0)
-                        if r.status_code == 200:
-                            print(f"✅ Order persisted to DB: {event.symbol}")
-                        else:
-                            print(f"⚠️ DB Persist Failed: {r.text}")
-                    except Exception as e:
-                        print(f"❌ Network Error during DB persist: {e}")
-
                 # 播放声音
                 await play_sound()
 

@@ -1,4 +1,8 @@
+from datetime import datetime
+
+from flask import json
 import pandas as pd
+from infra.api.client import api_save_prediction
 from infra.core.runtime import GlobalState
 from log import signal_log
 from risk.risk_manager import TradePlan
@@ -13,8 +17,6 @@ from strategy.trade_intent import TradeIntent
 异常事件	股票停牌、数据异常、行情异常	系统检测到异常，立刻减仓或清仓
 策略切换	新的市场 regime 切换，当前策略不适用	强制降低仓位或平掉不安全的仓位
 """
-
-
 def execute_equity_action(
     *,
     decision: TradeIntent,
@@ -30,6 +32,28 @@ def execute_equity_action(
    # signal_log(f"CHECK: Available Cash={position_mgr.available_cash}, Order Value={last_price * plan.size }")
     final_action = "HOLD"
     last_price = GlobalState.tickers_price[ticker]
+    ts = position_mgr.current_market_time or datetime.now()
+
+    # --- [Step 1: 通过 API 落地 Prediction] ---
+    prediction_id = None
+    try:
+        prediction_id = api_save_prediction({
+            "symbol": ticker,
+            "timestamp": ts.isoformat(),
+            "expected_return": decision.predicted_up,
+            "features_snapshot": json.dumps({
+                "regime": decision.regime,
+                "model_score": decision.model_score,
+                "atr": decision.atr,
+                "reason": decision.reason,
+                "confidence": decision.confidence,
+                "gate_mult": decision.gate_mult,
+            }),
+            "model_version": "chronos-v2"
+        })
+    except Exception as e:
+        print(f"⚠️ Prediction API 失败: {e}")
+
     # ====================
     # 1️⃣ 强制清仓
     # ====================
@@ -57,6 +81,7 @@ def execute_equity_action(
             strength=reduce_size,
             price=last_price,
             reason=decision.reason,
+            prediction_id = prediction_id
         )
         final_action = "REDUCE"
 
@@ -78,6 +103,7 @@ def execute_equity_action(
                     stop_loss=plan.stop_loss,                    
                     price=last_price,
                     reason=decision.reason,
+                    prediction_id = prediction_id
                 )
             else:
                 # fallback：原先用 strength 控制仓位
@@ -86,7 +112,8 @@ def execute_equity_action(
                     strength=decision.confidence * decision.gate_mult,
                     price=last_price,
                     reason=decision.reason,
-                    stop_loss=plan.stop_loss
+                    stop_loss=plan.stop_loss,
+                    prediction_id = prediction_id
                 )
             final_action = "LONG"
 
@@ -101,6 +128,7 @@ def execute_equity_action(
                 strength=reduce_size,
                 price=last_price,
                 reason=decision.reason,
+                prediction_id = prediction_id
             )
             final_action = "REDUCE"
 

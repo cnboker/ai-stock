@@ -42,12 +42,13 @@ async def list_predictions(
 
 # --- Order 接口 ---
 @router.post("/orders", response_model=Order)
-async def create_order(order: Order, session: Session = Depends(get_session)):
+async def create_order(order: Order, session: AsyncSession = Depends(get_session)):
     """记录一次实盘交易成交情况"""
-    session.add(order)
-    session.commit()
-    session.refresh(order)
-    return order
+    db_order = Order.model_validate(order)
+    session.add(db_order)
+    await session.commit()
+    await session.refresh(db_order)
+    return db_order
 
 @router.patch("/orders/{order_id}", response_model=Order)
 async def update_order_status(

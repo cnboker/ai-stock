@@ -11,7 +11,7 @@ async def upload_data():
         # 对应日志中的 "交易前" 和 Chronos 输出部分
         prediction_payload = {
             "symbol": "sh512760",
-            "timestamp": "2026-04-19T13:30:00",
+            "timestamp": "2026-04-20T13:30:00",
             "expected_return": 0.005088,  # 对应日志中的 predicted_up
             "confidence_interval_low": 0.7164, # 对应 raw_score
             "confidence_interval_high": 0.7652, # 对应 model_score
@@ -40,8 +40,8 @@ async def upload_data():
             "side": "buy",
             "entry_price": 1.59,
             "exit_price": 0.79,
-            "entry_time": "2026-04-19T9:30:00",
-            "exit_time": "2026-04-19T11:00:00",
+            "entry_time": "2026-04-20T9:30:00",
+            "exit_time": "2026-04-20WT11:00:00",
             "actual_return": -0.5031,
             "pnl_amount": -20180.4,
             "prediction_id": prediction_id, # 建立关联！

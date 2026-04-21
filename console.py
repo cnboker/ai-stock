@@ -65,7 +65,7 @@ async def run_trade_cycle():
 
         tickers = [item[0] for item in task_queue]
         symbols_price = await stock_provider.get_price_map(tickers)
-        
+        print(f"symbols_prices={symbols_price}")
 
 
         GlobalState.tickers_price = symbols_price
