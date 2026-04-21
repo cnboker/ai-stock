@@ -55,7 +55,7 @@ async def update_order_status(
     order_id: int, 
     actual_return: float, 
     pnl: float,
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """更新订单结果（通常在收盘后用于填入实际收益）"""
     db_order = session.get(Order, order_id)
@@ -67,14 +67,14 @@ async def update_order_status(
     db_order.status = "closed"
     
     session.add(db_order)
-    session.commit()
-    session.refresh(db_order)
+    await session.commit()
+    await session.refresh(db_order)
     return db_order
 
 @router.get("/daily_review")
 async def get_daily_review(
     date: Optional[str] = None, 
-    session: Session = Depends(get_session)
+    session: AsyncSession = Depends(get_session)
 ):
     """
     Week 1 核心接口：获取每日预测与实盘对比数据，供 Hermes 审计

@@ -1,5 +1,6 @@
 # 逻辑修改要点解析：
 # 移除 Win_Rate 相关逻辑：删除了原有的胜率奖惩阶梯，避免了因缺少参数导致的 KeyError。
+import numpy as np
 
 # 强化 Strategy_Return 权重：在第一部分将 ret 的乘数从 2.0 提到了 5.0。这能解决你之前提到的“盈利了判分却很低”的问题，让绝对收益占据更主导的地位。
 
@@ -16,7 +17,7 @@ def get_advanced_score(stats, is_test=False):
     # --- 1. 基础收益分 (强化版卡玛比率) ---
     # 针对 ETF 收益率低（如 0.3%）的特点，将系数从 5.0 提至 10.0
     # 这样即使是 0.5% 的小利，在低回撤下也能贡献显著正分
-    score = (ret * 10.0) / (mdd + 0.05) 
+    score = (ret * 15.0) / (mdd + 0.05) 
 
     # --- 2. 核心竞争力奖励 (Alpha) ---
     # 在 ETF 震荡市中，Alpha 为正（如你之前的 4.73%）说明避险极佳
@@ -30,7 +31,11 @@ def get_advanced_score(stats, is_test=False):
     if trades < threshold: 
         # 🚨 引导梯度优化：增加 alpha 的引导权重
         # 即使没成交，如果模型预判的方向（Alpha）在变好，评分也该上升
-        return -100.0 + (trades * 10.0) + (alpha * 5.0)
+        return -100.0 + (trades * 15.0) + (alpha * 5.0)
+
+    # --- 新增：交易活跃度奖励 ---
+    # 使用对数函数奖励交易次数，鼓励有效交易，同时避免无意义的高频刷单
+    score += np.log1p(trades) * 25.0
 
     # --- 4. 稳定性奖励 (ETF 回撤惩罚) ---
     # 对于 ETF，15% 的回撤太宽松了，建议改为 8%

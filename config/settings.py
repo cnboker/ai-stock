@@ -25,7 +25,7 @@ HISTORY_FILE = "data/prediction_history.pkl"
 MODEL_NAME = "chronos-2"
 #MODEL_NAME = "chronos-t5-large"
 MODEL_NAME = "kronos-base"
-ENABLE_LIVE_PERSIST = True
+
 
 
 # ================= CUDA 优化 =================

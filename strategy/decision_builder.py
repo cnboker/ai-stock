@@ -97,9 +97,9 @@ class DecisionContextBuilder:
         final_regime = "bad" if eq_decision.regime == "bad" else signal_regime
 
         # 5. 持仓状态处理 (止损/止盈)
-        pos = self.position_mgr.get(ticker)
-        has_position = pos is not None
-        position_size = pos.size if has_position else 0.0
+        pos_dict = self.position_mgr.pos_to_dict(ticker)
+        position_size = pos_dict.get("position_size", 0.0)
+        has_position = position_size > 0
 
         liquidate_reason = None
         reduce_strength = eq_decision.reduce_strength  # 初始强度来自账户风控
@@ -109,8 +109,8 @@ class DecisionContextBuilder:
 
         if has_position:
             # A. 检查止损
-            if latest_price <= pos.stop_loss:
-                latest_price = pos.stop_loss * 0.998  # 模拟滑点成交
+            if latest_price <= pos_dict.get("stop_loss", 0):
+                latest_price = pos_dict["stop_loss"] * 0.998  # 模拟滑点成交
                 raw_signal = "LIQUIDATE"
                 liquidate_reason = "STOP LOSS"
                 self.position_mgr.cooldown[ticker] = 3
@@ -168,7 +168,7 @@ class DecisionContextBuilder:
         #     signal_log(ctx)
         if raw_signal == "LONG":
             signal_log(
-                f"🔥 {ticker} slope={slope}|eq_decision.action={eq_decision.action} Lost_price={pos.stop_loss if pos else None} raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
+                f"🔥 {ticker} slope={slope}|eq_decision.action={eq_decision.action} Lost_price={pos_dict.get('stop_loss', 0)}  raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
                 f"Pre_Up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
             )
         #signal_log(ctx)

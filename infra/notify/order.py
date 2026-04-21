@@ -2,7 +2,6 @@ import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Dict, Any
-from config.settings import ENABLE_LIVE_PERSIST
 from infra.api.client import api_save_order
 from infra.core.runtime import GlobalState, RunMode
 
@@ -53,7 +52,7 @@ def notify_order(event: OrderEvent, position_mgr):
 
     # 2. ===== 逻辑判断：只在真实成交后执行 =====
     if (
-        ENABLE_LIVE_PERSIST
+        GlobalState.mode == RunMode.LIVE
         and event.status == "FILLED"
         and event.action in {"ADD", "OPEN", "CLOSE", "REDUCE"}
     ):

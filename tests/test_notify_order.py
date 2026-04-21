@@ -49,7 +49,7 @@ def make_test_event():
 
 def test_notify_order_v1_skips_sound_when_persist_disabled(monkeypatch, capsys):
     event = make_test_event()
-    monkeypatch.setattr(order, "ENABLE_LIVE_PERSIST", False)
+    
 
     def fail_get_loop():
         raise AssertionError("get_running_loop should not be called")
@@ -66,7 +66,7 @@ def test_notify_order_v1_skips_sound_when_persist_disabled(monkeypatch, capsys):
 
 def test_notify_order_v1_schedules_play_sound(monkeypatch):
     event = make_test_event()
-    monkeypatch.setattr(order, "ENABLE_LIVE_PERSIST", True)
+    
     monkeypatch.setattr(order, "play_sound", dummy_play_sound)
 
     fake_loop = DummyLoop()
@@ -81,7 +81,7 @@ def test_notify_order_v1_schedules_play_sound(monkeypatch):
 
 def test_notify_order_schedules_persist_and_notify(monkeypatch):
     event = make_test_event()
-    monkeypatch.setattr(order, "ENABLE_LIVE_PERSIST", True)
+   
     monkeypatch.setattr(order, "play_sound", dummy_play_sound)
     monkeypatch.setattr(order, "httpx", type("httpx", (), {"AsyncClient": FakeAsyncClient}))
 
@@ -99,7 +99,7 @@ def test_notify_order_schedules_persist_and_notify(monkeypatch):
 def test_notify_order_no_task_when_not_filled(monkeypatch):
     event = make_test_event()
     event.status = "PENDING"
-    monkeypatch.setattr(order, "ENABLE_LIVE_PERSIST", True)
+
 
     def fail_get_loop():
         raise AssertionError("get_running_loop should not be called")
