@@ -22,7 +22,7 @@ class StockProvider:
         query_str = ",".join([f"s_{s}" for s in symbols])
         url = f"{self.base_url}{query_str}"
         print(f"url={url}")
-        async with httpx.AsyncClient(trust_env=True) as client:
+        async with httpx.AsyncClient(trust_env=False) as client:
             try:
                 response = await client.get(url, headers=self.headers, timeout=5.0)
                 if response.status_code != 200:

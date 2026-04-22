@@ -40,7 +40,9 @@ eq_recorder = create_equity_recorder()
 stock_provider = StockProvider()
 
 async def run_trade_cycle():
-   
+    if is_market_break():
+        print("⏸️ 市场休息中，跳过本周期")
+        return
     # 打印周期开始时间（建议使用更简洁的格式）
     now_str = time.strftime('%H:%M:%S')
     print(f"\n🚀 [Cycle Start] {now_str}")
@@ -135,13 +137,21 @@ async def main_loop():
     print(f"定时器已启动，每 {UPDATE_INTERVAL_SEC} 秒执行一次。")
     try:
         while True:
-            start_time = time.time()
-            await run_trade_cycle()
-
-            # 计算补偿时间，确保循环间隔准确
-            elapsed = time.time() - start_time
-            sleep_time = max(0.1, UPDATE_INTERVAL_SEC - elapsed)
-            time.sleep(sleep_time)
+            now = time.time()
+            # 计算距离下一个整周期还剩多少秒
+            # 例如现在 13:05，下一个 13:30 触发
+            wait_time = UPDATE_INTERVAL_SEC - (now % UPDATE_INTERVAL_SEC)
+            await asyncio.sleep(wait_time)
+           # 记录开始执行时间，用于性能监控
+            cycle_start = time.time()
+            try:
+                await run_trade_cycle()
+            except Exception as e:
+                print(f"❌ 周期执行异常: {e}")
+                
+            elapsed = time.time() - cycle_start
+            if elapsed > 10:  # 如果执行耗时过长，打印警告
+                print(f"⚠️ 预警：run_trade_cycle 耗时过长 ({elapsed:.2f}s)，请检查模型推断速度")
 
     except KeyboardInterrupt:
         print("\n用户中断，程序退出...")

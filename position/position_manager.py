@@ -465,10 +465,13 @@ class PositionManager:
 
         if reduce_size <= 0:
             return
-
+        val = self.get_ticker_value(ticker=ticker, price=price)
+        if val <= 1000:
+            reduce_size = pos.size  # 直接清仓
         # ===== 2️⃣ 执行减仓 =====
         pos.size -= reduce_size
         cash_back = reduce_size * price * pos.contract_size
+        
         self.cash += cash_back
 
         self._record(
