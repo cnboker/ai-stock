@@ -125,7 +125,9 @@ def execute_stock_decision(
         return {"type": "exit", "ticker": ticker}
 
     # 3. 如果是买入信号，则返回给漏斗
+    signal_log(f"🔍 {ticker} 模型预测分数: {ctx.model_score:.4f} | 信号: {ctx.raw_signal} | 价格: {price:.2f}")
     if ctx.raw_signal == "LONG" and ctx.gate_allow:
+        signal_log(f"✅ {ticker} 通过漏斗，准备执行买入 | 模型分数: {ctx.model_score:.4f} | 价格: {price:.2f}")
         return {
             "type": "candidate",
             "ticker": ticker,

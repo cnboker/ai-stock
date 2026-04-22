@@ -156,7 +156,7 @@ async def main_loop(interval):
             elapsed = time.time() - cycle_start
             if elapsed > 10:  # 如果执行耗时过长，打印警告
                 print(f"⚠️ 预警：run_trade_cycle 耗时过长 ({elapsed:.2f}s)，请检查模型推断速度")
-            break   # 目前先跑一次，后续改成持续循环
+            #break   # 目前先跑一次，后续改成持续循环
     except KeyboardInterrupt:
         print("\n用户中断，程序退出...")
         
@@ -164,6 +164,6 @@ async def main_loop(interval):
 
 if __name__ == "__main__":
     interval = UPDATE_INTERVAL_SEC
-    interval = 1
+    #interval = 1
      # 计算距离下一个整周期还剩多少秒
     asyncio.run(main_loop(interval))
