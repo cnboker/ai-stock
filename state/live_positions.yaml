@@ -1,11 +1,3 @@
 account: main_account
-cash: 54224.36
-positions:
-  sh512760:
-    direction: LONG
-    entry_price: 0.881
-    highest_price: 0.906
-    open_time: '2026-04-22T11:49:10.327440'
-    size: 1
-    stop_loss: 0.881
-    tp1_hit: false
+cash: 54314.28
+positions: {}

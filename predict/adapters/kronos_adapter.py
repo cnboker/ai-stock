@@ -1,6 +1,8 @@
 import sys
 import os
 import pandas as pd
+
+from infra.utils.time_profile import timer_decorator
 from .base import BaseTSFMAdapter
 
 class KronosAdapter(BaseTSFMAdapter):
@@ -32,7 +34,7 @@ class KronosAdapter(BaseTSFMAdapter):
         # 适配 V100 开启半精度
         self.predictor = KronosPredictor(model, tokenizer, max_context=512)
         #self.predictor.model.cuda().half() 
-
+    
     def predict(self, df, prediction_length):
         # 1. 确保索引为 Datetime 类型
         if not isinstance(df.index, pd.DatetimeIndex):
@@ -49,10 +51,27 @@ class KronosAdapter(BaseTSFMAdapter):
         y_ts = pd.Series(y_range) # 关键：将 DatetimeIndex 转为 Series
 
         # 4. 执行预测
-        res = self.predictor.predict(x_df, x_ts, y_ts, prediction_length, sample_count=5,verbose=False)
+        # res = self.predictor.predict(x_df, x_ts, y_ts, prediction_length, sample_count=5,verbose=False)
         
+        # return pd.DataFrame({
+        #     "low": res["close"].values * 0.99,
+        #     "median": res["close"].values,
+        #     "high": res["close"].values * 1.01
+        # })
+        # 修改执行预测部分
+        sample_count = 10 # 增加采样数以获得真实的分布
+        res = self.predictor.predict(x_df, x_ts, y_ts, prediction_length, sample_count=sample_count, verbose=False)
+
+        # res["close"] 通常是一个 shape 为 (sample_count, prediction_length) 的数组
+        # 计算真实的预测区间
+        mean_pred = res["close"].mean(axis=0)
+        std_pred = res["close"].std(axis=0)
+
         return pd.DataFrame({
+            "median": mean_pred,
+            "std": std_pred,
+            "upper_bound": mean_pred + 2 * std_pred, # 动态压力位
+            "lower_bound": mean_pred - 2 * std_pred,  # 动态支撑位
             "low": res["close"].values * 0.99,
-            "median": res["close"].values,
             "high": res["close"].values * 1.01
         })

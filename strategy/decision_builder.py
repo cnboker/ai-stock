@@ -47,6 +47,7 @@ class DecisionContextBuilder:
         low,
         median,
         high,
+        std: np.ndarray = None,  # 新增 std 接口
         atr: float,
         model_score: float,
         close_df,
@@ -57,6 +58,17 @@ class DecisionContextBuilder:
         gate_result = self.gater.evaluate(
             lower=low, mid=median, upper=high, close_df=close_df.values
         )
+        # 【进化点】风险过滤：如果预测的波动率异常放大，说明模型心里也没底
+        if std is not None:
+            # 计算预测的相对波动率 (Coefficient of Variation)
+            # 这里取未来几个预测点的平均 std / median
+            relative_vol = (std / median).mean()
+            
+            # 如果预测波动率超过 ATR 的一定比例，或者超过自定义阈值 (如 3%)
+            # 说明此时是“乱战”，强制调低 gate_result.score 或关闭 allow
+            if relative_vol > 0.03:  # 3% 的波动预期通常意味着高风险
+                gate_result.allow = False
+                signal_log(f"⚠️ {ticker} 预测不确定性过高 ({relative_vol:.2%})，跳过开仓")
 
         # 2. 基础计算
         predicted_up = calc(low, median, high, latest_price)
@@ -76,13 +88,23 @@ class DecisionContextBuilder:
         is_model_confident = model_score > settings.MODEL_TH
         is_gate_open = gate_result.allow
 
+        is_vol_stable = True
+        if np.std is not None:
+            # 如果 std 在预测周期内剧烈发散，视为不稳定
+            vol_growth = std[-1] / (std[0] + 1e-6)
+            if vol_growth > 1.5: # 预测未来波动会放大 50%
+                is_vol_stable = False
+                
         # 优化后的判定逻辑
         signal_regime = "neutral"
         
         # 1. 完美状态：全部达标
-        if is_trend_strong and is_model_confident and is_gate_open:
+        if is_trend_strong and is_model_confident and is_gate_open and is_vol_stable:
             signal_regime = "good"
-        
+        # 增加一个特殊警告：如果斜率好但波动率失控
+        elif is_trend_strong and not is_vol_stable:
+            signal_regime = "neutral" # 这种时候不能给 good，防止追高
+            signal_log(f"⚠️ {ticker} 斜率强但预测波动率失控，保持中立")
         # 2. 趋势初期：模型极度自信 + 门槛通过 (即便斜率还没完全拉起)
         elif model_score > (settings.MODEL_TH + 0.1) and is_gate_open:
             signal_regime = "good"

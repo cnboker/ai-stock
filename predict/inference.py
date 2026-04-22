@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from infra.core.runtime import GlobalState
+from infra.utils.time_profile import timer_decorator
 from model_torch import optional_inference_mode
 from config.settings import MODEL_NAME
 from predict.predict_result import PredictionResult
@@ -9,6 +10,7 @@ from predict.time_utils import calc_atr
 from predict.factory import PredictorFactory # 引入工厂
 
 @optional_inference_mode()
+
 def run_prediction(
     df: pd.DataFrame,
     hs300_df: np.ndarray | None,
@@ -73,10 +75,22 @@ def run_prediction(
 
     # 4. 解析预测值 (统一输出结构)
     if MODEL_NAME.startswith("kronos"):
-        q10 = pred["low"].values
+       
+        # 核心进化：用真实的 std 替换死权重 (0.99/1.01)
+        # 在正态分布下，0.1分位数 ≈ mean - 1.28 * std
+        # 在正态分布下，0.9分位数 ≈ mean + 1.28 * std
+        
         q50 = pred["median"].values
-        q90 = pred["high"].values
-        # print(f"q10={q10[-1]},q50={q50[-1]},q90={q90[-1]},")
+        current_std = pred["std"].values
+        
+        # 这里的 1.28 可以根据你对风险的容忍度调整：
+        # 1.28 = 80% 置信区间 (更能捕捉波动)
+        # 1.64 = 90% 置信区间 (更稳健)
+        q10 = q50 - 1.28 * current_std
+        q90 = q50 + 1.28 * current_std
+        
+        # 保留 log 用于调试，你会发现这比原来的 0.99 灵敏得多
+        # print(f"Kronos 动态区间: low={q10[-1]:.2f}, mid={q50[-1]:.2f}, high={q90[-1]:.2f}, std_ratio={current_std[-1]/q50[-1]:.4f}")
     else:
         q10, q50, q90 = pred["0.1"].values, pred["0.5"].values, pred["0.9"].values
 
@@ -90,7 +104,7 @@ def run_prediction(
     atr = calc_atr(df)
     model_score = model_score_from_quantiles_trend(low, median, high, latest_price, atr)
 
-    return PredictionResult(low=low, median=median, high=high, model_score=model_score, atr=atr)
+    return PredictionResult(low=low, median=median, high=high, model_score=model_score, atr=atr, std=pred["std"].values if MODEL_NAME.startswith("kronos") else None )
 
 
 def model_score_from_quantiles_trend(low, median, high, latest_price, atr):
