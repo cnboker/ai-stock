@@ -61,7 +61,6 @@ class SignalManager:
                 model_score=ctx.model_score,
                 predicted_up=ctx.predicted_up,
                 strength=ctx.strength,
-                has_position=ctx.has_position,
                 force_reduce=True,
                 reduce_strength=ctx.reduce_strength or 1.0,
                 regime=ctx.regime,
@@ -107,7 +106,7 @@ class SignalManager:
             predicted_up=ctx.predicted_up,
             strength=ctx.strength,
             atr=ctx.atr,
-            has_position=ctx.has_position,
+         
             force_reduce=False,
             reduce_strength=confidence,
             regime=ctx.regime,

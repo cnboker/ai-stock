@@ -110,7 +110,7 @@ def execute_stock_decision(
 
     # 2. 【核心改动】判断是否属于“必须立即执行”的退出信号
     # 只要是卖出类信号（减仓、清仓、止损），不进漏斗，直接执行
-    if ctx.raw_signal in ("REDUCE", "LIQUIDATE") and ctx.has_position:
+    if ctx.raw_signal in ("REDUCE", "LIQUIDATE") and session.position_mgr.has_position(ticker):
         signal_log(f"🚨 {ticker} 触发退出信号: {ctx.raw_signal} | 原因: {ctx.liquidate_reason}")
         
         # 立即调用执行函数

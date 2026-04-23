@@ -155,7 +155,10 @@ class PositionManager:
 
         # 🟢 阶段1：刚盈利 → 移动到开仓价保本
         if position.stage == "profit_lock":
-            stop = max(stop, entry)
+            # 既然已经赚了 3% 了，与其回落到 0% 止损，
+            # 不如锁住一半利润，比如保住 1.5% 的利润
+            lock_profit_price = entry + (price - entry) * 0.5 
+            stop = max(stop, lock_profit_price)
 
         # 🟡 阶段2：大肉趋势 → 移动 ATR 跟踪止损
         elif position.stage == "trend":
@@ -247,8 +250,8 @@ class PositionManager:
                 print(f"⚠️ {ticker} 已触及 TP1，当前价格 {price}，加仓操作将被拒绝以保护利润。")
                 return
             # 🚨 价格步长检查：当前价必须比上次成交价高出 1.5%
-            if price < pos.entry_price * 1.01 :
-                print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.01} 的要求")
+            if price < pos.entry_price * 1.015 :
+                print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.015} 的要求")
                 return 
         
             add_size = 0

@@ -23,7 +23,6 @@ class TradingSystem:
         intent = self.signal_mgr.evaluate(ctx)
 
         # 3. 拦截未确认信号 (快捷路径)
-        # print(f"action={intent.action} ctx.has_position={ctx.has_position} confirmed={intent.confirmed },force_reduce={intent.force_reduce} result={not intent.confirmed and not intent.force_reduce}")
         if not intent.confirmed and not intent.force_reduce:
             persist_live_positions(self.position_mgr)
             return {"ticker": ticker, "action": "HOLD", "reason": "Unconfirmed"}

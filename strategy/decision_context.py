@@ -18,7 +18,7 @@ class DecisionContext:
     
     # 4. 状态判定 (无默认值)
     regime: str       # bad/good/neutral     
-    has_position: bool
+
     position_size: float
     
     # 5. 信号指令 (无默认值)

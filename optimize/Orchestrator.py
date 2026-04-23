@@ -134,7 +134,7 @@ def start_optimization_cycle(ticker: str, ticker_period: str, reset_study: bool 
         PersistManager.save_ticker_config(ticker, advice)
 
     # --- 3. 运行 Optuna ---
-    study = run_optuna_study(ticker, ticker_period, n_trials=20, reset_study=reset_study)
+    study = run_optuna_study(ticker, ticker_period, n_trials=30, reset_study=reset_study)
     
     # --- 4. 核心改动：检查 Optuna 运行后的“出勤率” ---
     # 假设你的 backtest 函数会将交易次数存在 study 的 user_attr 里，或者通过 study 的结果判断
@@ -164,7 +164,7 @@ def start_optimization_cycle(ticker: str, ticker_period: str, reset_study: bool 
             print(f"♻️ Gemini 重新调整了搜索空间。写入文件并尝试最后一次 Optuna...")
             PersistManager.save_ticker_config(ticker, new_advice)
             
-            # 使用全新的空间再跑 20 次
+            # 使用全新的空间再跑 30 次
             run_optuna_study(ticker, ticker_period, n_trials=30, reset_study=False)
         else:
             print(f"🛑 深度优化失败，彻底放弃 {ticker}。")

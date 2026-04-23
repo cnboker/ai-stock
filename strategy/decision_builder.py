@@ -128,14 +128,14 @@ class DecisionContextBuilder:
 
         # 更新移动止损并检查
         self.position_mgr.update_trailing_stop(ticker, latest_price, atr)
-
+        stop_loss_cooldown = 10
         if has_position:
             # A. 检查止损
             if latest_price <= pos_dict.get("stop_loss", 0):
                 latest_price = pos_dict["stop_loss"] * 0.998  # 模拟滑点成交
                 raw_signal = "LIQUIDATE"
                 liquidate_reason = "STOP LOSS"
-                self.position_mgr.cooldown[ticker] = 3
+                self.position_mgr.cooldown[ticker] = stop_loss_cooldown
 
             # B. 检查账户风险指令 (REDUCE/LIQUIDATE)
             elif eq_decision.action in ("REDUCE", "LIQUIDATE"):
@@ -149,7 +149,7 @@ class DecisionContextBuilder:
                 # 取账户减仓要求和个股止盈强度的最大值 (取严原则)
                 reduce_strength = max(float(reduce_strength or 0.0), float(tp_action or 0.0))
                 liquidate_reason = "TAKE_PROFIT"
-                self.position_mgr.cooldown[ticker] = 3
+                self.position_mgr.cooldown[ticker] = stop_loss_cooldown
 
         # 6. 计算最终缩放系数与分数
         final_gate_mult = gate_result.score * eq_decision.gate_mult
@@ -174,8 +174,7 @@ class DecisionContextBuilder:
             predicted_up=predicted_up,
             gate_allow=bool(gate_result.allow),
             gate_mult=final_gate_mult,
-            regime=final_regime,
-            has_position=has_position,
+            regime=final_regime,            
             position_size=position_size,
             raw_signal=raw_signal,
             raw_score=raw_score,

@@ -9,7 +9,8 @@ from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
 from global_state import equity_engine
 from data.loader import load_stock_df, load_index_df
-from trade.trade_engine import execute_stock_decision
+from trade.signal_arbiter import SignalArbiter
+from trade.trade_engine import execute_final_order, execute_stock_decision
 from infra.core.runtime import GlobalState, RunMode
 class BacktestRunner:
     def __init__(self, ticker, period):
@@ -123,13 +124,20 @@ class BacktestRunner:
 
             ticker_df = pd.concat([df_history, df_slice])
             hs300_df = pd.concat([hs300_history,hs300_slice])   
-            
-            execute_stock_decision(
+            arbiter = SignalArbiter(max_slots=1)
+            res = execute_stock_decision(
                 ticker=self.ticker,
                 hs300_df = hs300_df,
                 ticker_df=ticker_df,
                 session=self.session,
             )
+              # 如果是买入候选人，加入漏斗
+            if res["type"] == "candidate":
+                arbiter.add_candidate(res) 
+            candidates = arbiter.get_best_decisions()
+            # --- 2. 截面优选 ---   
+            if candidates:
+                execute_final_order(candidates[0],self.position_mgr)
             self.eq_recorder.add(self.position_mgr.equity)
 
     #它就返回过去LOOKBACK_WINDOW个单位（天或分钟）的数据
