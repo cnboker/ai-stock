@@ -20,18 +20,6 @@ class SmartOptimizer:
 
         changed = False
 
-        # 1. 针对 Slope 的自适应 (权重最高)
-        # 如果斜率拦截占比超过 40%
-        if dist.get('slope_filter', 0) / total_intercepts > 0.4:
-            old_low = cfg["search_space"]["slope_min"]["low"]
-            # 步进式下调：每次向下探测 0.005
-            new_low = round(old_low - 0.005, 5)
-            cfg["search_space"]["slope_min"]["low"] = new_low
-            # 同时将初始经验设为这个新的下限，确保体检能通过
-            cfg["initial_trial"]["slope_min"] = new_low
-            print(f"🤖 [智能扩张] {self.ticker} 斜率门槛过高，已下调 low 至: {new_low}")
-            changed = True
-
         # 2. 针对 Model Confidence 的自适应
         if dist.get('model_confidence', 0) / total_intercepts > 0.3:
             old_th = cfg["search_space"]["model_th"]["low"]

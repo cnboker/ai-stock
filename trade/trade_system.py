@@ -92,13 +92,13 @@ class TradingSystem:
 
         # 5. 最终物理执行 (修改仓位)
         pos_dict = self.position_mgr.pos_to_dict(ticker=ticker)
-        print(f"交易前:{pos_dict},intent={intent},plan={plan}")
+        # print(f"交易前:{pos_dict},intent={intent},plan={plan}")
         result = execute_equity_action(
             decision=intent,
             position_mgr=self.position_mgr,
             ticker=ticker,
             plan=plan,
         )
-        print(f"交易后:{result}")
+        # print(f"交易后:{result}")
         persist_live_positions(self.position_mgr)
         return result

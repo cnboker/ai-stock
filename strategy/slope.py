@@ -1,48 +1,71 @@
 import numpy as np
 
-def compute_slope(prices, window=20):
-   
+def compute_hybrid_slope(median_prices, hist_close_prices):
+    hist_std = hist_close_prices.std()
+
+    # 1. 预测斜率 (当前为 0.0)
+    slope_pred = __compute_refined_slope_for_prediction(median_prices, hist_std)
+    
+    # 2. 历史斜率 (当前表现活跃: -0.09 ~ 0.15)
+    slope_hist = __compute_refined_slope(hist_close_prices)
+
+    # 3. 动态融合：
+    # 如果预测失效(diff=0)，则 100% 信任历史趋势
+    # 如果预测有效，则各占 50%
+    pred_diff = np.abs(median_prices[-1] - median_prices[0])
+    if pred_diff < 1e-7:
+        return slope_hist 
+    else:
+        return (slope_hist * 0.5) + (slope_pred * 0.5)
+    
+
+def __compute_refined_slope_for_prediction(median_prices, hist_std):
+    
+    """
+    median_prices: 模型预测的未来价格中位数序列
+    hist_std: 该标的历史真实价格的波动标准差 (从 df_context 获得)
+    """
+    y = np.array(median_prices)
+    n = len(y)
+    x = np.arange(n)
+    
+    # 1. 依然使用最小二乘法求出预测的价格变化速率 (Raw Slope)
+    numerator = n * np.sum(x * y) - np.sum(x) * np.sum(y)
+    denominator = n * np.sum(x**2) - (np.sum(x)**2)
+    raw_slope = numerator / denominator if denominator != 0 else 0.0
+    
+    # 2. 归一化：使用历史波动的标准差
+    # 含义：模型预测的每步涨幅，相当于历史波动水平的多少倍？
+    norm_slope = raw_slope / (hist_std + 1e-9)
+    
+    return float(norm_slope)
+
+def __compute_refined_slope(prices, window=20):
     if len(prices) < window:
         return 0.0
-
-    y = prices[-window:]
+    
+    y = np.array(prices[-window:])
     x = np.arange(window)
+    
+    # 1. 快速最小二乘法计算
+    n = window
+    sum_x = np.sum(x)
+    sum_y = np.sum(y)
+    sum_xx = np.sum(x**2)
+    sum_xy = np.sum(x * y)
+    
+    numerator = n * sum_xy - sum_x * sum_y
+    denominator = n * sum_xx - sum_x**2
+    
+    raw_slope = numerator / denominator if denominator != 0 else 0.0
+    
+    # 2. 顶级归一化：结合波动率 (使用标准差)
+    # 这样得到的斜率代表：价格变动方向偏离了多少个标准差
+    std_dev = np.std(y)
+    if std_dev == 0: return 0.0
+    
+    # 归一化后的斜率，更具普适性
+    norm_slope = raw_slope / std_dev
+    
+    return float(norm_slope)
 
-    slope = np.polyfit(x, y, 1)[0]
-
-    # 归一化
-    slope = slope / np.mean(y)
-
-    return float(slope)
-
-def corrected_slope(
-    slope_raw: float,
-    prices: np.ndarray,
-    k: int = 5,
-    alpha: float = 0.7,
-    scale: float = 3.0,
-):
-    """
-    slope_raw : 原始 slope
-    prices    : 最近价格
-    k         : 短期窗口
-    alpha     : slope 权重
-    scale     : 去饱和尺度
-    """
-
-    # --- 去饱和 ---
-    slope_norm = slope_raw / (abs(slope_raw) + scale)
-
-    if len(prices) < k + 1:
-        return slope_norm
-
-    # --- 短期动量 ---
-    recent_ret = (prices[-1] - prices[-k]) / prices[-k]
-
-    # 轻度压缩
-    recent_dir = np.tanh(recent_ret * 3)
-
-    # --- 融合 ---
-    slope_fixed = alpha * slope_norm + (1 - alpha) * recent_dir
-
-    return float(np.clip(slope_fixed, -1.0, 1.0))

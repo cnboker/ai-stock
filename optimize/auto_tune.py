@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     # task_queue 2= ['sz300383','sz300603','sh515050','sh588200', 'sh561330','sh512760', 'sz159515']
     # task_queue = ['sh588200','sh515260','sh513130','sh515880']
-    task_queue = ["sh603002"]
+    task_queue = ["sh603871"]
     print(f"当前观察池: {task_queue}")
     for ticker in task_queue:
         try:
@@ -29,7 +29,7 @@ if __name__ == "__main__":
             print(f"🚀 [Start] 正在调优: {ticker}...")
             # 你的 Optuna 调优主逻辑
             start_optimization_cycle(
-                ticker, "30", reset_study=False
+                ticker, "30", reset_study=True
             )  # 30 分钟级别的调优
             print(f"✅ [Success] {ticker} 调优完成")
 

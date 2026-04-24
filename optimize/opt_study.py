@@ -13,7 +13,9 @@ from simulator.run_backtest import run_backtest
 def run_optuna_study(ticker: str, 
                      ticker_period="30", 
                      n_trials=100, 
-                     reset_study=False):
+                     reset_study=False,
+                     slope_stats=None # 新增参数：传入体检得到的统计数据
+                     ):
     
     study_name=f"opt_{ticker}"
     storage=ConfigFactory.get_db_url(ticker)
@@ -35,6 +37,13 @@ def run_optuna_study(ticker: str,
         direction="maximize",
         #sampler=sampler
     )
+
+    if slope_stats:
+        # 记录 95 分位最大值和平均值
+        study.set_user_attr("dynamic_max_slope", float(slope_stats.get("max_ref", 0.02)))
+        study.set_user_attr("dynamic_avg_slope", float(slope_stats.get("avg_ref", 0.001)))
+        
+      
         
     # 2. 注入经验
     ConfigFactory.enqueue_experience(study, ticker)
@@ -86,18 +95,22 @@ def objective(trial, ticker: str, ticker_period="30"):
     # 对于 30min 线，看 192 个点（约 4 周）已经是极限了
     GlobalState.chronos_context_length = min(chronos_context_length, 192)
 
-    # 1. 获取动态配置 (带前缀)
+    # 4. 获取动态上限 (从 Study 中取，若没有则回退到 0.02)
+    max_slope_limit = trial.study.user_attrs.get("dynamic_max_slope", 0.02)
+    slope_key = "slope"
+    dynamic_slope = trial.suggest_float(
+        slope_key, 
+        1e-5, 
+        max(max_slope_limit, 0.001),      
+    )
     optuna_config = ConfigFactory.suggest_config(trial, ticker)
-
-    # 2. 参数平铺化 (转大写并去前缀)
-    category = ConfigFactory.get_ticker_category(ticker).lower()
-    final_config = {
-        k.replace(f"{category}_", "").upper(): v for k, v in optuna_config.items()
-    }
-    print(f"\n🔍 当前试验参数: {final_config}" )
+    # 确保最终配置里用的是我们这个带 log 且范围动态的值（双保险）
+    optuna_config[slope_key] = dynamic_slope
+    
+    print(f"\n🔍 当前试验参数: {optuna_config}, max_slope_limit={max_slope_limit}" )
     scores = []
     # 3. 声明式注入并循环跑分
-    with use_config(final_config):
+    with use_config(optuna_config):
         try:
             # 运行回测
             train_stats, test_stats = run_backtest(ticker,period=ticker_period)
@@ -114,7 +127,7 @@ def objective(trial, ticker: str, ticker_period="30"):
             # 评分逻辑
             train_val = max(-200, advanced_score.get_advanced_score(train_stats, is_test=False))
             test_val = max(-200, advanced_score.get_advanced_score(test_stats, is_test=True))
-
+            print(f"📈 Train Score: {train_val:.2f}, Test Score: {test_val:.2f} (before penalty)")
             # 惩罚项计算
             test_return = test_stats.get("Strategy_Return", 0)
             ticker_score = (train_val * 0.7) + (test_val * 0.3)

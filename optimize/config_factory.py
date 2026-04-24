@@ -81,7 +81,6 @@ class ConfigFactory:
             if isinstance(low, int) and isinstance(high, int):
                 params[key] = trial.suggest_int(key, low, high)
             else:
-                # 针对极其微小的数值（如 slope_min），可以启用 log 采样以提高精度
                 # 如果 low > 0 且跨度很大，可以用 log=True
                 use_log = space.get("log", False)
                 params[key] = trial.suggest_float(key, float(low), float(high), log=use_log)

@@ -251,7 +251,7 @@ class PositionManager:
                 return
             # 🚨 价格步长检查：当前价必须比上次成交价高出 1.5%
             if price < pos.entry_price * 1.015 :
-                print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.015} 的要求")
+                # print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.015} 的要求")
                 return 
         
             add_size = 0

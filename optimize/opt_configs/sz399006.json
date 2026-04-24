@@ -63,10 +63,7 @@
             "low": -0.005,
             "high": 0.005
         },
-        "slope_min": {
-            "low": 0.0,
-            "high": 0.0005
-        },
+       
         "predict_up": {
             "low": -0.005,
             "high": 0.005
@@ -123,7 +120,7 @@
     "initial_trial": {
         "model_th": 0.38,
         "slope": 0.0005,
-        "slope_min": 0.0001,
+        
         "predict_up": 0.0,
         "init_pt": 0.01,
         "trend_stage": 0.05,

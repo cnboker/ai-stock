@@ -12,7 +12,6 @@
         "kelly": 0.25974726791979863,
         "slope": 0.017198118420514955,
         "max_stop": 0.08514976110141352,
-        "slope_min": 0.0028176280748833057,
         "predict_up": -0.008426497891345124,
         "tp1": 1.0597352207357622,
         "tp2": 1.1118637928928232,
@@ -24,8 +23,8 @@
         "success_count": 0,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 26,
-            "slope_filter": 78,
+            "model_confidence": 41,
+            "slope_filter": 63,
             "predict_up_filter": 0,
             "zero_strength_ghost": 0,
             "other_error": 0
@@ -41,7 +40,6 @@
             "kelly": 0.25974726791979863,
             "slope": 0.017198118420514955,
             "max_stop": 0.08514976110141352,
-            "slope_min": 0.0028176280748833057,
             "predict_up": -0.008426497891345124,
             "tp1": 1.0597352207357622,
             "tp2": 1.1118637928928232,
@@ -87,10 +85,7 @@
             "low": 0.08,
             "high": 0.15
         },
-        "slope_min": {
-            "low": 0.0,
-            "high": 0.005
-        },
+       
         "predict_up": {
             "low": -0.05,
             "high": 0.01
@@ -123,11 +118,10 @@
         "tp2": 1.2,
         "init_pt": 0.01,
         "trend_stage": 0.15,
-        "min_stop": 0.01,
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-12 16:49:40",
+        "last_optimized": "2026-04-24 21:00:01",
         "best_value": -41.26845,
         "status": "SIGNAL_BLOCKED"
     }

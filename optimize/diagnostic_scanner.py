@@ -1,12 +1,12 @@
 import traceback
 
-import pandas as pd
 import numpy as np
 from data.loader import GlobalState
 from simulator.run_backtest import BacktestRunner
 from infra.core.dynamic_settings import settings, use_config
 from predict.inference import run_prediction
 from optimize.config_factory import ConfigFactory
+from strategy.slope import compute_hybrid_slope
 from strategy.strength import compute_strength
 
 
@@ -38,6 +38,7 @@ class DiagnosticScanner:
         # 1. 确保扫描范围与回测区间对齐 (13天 = 104根)
         scan_length = 104
         # 3. 使用上下文注入执行体检
+        all_observed_slopes = []  # 新增：记录所有计算出的原始斜率
         with use_config(final_inject_config):
             try:
                 runner = BacktestRunner(ticker=ticker, period=ticker_period)
@@ -45,7 +46,7 @@ class DiagnosticScanner:
             except Exception as e:
                 print(f"❌ 初始化数据失败: {e}")
                 return {"success_count": 0, "intercept_report": {"init_error": 1}}
-
+            
             for current_time in trade_bars:
                 try:
                     # 1. 严格切分历史：只取当前 Bar 之前的数据
@@ -68,18 +69,16 @@ class DiagnosticScanner:
                     median_prices = pre_result.median
                     current_price = GlobalState.tickers_price[ticker]
                     up_pct = (median_prices[0] - current_price) / current_price
-                    slope = (
-                        (median_prices[-1] - median_prices[0])
-                        / len(median_prices)
-                        / current_price
-                    )
-
+                 
+                    slope = compute_hybrid_slope(median_prices, df_context["close"].values)                    
+                    
+                    all_observed_slopes.append(float(slope))
                     # --- 核心诊断逻辑修正 ---
                     if conf < settings.MODEL_TH:
                         reject_reasons["model_confidence"] += 1
                         continue  # 拦截后跳过后续，防止重复计数
 
-                    if slope < settings.SLOPE_MIN:
+                    if slope < settings.SLOPE:
                         reject_reasons["slope_filter"] += 1
                         continue
 
@@ -91,8 +90,8 @@ class DiagnosticScanner:
                     strength = compute_strength(
                         slope=slope,
                         gate=0.6,
-                        alpha=settings.STRENGTH_ALPHA,
-                        slope_min=settings.SLOPE_MIN,
+                        alpha=settings.STRENGTH_ALPHA,  # 确保是从动态配置对象里取的
+                        slope_threshold=settings.SLOPE,  # 同上
                     )
 
                     # 判定强度幽灵：有斜率但公式算出来没强度
@@ -111,7 +110,14 @@ class DiagnosticScanner:
                 except Exception as e:
                     traceback.print_exc()
                     reject_reasons["other_error"] += 1
-
+       
+        if all_observed_slopes:
+            slopes_array = np.array(all_observed_slopes)
+            # 取 95 分位数作为“最大合理斜率”，防止异常值打乱搜索空间
+            max_slope_ref = np.percentile(slopes_array[slopes_array > 0], 95) if any(slopes_array > 0) else 0.005
+            avg_slope_ref = np.mean(slopes_array[slopes_array > 0]) if any(slopes_array > 0) else 0.001
+        else:
+            max_slope_ref, avg_slope_ref = 0.01, 0.001
         # 构建给 Gemini 的结构化字典
         body_check_report = {
             "ticker": ticker,
@@ -122,9 +128,11 @@ class DiagnosticScanner:
             "total_scans": len(trade_bars) // 8,
             "intercept_report": reject_reasons,
             "current_config": test_config,
-            "sample_details": sample_details[
-                :3
-            ],  # 只给 Gemini 看前几个样本数据，节省 token
+            "slope_stats": {
+                "max_ref": max_slope_ref,
+                "avg_ref": avg_slope_ref,
+                "all_positive_slopes": [s for s in all_observed_slopes if s > 0]
+            }
         }
 
         return body_check_report

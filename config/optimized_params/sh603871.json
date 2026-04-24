@@ -1,24 +1,65 @@
 {
-    "_META": {
-        "ticker": "sh603871",
-        "best_value": -41.2685,
-        "date": "2026-04-12 16:49"
+    "ticker": "sh603871",
+    "last_optimized": "2026-04-24 22:45:55",
+    "search_space": {
+        "strength_alpha": {
+            "low": 20.0,
+            "high": 100.0
+        },
+        "model_th": {
+            "low": 0.1,
+            "high": 0.5
+        },
+        "atr_stop": {
+            "low": 2.0,
+            "high": 5.0
+        },
+        "risk": {
+            "low": 0.001,
+            "high": 0.03
+        },
+        "kelly": {
+            "low": 0.1,
+            "high": 0.4
+        },
+        "slope": {
+            "low": 0.001,
+            "high": 0.015
+        },
+        "max_stop": {
+            "low": 0.05,
+            "high": 0.2
+        },
+   
+        "predict_up": {
+            "low": -0.1,
+            "high": 0.02
+        },
+        "tp1": {
+            "low": 1.02,
+            "high": 1.12
+        },
+        "tp2": {
+            "low": 1.1,
+            "high": 1.3
+        },
+        "init_pt": {
+            "low": 0.0,
+            "high": 0.03
+        }
     },
-    "MODEL_TH": 0.4707,
-    "SLOPE": 0.0172,
-    "PREDICT_UP": -0.0084,
-    "INIT_PT": 0.0352,
-    "TREND_STAGE": 0.18,
-    "ATR_MULT": 2.6552,
-    "TP1": 1.0597,
-    "TP2": 1.1119,
-    "KELLY": 0.2597,
-    "RISK": 0.01,
-    "ATR_STOP": 3.7856,
-    "MAX_STOP": 0.0851,
-    "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 56,
-    "SLOPE_MIN": 0.0028,
-    "CONFIRM_N": 1,
-    "WINDOW": 156
+    "initial_trial": {
+        "strength_alpha": 60.0,
+        "model_th": 0.25,
+        "atr_stop": 3.0,
+        "risk": 0.01,
+        "kelly": 0.2,
+        "slope": 0.005,
+        "max_stop": 0.15,
+        "predict_up": -0.02,
+        "tp1": 1.04,
+        "tp2": 1.15,
+        "init_pt": 0.005
+    },
+    "analysis": "The diagnosis report identifies 'slope_filter' as the primary bottleneck (82 blocks) and 'model_confidence' as the secondary bottleneck (22 blocks). The current 'slope' parameter of 0.012 is likely too aggressive for sh603871 on a 30-minute timeframe, preventing entry during moderate trend phases. Additionally, the 'model_th' of 0.4 is filtering out potential signals where the machine learning confidence is slightly lower but still viable."
 }

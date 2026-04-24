@@ -181,6 +181,7 @@ def run_audit():
     # 输出要求
     请保持冷峻、专业、数据驱动的语调，避免废话，直接指出系统逻辑中最薄弱的环节。
     """
+
     # 3. 第一次分析
     print("🤖 Hermes CLI 正在分析...")
     print(f"🔍 初始 Prompt:\n{initial_prompt}")  # 只打印前500字符，避免过长

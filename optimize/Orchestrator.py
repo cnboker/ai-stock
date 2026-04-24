@@ -26,7 +26,6 @@ class InitialTrialConfig(BaseModel):
     kelly: float
     slope: float
     max_stop: float
-    slope_min: float
     predict_up: float
     tp1: float
     tp2: float
@@ -40,7 +39,6 @@ class SearchSpaceConfig(BaseModel):
     kelly: ParameterSpace
     slope: ParameterSpace
     max_stop: ParameterSpace
-    slope_min: ParameterSpace
     predict_up: ParameterSpace
     tp1: ParameterSpace
     tp2: ParameterSpace
@@ -73,7 +71,7 @@ def ask_gemini_to_fix_config(report: Dict[str, Any]):
         警告：Optuna 在 10 次尝试后，Trade Count 依然为 0。这意味着目前的搜索空间（Search Space）和初始参数完全无法触发入场逻辑。
         
         你的核心任务是【开闸放水】：
-        1. **大幅调低入场门槛**：下调 model_th (模型置信度) 的 low 边界至 0.1-0.2，下调 slope_min (最小斜率) 至接近 0。
+        1. **大幅调低入场门槛**：下调 model_th (模型置信度) 的 low 边界至 0.1-0.2，下调 slope (斜率) 至接近 0。
         2. **削弱强度抑制**：减小 strength_alpha，让小波动的信号也能产生 Strength。
         3. **缩减触发步长**：降低 init_pt。
         
@@ -122,50 +120,50 @@ def start_optimization_cycle(ticker: str, ticker_period: str, reset_study: bool 
 
     # --- 1. 初次诊断 ---
     report = DiagnosticScanner.run_body_check(ticker, ticker_period, initial_trial)
-    
+
     # --- 2. 如果诊断不合格，先让 Gemini 改一版参数 ---
-    if report["status"] == "ANEMIC":
-        advice = ask_gemini_to_fix_config(report)
-        if not advice or advice.give_up:
-            print(f"🚫 Gemini 建议放弃 {ticker}")
-            return
-        initial_trial = advice.recommended_initial_trial
-        # 更新配置以便下一步 Optuna 使用
-        PersistManager.save_ticker_config(ticker, advice)
+    # if report["status"] == "ANEMIC":
+    #     advice = ask_gemini_to_fix_config(report)
+    #     if not advice or advice.give_up:
+    #         print(f"🚫 Gemini 建议放弃 {ticker}")
+    #         return
+    #     initial_trial = advice.recommended_initial_trial
+    #     # 更新配置以便下一步 Optuna 使用
+    #     PersistManager.save_ticker_config(ticker, advice)
 
     # --- 3. 运行 Optuna ---
-    study = run_optuna_study(ticker, ticker_period, n_trials=30, reset_study=reset_study)
+    study = run_optuna_study(ticker, ticker_period, n_trials=50, reset_study=reset_study, slope_stats=report["slope_stats"])
     
     # --- 4. 核心改动：检查 Optuna 运行后的“出勤率” ---
     # 假设你的 backtest 函数会将交易次数存在 study 的 user_attr 里，或者通过 study 的结果判断
     # 如果 10 次 Trial 后，最好的结果依然是“无交易”（Trade Count = 0）
-    best_value = study.best_value
+    # best_value = study.best_value
     best_trial = study.best_trial
     print(f"best_trial={best_trial}")
     # 判断逻辑：如果最好的一次 Trial 收益为 0 且成交数为 0
-    if best_value < 0 or best_trial.user_attrs.get("train_trade_count", 0) == 0:
-        print(f"⚠️ Optuna 运行 10 次后仍无成交。正在进行【深度反馈优化】...")
+    # if best_value < 0 or best_trial.user_attrs.get("train_trade_count", 0) == 0:
+    #     print(f"⚠️ Optuna 运行 10 次后仍无成交。正在进行【深度反馈优化】...")
         
-        # 构造一个更深度的数据包给 Gemini
-        enhanced_report = {
-            "ticker": ticker,
-            "status": "OPTUNA_FAIL",
-            "total_scans": 10,
-            "success_count": 0,
-            "intercept_report": report["intercept_report"], # 沿用之前的诊断
-            "current_config": study.best_params, # 喂给它 Optuna 刚尝试失败的参数
-            "failure_note": "Optuna tried 10 combinations but couldn't find a single trade. Filters might be too tight for the full backtest period."
-        }
+    #     # 构造一个更深度的数据包给 Gemini
+    #     enhanced_report = {
+    #         "ticker": ticker,
+    #         "status": "OPTUNA_FAIL",
+    #         "total_scans": 10,
+    #         "success_count": 0,
+    #         "intercept_report": report["intercept_report"], # 沿用之前的诊断
+    #         "current_config": study.best_params, # 喂给它 Optuna 刚尝试失败的参数
+    #         "failure_note": "Optuna tried 10 combinations but couldn't find a single trade. Filters might be too tight for the full backtest period."
+    #     }
         
-        # 再次调用 Gemini
-        new_advice = ask_gemini_to_fix_config(enhanced_report)
+    #     # 再次调用 Gemini
+    #     new_advice = ask_gemini_to_fix_config(enhanced_report)
         
-        if new_advice and not new_advice.give_up:
-            print(f"♻️ Gemini 重新调整了搜索空间。写入文件并尝试最后一次 Optuna...")
-            PersistManager.save_ticker_config(ticker, new_advice)
+    #     if new_advice and not new_advice.give_up:
+    #         print(f"♻️ Gemini 重新调整了搜索空间。写入文件并尝试最后一次 Optuna...")
+    #         PersistManager.save_ticker_config(ticker, new_advice)
             
-            # 使用全新的空间再跑 30 次
-            run_optuna_study(ticker, ticker_period, n_trials=30, reset_study=False)
-        else:
-            print(f"🛑 深度优化失败，彻底放弃 {ticker}。")
+    #         # 使用全新的空间再跑 30 次
+    #         run_optuna_study(ticker, ticker_period, n_trials=30, reset_study=False, slope_stats=enhanced_report["current_config"])
+    #     else:
+    #         print(f"🛑 深度优化失败，彻底放弃 {ticker}。")
 

@@ -10,7 +10,6 @@ class PersistManager:
     DEFAULTS = {
         "TREND_STAGE": 0.18,
         "MIN_STOP": 0.01,
-        "SLOPE_MIN": 0.02,
         "ATR_MULT": 3.87,
         "PREDICT_UP": 0.0,
         "SLOPE": 0.0001,
@@ -32,7 +31,6 @@ class PersistManager:
         "MAX_STOP",
         "MIN_STOP",
         "STRENGTH_ALPHA",
-        "SLOPE_MIN",
         "CONFIRM_N",
     ]
 

@@ -36,10 +36,6 @@
             "low": 0.08,
             "high": 0.15
         },
-        "slope_min": {
-            "low": 0.0,
-            "high": 0.005
-        },
         "predict_up": {
             "low": -0.05,
             "high": 0.01
@@ -66,7 +62,6 @@
         "kelly": 0.2,
         "slope": 0.012,
         "max_stop": 0.12,
-        "slope_min": 0.0001,
         "predict_up": -0.05,
         "tp1": 1.05,
         "tp2": 1.20,

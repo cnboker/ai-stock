@@ -9,43 +9,27 @@ import numpy as np
 # 增加回撤硬约束：针对富祥药业这种动辄 20cm 的票，在评分里加入了一个 mdd > 0.15 的额外扣分项，强迫系统在追求收益的同时，必须通过你的 “均价步长加仓” 逻辑来压低回撤。
 def get_advanced_score(stats, is_test=False):
     trades = stats.get("Trade_Count", 0)
-    ret = stats.get("Strategy_Return", 0.0)  
-    mdd = abs(stats.get("Max_Drawdown", 0.001)) # ETF回撤小，调低默认值
-    alpha = stats.get("Alpha", 0.0)           
-    # if trades == 0:
-    #     return -200
-    # --- 1. 基础收益分 (强化版卡玛比率) ---
-    # 针对 ETF 收益率低（如 0.3%）的特点，将系数从 5.0 提至 10.0
-    # 这样即使是 0.5% 的小利，在低回撤下也能贡献显著正分
-    score = (ret * 15.0) / (mdd + 0.05) 
+    ret = stats.get("Strategy_Return", 0.0)
+    mdd = abs(stats.get("Max_Drawdown", 1e-6))
+    alpha = stats.get("Alpha", 0.0)
 
-    # --- 2. 核心竞争力奖励 (Alpha) ---
-    # 在 ETF 震荡市中，Alpha 为正（如你之前的 4.73%）说明避险极佳
-    # 维持 15.0 权重，这是区分“平庸”和“优秀”参数的关键
-    score += alpha * 15.0 
+    # 计算基础表现分 (核心质量)
+    # 哪怕只有1次交易，这个分值也能告诉优化器：这个方向是对的
+    quality_score = (ret * 15.0) / (mdd + 0.05) + (alpha * 15.0)
 
-    # --- 3. 活跃度与质量阶梯 ---
-    # 验证集只要 1 次交易，训练集只要 5 次交易
-    threshold = 1 if is_test else 2  
-    
-    if trades < threshold: 
-        # 🚨 引导梯度优化：增加 alpha 的引导权重
-        # 即使没成交，如果模型预判的方向（Alpha）在变好，评分也该上升
-        return -100.0 + (trades * 15.0) + (alpha * 5.0)
+    # 活跃度分
+    activity_score = np.log1p(trades) * 10.0
 
-    # --- 新增：交易活跃度奖励 ---
-    # 使用对数函数奖励交易次数，鼓励有效交易，同时避免无意义的高频刷单
-    score += np.log1p(trades) * 25.0
+    score = quality_score + activity_score
 
-    # --- 4. 稳定性奖励 (ETF 回撤惩罚) ---
-    # 对于 ETF，15% 的回撤太宽松了，建议改为 8%
-    # 如果 MDD 超过 8%，说明杠杆（Kelly）加得太离谱了，必须重罚
+    # 软性惩罚：与其直接打死，不如根据缺少的交易次数扣分
+    threshold = 1 if is_test else 3
+    if trades < threshold:
+        # 每次交易缺失扣 50 分，但保留 quality_score 的正向引导
+        score -= (threshold - trades) * 50.0
+
+    # 极致回撤惩罚 (>8% 视为失控)
     if mdd > 0.08:
-        score -= (mdd - 0.08) * 150.0
-
-    # --- 5. 绝对收益奖励 (额外保护) ---
-    # 如果 Strategy_Return 为正，额外给一个“生存奖”
-    if ret > 0:
-        score += 5.0
+        score -= (mdd - 0.08) * 200.0
 
     return float(score)

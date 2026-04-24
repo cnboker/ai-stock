@@ -45,7 +45,6 @@ class GlobalConfig:
 
 
     STRENGTH_ALPHA = 1.34
-    SLOPE_MIN = 0.02
     CONFIRM_N = 3
 # 实例化为一个全局单例
 settings = GlobalConfig()
