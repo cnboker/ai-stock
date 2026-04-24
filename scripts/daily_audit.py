@@ -41,7 +41,7 @@ def ask_hermes_cli(prompt_text):
     
     # 3. 设置新的代理
     # 针对你本地的 Clash/代理端口 (7891)
-    new_proxy = "socks5://127.0.0.1:7891"
+    new_proxy = "http://127.0.0.1:7890"
     env["HTTP_PROXY"] = new_proxy
     env["HTTPS_PROXY"] = new_proxy
     env["ALL_PROXY"] = new_proxy
@@ -138,14 +138,17 @@ def run_audit():
     if not data or not data.get("data"):
         print("📭 今日无交易预测数据。")
         return
-    print(f"data={data}")
-    
+   
     # 2. 构造初始 Prompt
     # 根据你提供的 JSON 结构解析数据
     date = data['date']
     summary = data['summary']
     details = data['data']
+    # 定义过滤关键字
+    keyword = "equity_slope_break-slope"
 
+    # 使用列表推导式清除包含关键字的数据
+    cleaned_data = [item for item in details if keyword not in item.get('context', '')]
     initial_prompt = f"""
     # 角色
     你是一名深度量化审计专家 Hermes，专门负责识别“信号生成层”与“风险控制层”之间的逻辑断层。
@@ -155,7 +158,7 @@ def run_audit():
     - 信号/误差: 共 {summary['total_signals']} 个信号，平均误差 {summary['avg_error']}
 
     # 原始数据集
-    {json.dumps(details, ensure_ascii=False)}
+    {json.dumps(cleaned_data, ensure_ascii=False)}
 
     # 审计逻辑 (通用型)
     
@@ -180,6 +183,7 @@ def run_audit():
     """
     # 3. 第一次分析
     print("🤖 Hermes CLI 正在分析...")
+    print(f"🔍 初始 Prompt:\n{initial_prompt}")  # 只打印前500字符，避免过长
     analysis = ask_hermes_cli(initial_prompt)
     analysis = clean_hermes_output(analysis)
     print(f"\n--- 初次审计结果 ---\n{analysis}")

@@ -49,9 +49,9 @@ def __get_tickers_from_positions_and_watchlist():
     return tickers
 
 async def run_trade_cycle():
-    # if is_market_break():
-    #     print("⏸️ 市场休息中，跳过本周期")
-    #     return
+    if is_market_break():
+        print("⏸️ 市场休息中，跳过本周期")
+        return
     # 打印周期开始时间（建议使用更简洁的格式）
     now_str = time.strftime('%H:%M:%S')
     print(f"\n🚀 [Cycle Start] {now_str}")
@@ -92,9 +92,9 @@ async def run_trade_cycle():
                 #print(f'current_params={final_config}')
                 best_value = final_config.get("_META", {}).get("best_value", 0) 
                 print(f"🔍 [Config] {ticker} best_value={best_value}")
-                # if best_value < 0:
-                #     print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
-                #     continue
+                if best_value < 0:
+                    print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
+                    continue
                
                 df = load_stock_df(ticker, session.period)
                 if df is None or df.empty:
@@ -112,16 +112,15 @@ async def run_trade_cycle():
                     # 如果是买入候选人，加入漏斗
                     if res["type"] == "candidate":
                         arbiter.add_candidate(res)  
-                      
-                candidates = arbiter.get_best_decisions()
-                # --- 2. 截面优选 ---
-                if candidates:
-                    execute_final_order(candidates[0],position_mgr)
-                    
+
             except Exception as e:
                 print(f"❌ [Error] {ticker} 分析失败: {e}")
                 traceback.print_exc() # 实盘时建议只记日志，不刷屏
 
+        candidates = arbiter.get_best_decisions()
+        # --- 2. 截面优选 ---
+        if candidates:
+            execute_final_order(candidates[0],position_mgr)
         print(f"🏁 [Cycle End] 处理标的总数: {len(tickers)}")
 
     except Exception as e:
@@ -139,13 +138,18 @@ async def main_loop(interval):
     watchlist_loader.live_watchlist_hot_load(position_mgr)
     
     print(f"定时器已启动，每 {interval} 秒执行一次。")
+    first_run = True
     try:
         while True:
+            
             now = time.time()
             # 计算距离下一个整周期还剩多少秒
             # 例如现在 13:05，下一个 13:30 触发
             wait_time = interval - (now % interval)
-            await asyncio.sleep(wait_time)
+            if not first_run:
+                print(f"⏳ 等待 {wait_time:.2f} 秒，直到下一个周期...") 
+                await asyncio.sleep(wait_time)
+            first_run = False
            # 记录开始执行时间，用于性能监控
             cycle_start = time.time()
             try:
