@@ -8,7 +8,7 @@ from predict.predict_result import PredictionResult
 from predict.price_alpha import chronos2_to_large_style
 from predict.time_utils import calc_atr
 from predict.factory import PredictorFactory # 引入工厂
-
+from infra.core.dynamic_settings import settings
 @optional_inference_mode()
 
 def run_prediction(
@@ -21,7 +21,7 @@ def run_prediction(
 ):
     # 1. 准备时间戳 (保留你的 GLOBAL_PERFECT_INDEX 逻辑)
     GLOBAL_PERFECT_INDEX = pd.date_range("2026-01-01", periods=2000, freq=f"{period}min")
-    history_len = min(GlobalState.chronos_context_length, len(df))
+    history_len = min(settings.chronos_context_length, len(df))
     recent_df = df.iloc[-history_len:]
     perfect_index = GLOBAL_PERFECT_INDEX[:history_len]
 

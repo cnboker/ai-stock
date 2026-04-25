@@ -27,3 +27,5 @@ class BaseSettings:
    
     STRENGTH_ALPHA = 1.34
     CONFIRM_N = 1
+    strategy_window = 60
+    chronos_context_length = 72

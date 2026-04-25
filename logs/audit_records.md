@@ -187,41 +187,7 @@ Initializing agent...
          样本中所有信号的 `pred_change` 均为正值，且 `reason` 字段明确指示为 "raw=LONG"。这强烈表明模型存在 **系统性的多头偏向**。在市场情绪 "Stable" 的背景下，该模型倾向于生成看涨信号，即便这些信号最终未能导致实际价格波动。此偏向可能导致在横盘或低波动市场中，模型因微小正向信号而持续性地错误预测上涨。， 分析下这份报告
 
 ## 2026-04-24 复盘
-Hermes Agent v0.10.0 (2026.4.16) · upstream dcd763c2 
-                                     Available Tools                                                                                                                                                                            
-       browser: browser_back, browser_cdp, browser_click, ...                                                                                                                                     
-       clarify: clarify                                                                                                                                                                           
-       code_execution: execute_code                                                                                                                                                               
-       cronjob: cronjob                                                                                                                                                                           
-       delegation: delegate_task                                                                                                                                                                  
-       discord: discord_server                                                                                                                                                                    
-       file: patch, read_file, search_files, write_file                                                                                                                                           
-       homeassistant: ha_call_service, ha_get_state, ...                                                                                                                                          
-       (and 11 more toolsets...)                                                                                                                                                                  
-
-       Available Skills                                                                                                                                                                           
-       autonomous-ai-agents: claude-code, codex, hermes-agent, opencode                                                                                                                           
-       creative: architecture-diagram, ascii-art, ascii-video, b...                                                                                                                               
-       data-science: jupyter-live-kernel                                                                                                                                                          
-       devops: webhook-subscriptions                                                                                                                                                              
-                                     email: himalaya                                                                                                                                                                            
-  deepseek-v4-flash · Nous Research  gaming: minecraft-modpack-server, pokemon-player                                                                                                                                           
-    /home/scott/code/stock-model     general: dogfood                                                                                                                                                                           
-   Session: 20260424_165621_2359f7   github: codebase-inspection, github-auth, github-code-r...                                                                                                                                 
-                                     leisure: find-nearby                                                                                                                                                                       
-                                     mcp: mcporter, native-mcp                                                                                                                                                                  
-                                     media: gif-search, heartmula, songsee, youtube-content                                                                                                                                     
-                                     mlops: audiocraft-audio-generation, axolotl, clip, dsp...                                                                                                                                  
-                                     note-taking: obsidian                                                                                                                                                                      
-                                     productivity: google-workspace, linear, maps, nano-pdf, notio...                                                                                                                           
-                                     red-teaming: godmode                                                                                                                                                                       
-                                     research: arxiv, blogwatcher, llm-wiki, polymarket, resea...                                                                                                                               
-                                     smart-home: openhue                                                                                                                                                                        
-                                     social-media: xitter, xurl                                                                                                                                                                 
-                                     software-development: plan, requesting-code-review, subagent-driven-d...                                                                                                                   
-
-                                     28 tools · 79 skills · /help for commands                                                                                                                                                  
-
+                                                      
 Query: 
   # 角色
     你是一名深度量化审计专家 Hermes，专门负责识别“信号生成层”与“风险控制层”之间的逻辑断层。

@@ -1,18 +1,35 @@
 import os
+from pathlib import Path
 from typing import Any
+from anyio import Path
 
-from flask.cli import load_dotenv
+from dotenv import load_dotenv
 from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 from google import genai
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 from typing import Dict, Any
 
 from optimize.opt_study import run_optuna_study
 from optimize.persist_manager import PersistManager
+import os
+# 如果你的网络可以直接访问，或者你希望 SDK 不走这个 socks 代理
+os.environ.pop('http_proxy', None)
+os.environ.pop('https_proxy', None)
+os.environ.pop('all_proxy', None)
 
-load_dotenv()
+
+# 自动寻找当前文件所在目录的父目录中的 .env
+# 确保路径正确（.parent 代表当前文件所在目录）
+env_path = Path(__file__).parent.parent / '.env' 
+
+# 修正参数名为 dotenv_path
+result = load_dotenv(dotenv_path=env_path)
+
+print(f"是否成功加载文件: {result}") # 如果返回 False，说明路径还是不对
 gemini_api_key = os.getenv("gemini_api_key")
+print(f'gemini_api_key: {gemini_api_key}')
+
 
 class ParameterSpace(BaseModel):
     low: float
@@ -51,9 +68,12 @@ class GeminiOptimizationResponse(BaseModel):
     recommended_initial_trial: InitialTrialConfig 
     give_up: bool
 
-client = genai.Client(api_key=gemini_api_key)
+client = None
 
 def ask_gemini_to_fix_config(report: Dict[str, Any]):
+    if not client:
+        client = genai.Client(api_key=gemini_api_key)
+
     ticker = report['ticker']
     status = report.get("status", "ANEMIC")
     

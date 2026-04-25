@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 import numpy as np
 from infra.core.runtime import GlobalState, RunMode
@@ -12,6 +11,8 @@ from data.loader import load_stock_df, load_index_df
 from trade.signal_arbiter import SignalArbiter
 from trade.trade_engine import execute_final_order, execute_stock_decision
 from infra.core.runtime import GlobalState, RunMode
+from infra.core.dynamic_settings import settings
+
 class BacktestRunner:
     def __init__(self, ticker, period):
         GlobalState.mode = RunMode.SIM
@@ -28,7 +29,7 @@ class BacktestRunner:
         
         # 3. 动态计算总需长度：实战区 + 策略窗口(预热区)
         # 这样无论 window 是 20 还是 160，都能保证最后 104 根线是用来考试的
-        required_size = self.net_backtest_size + GlobalState.strategy_window
+        required_size = self.net_backtest_size + settings.strategy_window
         
         # 4. 截取用于本次 Trial 的数据子集
         self.df_all = self.full_pool_df.tail(required_size)
@@ -75,7 +76,7 @@ class BacktestRunner:
         test_dates = battle_dates[split_battle_days:]
 
         # 打印调试信息，确认数据对齐
-        print(f"--- 策略窗口(Window): {GlobalState.strategy_window} ---")
+        print(f"--- 策略窗口(Window): {settings.strategy_window} ---")
         print(f"--- 训练集 ({len(train_dates)} 天): {train_dates[0]} ~ {train_dates[-1]} ---")
         train_res = self._execute_loop(train_dates)
         

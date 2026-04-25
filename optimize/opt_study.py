@@ -43,9 +43,7 @@ def run_optuna_study(ticker: str,
         study.set_user_attr("dynamic_max_slope", float(slope_stats.get("max_ref", 0.02)))
         study.set_user_attr("dynamic_avg_slope", float(slope_stats.get("avg_ref", 0.001)))
         
-      
-        
-    # 2. 注入经验
+    # 2. 注入初始化参数
     ConfigFactory.enqueue_experience(study, ticker)
 
     # 3. 运行优化 (50 次尝试)
@@ -84,29 +82,31 @@ def run_optuna_study(ticker: str,
     return study
 
 def objective(trial, ticker: str, ticker_period="30"):
-    # 1. 先让 Optuna 选策略窗口 (2.5天 ~ 15天)
+    # --- 1. 参数采样 ---
+    # 先选窗口
     strategy_window = trial.suggest_int("window", 20, 160, step=4)
-    GlobalState.strategy_window = strategy_window
-    # 2. 动态计算给 Chronos 的上下文长度 (比策略窗口多看一点)
-    # 保证 Chronos 至少能看到策略窗口内的完整趋势
-    chronos_context_length = int(strategy_window * 1.2)
     
-    # 3. 限制 Chronos 的上限 (避免显存爆炸或推理过慢)
-    # 对于 30min 线，看 192 个点（约 4 周）已经是极限了
-    GlobalState.chronos_context_length = min(chronos_context_length, 192)
+    # 动态计算上下文长度
+    chronos_context_len = min(int(strategy_window * 1.2), 192)
 
-    # 4. 获取动态上限 (从 Study 中取，若没有则回退到 0.02)
+    # 获取动态 slope 上限
     max_slope_limit = trial.study.user_attrs.get("dynamic_max_slope", 0.02)
-    slope_key = "slope"
     dynamic_slope = trial.suggest_float(
-        slope_key, 
-        1e-5, 
-        max(max_slope_limit, 0.001),      
+        "slope", 1e-5, max(max_slope_limit, 0.001)
     )
+
+    # --- 2. 统一构建配置字典 ---
+    # 从工厂获取基础搜索空间参数 (model_th, atr_mult 等)
     optuna_config = ConfigFactory.suggest_config(trial, ticker)
-    # 确保最终配置里用的是我们这个带 log 且范围动态的值（双保险）
-    optuna_config[slope_key] = dynamic_slope
     
+    # 强制覆盖并注入动态计算的参数
+    optuna_config.update({
+        "window": strategy_window,
+        "chronos_context_length": chronos_context_len,
+        "slope": dynamic_slope,
+        "ticker": ticker,
+        "period": ticker_period
+    })
     print(f"\n🔍 当前试验参数: {optuna_config}, max_slope_limit={max_slope_limit}" )
     scores = []
     # 3. 声明式注入并循环跑分
