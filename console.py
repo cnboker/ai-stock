@@ -88,8 +88,8 @@ async def run_trade_cycle():
         for ticker in tickers:
             try:
                 final_config = dynamic_config_manager.load_params(ticker)
-                chronos_context_length = final_config.get("WINDOW",128)
-                final_config.update({"chronos_context_length": chronos_context_length})  # 注入到全局配置中 
+                CHRONOS_CONTEXT_LENGTH = final_config.get("WINDOW",128)
+                final_config.update({"CHRONOS_CONTEXT_LENGTH": CHRONOS_CONTEXT_LENGTH})  # 注入到全局配置中 
                 #print(f'current_params={final_config}')
                 best_value = final_config.get("_META", {}).get("best_value", 0) 
                 print(f"🔍 [Config] {ticker} best_value={best_value}")

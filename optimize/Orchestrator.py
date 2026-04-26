@@ -152,7 +152,7 @@ def start_optimization_cycle(ticker: str, ticker_period: str, reset_study: bool 
     #     PersistManager.save_ticker_config(ticker, advice)
 
     # --- 3. 运行 Optuna ---
-    study = run_optuna_study(ticker, ticker_period, n_trials=50, reset_study=reset_study, slope_stats=report["slope_stats"])
+    study = run_optuna_study(ticker, ticker_period, n_trials=30, reset_study=reset_study, slope_stats=report["slope_stats"])
     
     # --- 4. 核心改动：检查 Optuna 运行后的“出勤率” ---
     # 假设你的 backtest 函数会将交易次数存在 study 的 user_attr 里，或者通过 study 的结果判断

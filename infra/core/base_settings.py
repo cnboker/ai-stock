@@ -13,19 +13,14 @@ class BaseSettings:
     ATR_MULT = 3.87
     TP1 = 1.02
     TP2 = 1.19
-    
     # --- 资金管理 ---
     KELLY = 0.3
- 
-
     # --- 风控
     RISK = 0.015 # 单笔最多亏 1%
     ATR_STOP = 3.4
     MAX_STOP = 0.08
     MIN_STOP = 0.01
-
-   
     STRENGTH_ALPHA = 1.34
     CONFIRM_N = 1
-    strategy_window = 60
-    chronos_context_length = 72
+    WINDOW = 60
+    CHRONOS_CONTEXT_LENGTH = 72

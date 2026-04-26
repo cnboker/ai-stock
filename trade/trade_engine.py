@@ -66,8 +66,8 @@ def execute_stock_decision(
     运行预测与构建 Context，但不执行交易，返回候选信息
     """
     # 1. HS300 与个股数据对齐
-    hs300_df = hs300_df.iloc[-settings.chronos_context_length :]
-    ticker_df = ticker_df.iloc[-settings.chronos_context_length :]
+    hs300_df = hs300_df.iloc[-settings.CHRONOS_CONTEXT_LENGTH :]
+    ticker_df = ticker_df.iloc[-settings.CHRONOS_CONTEXT_LENGTH :]
 
     if hs300_df is not None and not hs300_df.empty:
         hs300_series = (

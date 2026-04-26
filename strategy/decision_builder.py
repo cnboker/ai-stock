@@ -16,9 +16,9 @@ class DecisionContextBuilder:
 
     def _make_raw_signal(self, predicted_up, slope, model_score):
         """基于模型输出生成初步信号"""
-        print(
-            f"settings.MODEL_TH: {settings.MODEL_TH}, settings.SLOPE: {settings.SLOPE}, settings.PREDICT_UP: {settings.PREDICT_UP}"
-        )
+        # print(
+        #     f"settings.MODEL_TH: {settings.MODEL_TH}, settings.SLOPE: {settings.SLOPE}, settings.PREDICT_UP: {settings.PREDICT_UP}"
+        # )
         is_momentum_long = (
             model_score > settings.MODEL_TH
             and slope > settings.SLOPE

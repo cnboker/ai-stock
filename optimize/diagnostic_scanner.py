@@ -52,7 +52,7 @@ class DiagnosticScanner:
                     # 1. 严格切分历史：只取当前 Bar 之前的数据
                     # 确保预测模型看不到 current_time 之后的价格
                     df_context = runner.full_pool_df[:current_time]
-                    df_context = runner.full_pool_df[runner.full_pool_df.index <= current_time].tail(settings.strategy_window)
+                    df_context = runner.full_pool_df[runner.full_pool_df.index <= current_time].tail(settings.WINDOW)
                     hs300_context = runner.full_pool_hs300["close"].reindex(df_context.index).ffill().values
                     # 1. 先更新价格
                     GlobalState.tickers_price[ticker] = df_context['close'].iloc[-1]

@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class ConfigFactory:
     CONFIG_DIR = "optimize/opt_configs"
@@ -76,7 +76,8 @@ class ConfigFactory:
         for key, space in search_space.items():
             low = space.get("low")
             high = space.get("high")
-            
+            if key == "slope":
+                continue  # slope 由动态调整逻辑生成，不直接采样
             # 根据参数类型和数值特征自动判断采样方式
             if isinstance(low, int) and isinstance(high, int):
                 params[key] = trial.suggest_int(key, low, high)
@@ -102,7 +103,8 @@ class ConfigFactory:
             "best_params": {},
             "intercept_stats": {}, # 初始化拦截统计
             "search_space": template.get("search_space", {}),
-            "initial_trial": template.get("initial_trial", {})
+            "initial_trial": template.get("initial_trial", {}),
+            "_META": template.get("_META", {}) # 包含 last_optimized, best_value 等元信息")
         }
 
         # 如果有专属配置，则覆盖
@@ -112,9 +114,45 @@ class ConfigFactory:
                 if "search_space" in user_cfg: full_cfg["search_space"].update(user_cfg["search_space"])
                 if "initial_trial" in user_cfg: full_cfg["initial_trial"].update(user_cfg["initial_trial"])
                 full_cfg["best_params"] = user_cfg.get("best_params", {})
+                full_cfg["_META"] = user_cfg.get("_META", {})
                 full_cfg["intercept_stats"] = user_cfg.get("intercept_stats", {})
         
         return full_cfg
+    
+    @classmethod
+    def should_skip_optimization(cls, ticker: str) -> bool:
+        
+        """
+        检查是否符合跳过优化的条件：
+        1. 距离上次优化不足 2 天
+        2. 且上次的最优值 (best_value) 大于 0
+        """
+        current_cfg = cls.load_ticker_config(ticker)
+        meta = current_cfg.get("_META", {})
+        last_time_str = meta.get("last_optimized")
+        best_value = meta.get("best_value", 0)
+
+        if not last_time_str:
+            return False  # 从未优化过，不跳过
+
+        try:
+            # 将字符串转回 datetime 对象
+            last_time = datetime.strptime(last_time_str, "%Y-%m-%d %H:%M:%S")
+            
+            # 判断条件
+            is_recent = datetime.now() - last_time < timedelta(days=2)
+            is_good_enough = best_value > 0
+            
+            if is_recent and is_good_enough:
+                print(f"⏭️  [跳过] {ticker} 最近已优化 ({last_time_str}) 且表现良好 (Value: {best_value})")
+                return True
+                
+        except ValueError:
+            # 如果日期格式解析失败，安全起见不跳过
+            print(f"⚠️ {ticker} 的 last_optimized 日期格式错误: {last_time_str}. 将进行优化。")
+            return False
+
+        return False
 
     # --- 2. 强化保存逻辑 (含拦截分析) ---
     @classmethod

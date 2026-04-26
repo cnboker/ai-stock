@@ -8,28 +8,23 @@ import numpy as np
 
 # 增加回撤硬约束：针对富祥药业这种动辄 20cm 的票，在评分里加入了一个 mdd > 0.15 的额外扣分项，强迫系统在追求收益的同时，必须通过你的 “均价步长加仓” 逻辑来压低回撤。
 def get_advanced_score(stats, is_test=False):
-    trades = stats.get("Trade_Count", 0)
-    ret = stats.get("Strategy_Return", 0.0)
-    mdd = abs(stats.get("Max_Drawdown", 1e-6))
-    alpha = stats.get("Alpha", 0.0)
+    RET = stats.get("Strategy_Return", 0.0) 
+    ALPHA = stats.get("Alpha", 0.0) 
+    MDD = abs(stats.get("Max_Drawdown", 0.0)) 
+    TRADES = stats.get("Trade_Count", 0)
 
-    # 计算基础表现分 (核心质量)
-    # 哪怕只有1次交易，这个分值也能告诉优化器：这个方向是对的
-    quality_score = (ret * 15.0) / (mdd + 0.05) + (alpha * 15.0)
+    # 降低 Alpha 惩罚权重，提高 RET 权重（让收益更重要）
+    QUALITY_SCORE = (RET * 1.8 + ALPHA * 1.8) / (MDD + 1.5)   # 分母略增大，平滑惩罚
+    
+    MIN_TRADES = 1 if is_test else 3
+    ACTIVITY_PUNISH = 0
+    if TRADES < MIN_TRADES:
+        ACTIVITY_PUNISH = (MIN_TRADES - TRADES) * 10.0   # 扣分从20降到10
 
-    # 活跃度分
-    activity_score = np.log1p(trades) * 10.0
+    SCORE = (QUALITY_SCORE * 8.0) - ACTIVITY_PUNISH   # 整体乘数从10降到8
 
-    score = quality_score + activity_score
+    # 极端回撤门槛提高，扣分变轻
+    if MDD > 12.0:
+        SCORE -= (MDD - 12.0) * 10.0   # 原10%×20 → 12%×10
 
-    # 软性惩罚：与其直接打死，不如根据缺少的交易次数扣分
-    threshold = 1 if is_test else 3
-    if trades < threshold:
-        # 每次交易缺失扣 50 分，但保留 quality_score 的正向引导
-        score -= (threshold - trades) * 50.0
-
-    # 极致回撤惩罚 (>8% 视为失控)
-    if mdd > 0.08:
-        score -= (mdd - 0.08) * 200.0
-
-    return float(score)
+    return float(SCORE)

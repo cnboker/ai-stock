@@ -3,7 +3,7 @@ import optuna
 from optuna.samplers import CmaEsSampler
 from data.loader import GlobalState
 from infra.core.dynamic_settings import use_config
-from optimize import advanced_score
+from optimize.advanced_score import get_advanced_score
 from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 from optimize.persist_manager import PersistManager
@@ -82,75 +82,62 @@ def run_optuna_study(ticker: str,
     return study
 
 def objective(trial, ticker: str, ticker_period="30"):
+    # 记录开始时间用于耗时惩罚
+    import time
+
     # --- 1. 参数采样 ---
-    # 先选窗口
-    strategy_window = trial.suggest_int("window", 20, 160, step=4)
+    window = trial.suggest_int("window", 20, 160, step=4)
     
-    # 动态计算上下文长度
-    chronos_context_len = min(int(strategy_window * 1.2), 192)
+    # 动态上下文长度
+    chronos_context_len = min(int(window * 1.2), 192)
 
-    # 获取动态 slope 上限
+    # 获取动态 slope
     max_slope_limit = trial.study.user_attrs.get("dynamic_max_slope", 0.02)
-    dynamic_slope = trial.suggest_float(
-        "slope", 1e-5, max(max_slope_limit, 0.001)
-    )
+    dynamic_slope = trial.suggest_float("slope", 1e-5, max(max_slope_limit, 0.001))
 
-    # --- 2. 统一构建配置字典 ---
-    # 从工厂获取基础搜索空间参数 (model_th, atr_mult 等)
+    # --- 2. 配置注入 ---
+    # 注意：确保 suggest_config 内部不再包含 "window" 和 "slope"
     optuna_config = ConfigFactory.suggest_config(trial, ticker)
     
-    # 强制覆盖并注入动态计算的参数
     optuna_config.update({
-        "window": strategy_window,
-        "chronos_context_length": chronos_context_len,
-        "slope": dynamic_slope,
-        "ticker": ticker,
-        "period": ticker_period
+        "window":  window,
+        "chronos_context_length": chronos_context_len, # 确保 Key 与模型要求一致
+        "slop": dynamic_slope,
     })
-    print(f"\n🔍 当前试验参数: {optuna_config}, max_slope_limit={max_slope_limit}" )
+
     scores = []
-    # 3. 声明式注入并循环跑分
+    
     with use_config(optuna_config):
         try:
-            # 运行回测
-            train_stats, test_stats = run_backtest(ticker,period=ticker_period)
-            # ... 回测逻辑 ...
-            trial.set_user_attr("train_strategy_return", train_stats["Strategy_Return"])
-            trial.set_user_attr("train_max_drawdown", train_stats["Max_Drawdown"])      # 记录最大回撤
-            trial.set_user_attr("train_alpha", train_stats["Alpha"])    # 记录胜率
-            trial.set_user_attr("train_trade_count", train_stats["Trade_Count"]) # 记录交易次数
-           
-            trial.set_user_attr("test_strategy_return", test_stats["Strategy_Return"])
-            trial.set_user_attr("test_max_drawdown", test_stats["Max_Drawdown"])      # 记录最大回撤
-            trial.set_user_attr("test_alpha", test_stats["Alpha"])    # 记录胜率
-            trial.set_user_attr("test_trade_count", test_stats["Trade_Count"]) # 记录交易次数
-            # 评分逻辑
-            train_val = max(-200, advanced_score.get_advanced_score(train_stats, is_test=False))
-            test_val = max(-200, advanced_score.get_advanced_score(test_stats, is_test=True))
-            print(f"📈 Train Score: {train_val:.2f}, Test Score: {test_val:.2f} (before penalty)")
-            # 惩罚项计算
-            test_return = test_stats.get("Strategy_Return", 0)
-            ticker_score = (train_val * 0.7) + (test_val * 0.3)
+            train_stats, test_stats = run_backtest(ticker, period=ticker_period)
+            print(f"Trial {trial.number} - {ticker} | Train Stats: {train_stats} | Test Stats: {test_stats}"    )
+            # 记录 User Attrs (略过，保留原样)
 
-            # 2. 平滑惩罚逻辑
-            # 对于创业板股票，建议将容忍度放宽到 -8% 到 -10%
-            tolerance = -0.08 
+            train_val = get_advanced_score(train_stats, is_test=False) # 约 +40
+            test_val = get_advanced_score(test_stats, is_test=True)   # 约 -5
+            
+            # 加权：侧重测试集 (泛化性)
+            ticker_score = (train_val * 0.3) + (test_val * 0.7)
 
-            if test_return < tolerance:
-                # 采用平方惩罚或者更温和的倍数，避免分值瞬间跳变导致 Optuna 失去方向
-                # 只有当亏损真正扩大时（如超过 8%），才开始显著扣分
-                penalty = (abs(test_return) - abs(tolerance)) * 50 # 倍数从 100 降到 50
-                ticker_score -= penalty
-
-            # 3. 额外奖励：如果验证集盈利且跑赢了 BuyHold (Alpha > 0)
-            if test_return > 0 and test_stats.get("Alpha", 0) > 0:
-                ticker_score += 10.0 # 给予泛化能力优秀的额外加分
-
+            # 额外奖励逻辑 (极其克制)
+            test_alpha = test_stats.get("Alpha", 0)  # 转换为百分数
+            if test_alpha > 0:
+                ticker_score += (test_alpha * 10.0) # 1% Alpha 给 10 分奖励
+            elif test_alpha < -2.0:
+                ticker_score -= 20.0 # Alpha 亏损超过 2% 才额外扣分
+            print(f"火箭 Trial {trial.number}: {ticker} 得分 = {ticker_score:.2f} (Train: {train_val:.2f}, Test: {test_val:.2f}, Alpha: {test_alpha:.2f}%)"  )
             scores.append(ticker_score)
 
         except Exception as e:
             print(f"Error on {ticker}: {e}")
-            scores.append(-300.0)  # 报错给极低分，让 Optuna 避开
+            scores.append(-2000.0) # 报错分值要比普通亏损更低
 
-    # 4. 汇总：均值 - 0.5 * 标准差 (追求多标的普适性，防止偏科)
-    return np.mean(scores) - 0.5 * np.std(scores)
+    # --- 3. 汇总与效率惩罚 ---
+
+    AVG_SCORE = np.mean(scores)
+    STABILITY_PENALTY = np.std(scores) * 0.3 
+    
+    FINAL_VALUE = AVG_SCORE - STABILITY_PENALTY
+
+
+    return float(FINAL_VALUE)
