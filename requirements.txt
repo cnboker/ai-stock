@@ -5,10 +5,11 @@ rich
 pandas_market_calendars
 requests
 diskcache
-chronos-forecasting
+#chronos-forecasting
 httpx
 httpx[socks]
 flask
-google-genai
+#google-genai
 optuna
 pydantic
+dotenv

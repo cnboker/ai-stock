@@ -1,14 +1,6 @@
 account: main_account
 cash: 42780.9
 positions:
-  sh512760:
-    direction: LONG
-    entry_price: 0.947
-    highest_price: 0.962
-    open_time: '2026-04-28T11:58:25.082130'
-    size: 0
-    stop_loss: 0.954
-    tp1_hit: false
   sz002463:
     direction: LONG
     entry_price: 102.9
