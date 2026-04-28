@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-
+from typing import Union
 
 @dataclass
 class PositionAction:
@@ -23,7 +23,7 @@ class PositionPolicy:
 
     def decide(self, position, gate) -> PositionAction:
         """
-        position: Position | None
+        position: Union[Position, None] = None
         gate: GateResult
         """
 

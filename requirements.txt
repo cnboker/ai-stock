@@ -1,1 +1,12 @@
+numpy
+pandas
+pyyaml
+rich
+pandas_market_calendars
+requests
+diskcache
+chronos-forecasting
+httpx
+httpx[socks]
+flask
 google-genai

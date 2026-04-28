@@ -9,15 +9,16 @@ from predict.price_alpha import chronos2_to_large_style
 from predict.time_utils import calc_atr
 from predict.factory import PredictorFactory # 引入工厂
 from infra.core.dynamic_settings import settings
+from typing import Union
 @optional_inference_mode()
 
 def run_prediction(
     df: pd.DataFrame,
-    hs300_df: np.ndarray | None,
+    hs300_df: Union[np.ndarray, None],
     ticker: str = "",
     period: str = "30",
     prediction_length: int = 5,
-    eq_feat: pd.DataFrame | None = None,
+    eq_feat: Union[pd.DataFrame, None] = None,
 ):
     # 1. 准备时间戳 (保留你的 GLOBAL_PERFECT_INDEX 逻辑)
     GLOBAL_PERFECT_INDEX = pd.date_range("2026-01-01", periods=2000, freq=f"{period}min")

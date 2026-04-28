@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
-
+from typing import Union
 from log import get_logger
 
 
@@ -77,7 +77,7 @@ class PredictionGate:
         mid: np.ndarray,
         upper: np.ndarray,
         close_df: np.ndarray,
-        y_proxy: np.ndarray | None = None,
+        y_proxy: Union[np.ndarray, None] = None,
     ) -> GateResult:
 
         if y_proxy is None:

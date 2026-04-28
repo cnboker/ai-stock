@@ -117,3 +117,17 @@ python -m vllm.entrypoints.openai.api_server \
     --quantization gptq \
     --dtype float16
 ```
+
+
+# cp to orginx
+
+rsync -av --exclude='models' ./stock-model/   root@192.168.10.22:/opt/hdm/stock-model/
+
+
+# jetson 环境安装步骤
+
+```bash
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install python3.10 python3.10-venv python3.10-dev
+```

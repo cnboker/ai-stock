@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+from typing import Union
 class EquityRegimeCooldown:
     def __init__(self, bad_hold_sec=300, good_confirm=3):
         self.state = {
@@ -52,7 +52,7 @@ class EquityRegimeCooldown:
     def good_count(self) -> int:
         return self.state["good_count"]
 
-    def bad_left_sec(self, now: datetime | None = None) -> float:
+    def bad_left_sec(self, now: Union[datetime, None] = None) -> float:
         if self.state["regime"] != "bad":
             return 0.0
         now = now or datetime.now()

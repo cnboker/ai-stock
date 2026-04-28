@@ -1,17 +1,17 @@
 from dataclasses import dataclass
-
+from typing import Union
 
 #我打算做什么
 @dataclass
 class TradeIntent:    
     #===== 决策结果层 =====
     action:str                # ->最终执行动作,EquityEngine.decide->cooldown_mgr.update后， cooldown 之后的最终动作
-    raw_action: str | None = None  # 原始意图（新增）;decide_equity_policy执行后  
+    raw_action: Union[str, None] = None  # 原始意图（新增）;decide_equity_policy执行后  
 
     ## ===== 市场 / 风控状态 =====
-    regime: str | None = None             # good / neutral / bad 资金/->风险状态     
-    gate_mult: float | None = None        # 仓位放大/压制 ->风控调制
-    reduce_strength: float | None = None  # 0~1 执行参数
+    regime: Union[str, None] = None             # good / neutral / bad 资金/->风险状态     
+    gate_mult: Union[float, None] = None        # 仓位放大/压制 ->风控调制
+    reduce_strength: Union[float, None] = None  # 0~1 执行参数
     force_reduce: bool = False      # 是否 强制减仓 ->强制约束
     gate_allow:bool = False
 
