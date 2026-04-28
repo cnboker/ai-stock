@@ -4,14 +4,14 @@ from rich.live import Live
 from rich.text import Text
 from collections import deque
 from datetime import datetime
-from typing import Union
+from typing import Set, Union
 
 class DecisionDebugger:
     def __init__(
         self,
         max_rows: int = 50,
         refresh_hz: int = 4,
-        watch_tickers: set[Union[str, None]] = None,
+        watch_tickers: Set[Union[str, None]] = None,
     ):
         self.console = Console()
         self.rows = deque(maxlen=max_rows)

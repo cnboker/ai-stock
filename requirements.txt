@@ -10,3 +10,5 @@ httpx
 httpx[socks]
 flask
 google-genai
+optuna
+pydantic

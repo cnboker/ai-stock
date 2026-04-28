@@ -1,6 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
-from typing import Union
+from typing import Tuple, Union
 from log import get_logger
 
 
@@ -39,7 +39,7 @@ class PredictionGate:
         upper: np.ndarray,
         y_proxy: np.ndarray,
         close_df: np.ndarray,
-    ) -> tuple[float, dict]:
+    ) -> Tuple[float, dict]:
 
         # 1. 空间
         hist_vol = np.std(close_df[-self.vol_window :]) + 1e-6

@@ -1,25 +1,25 @@
 {
     "_META": {
         "ticker": "sh588200",
-        "best_value": 216.6363,
-        "date": "2026-04-12 17:22"
+        "best_value": 34.6298,
+        "date": "2026-04-27 07:33"
     },
-    "MODEL_TH": 0.3556,
-    "SLOPE": 0.0002,
-    "PREDICT_UP": -0.0046,
-    "INIT_PT": 0.0114,
+    "MODEL_TH": 0.4207,
+    "SLOPE": 0.0441,
+    "PREDICT_UP": 0.003,
+    "INIT_PT": 0.0195,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.2722,
-    "TP1": 1.0278,
-    "TP2": 1.1168,
-    "KELLY": 0.5991,
-    "RISK": 0.0086,
-    "ATR_STOP": 1.517,
-    "MAX_STOP": 0.0355,
-    "MIN_STOP": 0.0059,
-    "STRENGTH_ALPHA": 1.4923,
-    "SLOPE_MIN": 0.0005,
+    "ATR_MULT": 2.9906,
+    "TP1": 1.0103,
+    "TP2": 1.1315,
+    "KELLY": 0.3284,
+    "RISK": 0.0055,
+    "ATR_STOP": 1.8896,
+    "MAX_STOP": 0.0293,
+    "MIN_STOP": 0.0094,
+    "STRENGTH_ALPHA": 1.2033,
     "CONFIRM_N": 1,
-    "WINDOW": 48,
-    "TREND_PT": 0.059
+    "WINDOW": 72,
+    "TREND_PT": 0.0561,
+    "SLOPE_MIN": 0.0004
 }

@@ -1,24 +1,24 @@
 {
     "_META": {
         "ticker": "sz301099",
-        "best_value": 38.2,
-        "date": "2026-04-12 17:50"
+        "best_value": -11.3478,
+        "date": "2026-04-27 08:41"
     },
-    "MODEL_TH": 0.4786,
-    "SLOPE": 0.006,
-    "PREDICT_UP": 0.0013,
-    "INIT_PT": 0.0208,
+    "MODEL_TH": 0.5302,
+    "SLOPE": 0.0971,
+    "PREDICT_UP": 0.0023,
+    "INIT_PT": 0.0413,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.1063,
-    "TP1": 1.0203,
-    "TP2": 1.1731,
-    "KELLY": 0.216,
-    "RISK": 0.0068,
-    "ATR_STOP": 4.3998,
-    "MAX_STOP": 0.096,
+    "ATR_MULT": 4.2515,
+    "TP1": 1.0434,
+    "TP2": 1.174,
+    "KELLY": 0.2145,
+    "RISK": 0.0091,
+    "ATR_STOP": 4.496,
+    "MAX_STOP": 0.1277,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 42,
-    "SLOPE_MIN": 0.0015,
+    "STRENGTH_ALPHA": 21,
     "CONFIRM_N": 1,
-    "WINDOW": 20
+    "WINDOW": 28,
+    "SLOPE_MIN": 0.001
 }

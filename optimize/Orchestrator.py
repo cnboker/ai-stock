@@ -6,7 +6,7 @@ from anyio import Path
 from dotenv import load_dotenv
 from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
-from google import genai
+# from google import genai
 from pydantic import BaseModel, Field
 from typing import Dict, Any
 
@@ -27,8 +27,8 @@ env_path = Path(__file__).parent.parent / '.env'
 result = load_dotenv(dotenv_path=env_path)
 
 print(f"是否成功加载文件: {result}") # 如果返回 False，说明路径还是不对
-gemini_api_key = os.getenv("gemini_api_key")
-print(f'gemini_api_key: {gemini_api_key}')
+#gemini_api_key = os.getenv("gemini_api_key")
+#print(f'gemini_api_key: {gemini_api_key}')
 
 
 class ParameterSpace(BaseModel):
@@ -71,8 +71,8 @@ class GeminiOptimizationResponse(BaseModel):
 client = None
 
 def ask_gemini_to_fix_config(report: Dict[str, Any]):
-    if not client:
-        client = genai.Client(api_key=gemini_api_key)
+  #  if not client:
+  #      client = genai.Client(api_key=gemini_api_key)
 
     ticker = report['ticker']
     status = report.get("status", "ANEMIC")

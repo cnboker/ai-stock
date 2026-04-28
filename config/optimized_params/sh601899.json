@@ -1,66 +1,24 @@
 {
-    "ticker": "sh601899",
-    "last_optimized": "2026-04-23 20:39:45",
-    "search_space": {
-        "strength_alpha": {
-            "low": 40.0,
-            "high": 95.0
-        },
-        "model_th": {
-            "low": 0.1,
-            "high": 0.5
-        },
-        "atr_stop": {
-            "low": 0.5,
-            "high": 2.5
-        },
-        "risk": {
-            "low": 0.001,
-            "high": 0.02
-        },
-        "kelly": {
-            "low": 0.05,
-            "high": 0.5
-        },
-        "slope": {
-            "low": 0.0,
-            "high": 0.002
-        },
-        "max_stop": {
-            "low": 0.05,
-            "high": 0.15
-        },
-    
-        "predict_up": {
-            "low": -0.1,
-            "high": 0.02
-        },
-        "tp1": {
-            "low": 1.02,
-            "high": 1.15
-        },
-        "tp2": {
-            "low": 1.1,
-            "high": 1.4
-        },
-        "init_pt": {
-            "low": 0.001,
-            "high": 0.05
-        }
+    "_META": {
+        "ticker": "sh601899",
+        "best_value": 83.2711,
+        "date": "2026-04-27 09:26"
     },
-    "initial_trial": {
-        "strength_alpha": 70.0,
-        "model_th": 0.3,
-        "atr_stop": 1.2,
-        "risk": 0.01,
-        "kelly": 0.15,
-        "slope": 0.0005,
-        "max_stop": 0.1,
-
-        "predict_up": -0.03,
-        "tp1": 1.04,
-        "tp2": 1.15,
-        "init_pt": 0.01
-    },
-    "analysis": "The strategy is currently facing a total signal absence (0 entries). The diagnostic report identifies 'slope_filter' as the primary bottleneck with 74 interceptions, indicating the trend requirement is too strict for the current price behavior of sh601899 on the 30-minute timeframe. 'model_confidence' is the secondary bottleneck with 30 interceptions, suggesting the 'model_th' of 0.4 is too conservative for the model's output distribution."
+    "MODEL_TH": 0.4206,
+    "SLOPE": 0.0725,
+    "PREDICT_UP": -0.0272,
+    "INIT_PT": 0.031,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 4.3326,
+    "TP1": 1.0487,
+    "TP2": 1.1595,
+    "KELLY": 0.1894,
+    "RISK": 0.0085,
+    "ATR_STOP": 1.898,
+    "MAX_STOP": 0.0977,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 55,
+    "CONFIRM_N": 1,
+    "WINDOW": 116,
+    "SLOPE_MIN": 0.0016
 }

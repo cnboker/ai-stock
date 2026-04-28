@@ -3,6 +3,7 @@ import os
 import time
 import json
 import re
+from typing import Dict, List
 
 import pandas as pd
 import requests
@@ -61,7 +62,7 @@ def fetch_sina_quote(symbol,minites):
     #datalen=512(30min, 3months)
     ts = int(time.time() * 1000)  # 毫秒时间戳强制避免缓存
     url = f"https://quotes.sina.cn/cn/api/jsonp_v2.php/var%20_{symbol}_{minites}_{ts}=/CN_MarketDataService.getKLineData?symbol={symbol}&scale={minites}&ma=no&datalen=1024"
-    #print('url->',url)
+    print('url->',url)
     headers = {
         "Referer": "https://finance.sina.com.cn",
         "User-Agent": "Mozilla/5.0"
@@ -115,7 +116,7 @@ def convert_to_df(raw):
 
 import re
 
-def extract_latest_price(parts: list[str]) -> float:
+def extract_latest_price(parts: List[str]) -> float:
     """
     parts: ['金证股份', '15.600', ..., '15.860', '2025-12-25', '13:31:35', '00', '']
     返回最新价格 float
@@ -133,7 +134,7 @@ def extract_latest_price(parts: list[str]) -> float:
     # 没找到日期，返回0
     return 0.0
 
-def parse_multiple_latest_prices(raw: str) -> dict[str, float]:
+def parse_multiple_latest_prices(raw: str) -> Dict[str, float]:
     price_map = {}
     
     # 匹配每个 var hq_str_ticker="内容";
