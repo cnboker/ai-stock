@@ -1,19 +1,19 @@
 account: main_account
-cash: 82232.0
+cash: 91430.13
 positions:
   sh603002:
     direction: LONG
     entry_price: 13.28
-    highest_price: 14.51
-    open_time: '2026-04-29T09:24:43.796307'
-    size: 3
-    stop_loss: 13.89
+    highest_price: 14.85
+    open_time: '2026-04-29T11:52:08.487891'
+    size: 2
+    stop_loss: 14.06
     tp1_hit: false
   sh603871:
     direction: LONG
     entry_price: 13.31
     highest_price: 13.31
-    open_time: '2026-04-29T11:01:12.114795'
-    size: 13
+    open_time: '2026-04-29T11:52:08.487891'
+    size: 7
     stop_loss: 12.25
     tp1_hit: false

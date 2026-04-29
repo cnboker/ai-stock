@@ -49,7 +49,7 @@ def execute_equity_action(
                 "confidence": decision.confidence,
                 "gate_mult": decision.gate_mult,
             }),
-            "model_version": "chronos-v2"
+            "model_version": "Kronos"
         })
     except Exception as e:
         print(f"⚠️ Prediction API 失败: {e}")

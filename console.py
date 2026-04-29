@@ -1,4 +1,3 @@
-from __future__ import annotations
 import asyncio
 from datetime import datetime
 import os
@@ -20,6 +19,7 @@ from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
 from config.settings import TICKER_PERIOD, UPDATE_INTERVAL_SEC
 from data.loader import GlobalState, load_index_df, load_stock_df
+from predict.time_utils import is_market_break
 from trade.signal_arbiter import SignalArbiter
 from trade.trade_engine import execute_final_order, execute_final_order, execute_stock_decision
 from typing import List, Tuple
@@ -49,9 +49,9 @@ def __get_tickers_from_positions_and_watchlist():
     return tickers
 
 async def run_trade_cycle():
-    # if is_market_break():
-    #     print("⏸️ 市场休息中，跳过本周期")
-    #     return
+    if is_market_break():
+        print("⏸️ 市场休息中，跳过本周期")
+        return
     # 打印周期开始时间（建议使用更简洁的格式）
     now_str = time.strftime('%H:%M:%S')
     print(f"\n🚀 [Cycle Start] {now_str}")
