@@ -1,13 +1,11 @@
 import numpy as np
 import optuna
-from optuna.samplers import CmaEsSampler
-from data.loader import GlobalState
 from infra.core.dynamic_settings import use_config
 from optimize.advanced_score import get_advanced_score
 from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 from optimize.persist_manager import PersistManager
-from simulator.run_backtest import run_backtest
+from backtest.run_backtest import run_backtest
 
 
 def run_optuna_study(ticker: str, 

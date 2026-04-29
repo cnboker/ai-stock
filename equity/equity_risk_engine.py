@@ -54,8 +54,9 @@ class EquityRiskEngine:
         gate_mult = equity_gate(eq_feat)
 
         dd = eq_feat["eq_drawdown"].iloc[-1]
-        slope = eq_feat["eq_slope"].iloc[-1]
-
+        #slope = eq_feat["eq_slope"].iloc[-1]
+        #使用 4-8 个周期的均值斜率，代表过去 2-4 小时的趋势
+        smooth_slope = eq_feat["eq_slope"].rolling(window=4).mean().iloc[-1]
         action = "HOLD"
         reduce_strength = 0.0
         reason = ""
@@ -69,10 +70,10 @@ class EquityRiskEngine:
         gate_mult *= risk_scale
 
         # ======================
-        # 2️⃣ slope 崩坏保护
+        # 2️⃣ slope 崩坏保护，针对于30分钟级别，斜率崩坏往往预示着快速下跌的开始，即使门槛还没完全打开，也要提前保护账户
         # ======================
-
-        if slope < -0.002:
+        # 如果斜率崩坏，即使门槛没完全打开，也要保护账户不受过大损失
+        if smooth_slope < -0.004:
 
             if has_position:
                 action = "REDUCE"

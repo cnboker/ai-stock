@@ -41,9 +41,12 @@ class KronosAdapter(BaseTSFMAdapter):
             df.index = pd.to_datetime(df.index)
 
         x_df = df[['open', 'high', 'low', 'close', 'volume']].tail(512)
+        # 将 DataFrame 的索引（通常是时间戳）转换为 Pandas Series。
+        # 这是因为 Kronos 的 predictor.predict 方法通常要求时间轴作为独立的序列输入，以便处理时间特征
         x_ts = x_df.index.to_series()
         
         # 2. 自动获取频率
+        # 自动推断: 它查看最后 10 条数据的时间间隔。
         inferred_freq = pd.infer_freq(df.index[-10:]) or '5T'
         
         # 3. 构造 y_ts 并强制转换为 Series (修复 AttributeError 的核心)

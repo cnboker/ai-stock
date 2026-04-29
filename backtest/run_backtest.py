@@ -1,4 +1,4 @@
-from simulator.backtest_runner import BacktestRunner
+from backtest.backtest_runner import BacktestRunner
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")

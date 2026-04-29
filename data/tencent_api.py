@@ -24,7 +24,7 @@ class StockProvider:
         print(f"url={url}")
         proxy_url = "http://127.0.0.1:7890"
         
-        async with httpx.AsyncClient(trust_env=True) as client:
+        async with httpx.AsyncClient(proxy=proxy_url, trust_env=True) as client:
             try:
                 response = await client.get(url, headers=self.headers, timeout=5.0)
                 if response.status_code != 200:
