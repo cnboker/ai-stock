@@ -148,7 +148,7 @@ def run_audit():
     keyword = "equity_slope_break-slope"
 
     # 使用列表推导式清除包含关键字的数据
-    cleaned_data = [item for item in details if keyword not in item.get('context', '')]
+    #cleaned_data = [item for item in details if keyword not in item.get('context', '')]
     initial_prompt = f"""
     # 角色
     你是一名深度量化审计专家 Hermes，专门负责识别“信号生成层”与“风险控制层”之间的逻辑断层。
@@ -158,7 +158,7 @@ def run_audit():
     - 信号/误差: 共 {summary['total_signals']} 个信号，平均误差 {summary['avg_error']}
 
     # 原始数据集
-    {json.dumps(cleaned_data, ensure_ascii=False)}
+    {json.dumps(details, ensure_ascii=False)}
 
     # 审计逻辑 (通用型)
     
@@ -198,7 +198,7 @@ def run_audit():
         elif user_input.lower() == 's':
             # 记录到本地
             with open(AUDIT_LOG_PATH, "a", encoding="utf-8") as f:
-                f.write(f"\n\n## {data['date']} 复盘\n{analysis}")
+                f.write(f"\n\n## {data['date']} 复盘\n审计结果\n{analysis}")
             
             # 使用 GitHub CLI 同步 (你的第二个 Skill)
             print("🚀 正在通过 GitHub CLI 创建 Issue...")
