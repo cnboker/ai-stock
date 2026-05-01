@@ -79,7 +79,7 @@ async def update_order_status(
     return db_order
 
 
-@router.get("/daily_review")
+@router.get("/daily_review/{date}")
 async def get_daily_review(
     date: Optional[str] = None, session: AsyncSession = Depends(get_session)
 ):
@@ -88,6 +88,8 @@ async def get_daily_review(
     """
     # 1. 处理日期：默认查询当天
     target_date = datetime.now().date()
+    if date:
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
     try:
         # 2. 查询当天的预测数据
         pred_statement = select(Prediction).where(
@@ -174,9 +176,9 @@ def generate_review_data(predictions, orders):
             # 计算加权平均收益（如果所有减仓权重一致，可用算术平均）
             avg_actual_ret = sum(o.actual_return for o in matches) / len(matches)
             total_pnl = sum(o.pnl_amount for o in matches)
-
+           
             error = abs(pred.expected_return - avg_actual_ret)
-            status = "matched"
+            status = matches[0].status
             order_count = len(matches)
         else:
             # 如果该信号发出后没有对应的操作
@@ -187,18 +189,20 @@ def generate_review_data(predictions, orders):
             order_count = 0
 
         # 6. 构造输出数据
-        review_data.append(
-            {
-                "symbol": pred.symbol,
-                "signal_time": pred.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                "pred_change": round(pred.expected_return, 4),
-                "actual_change": round(avg_actual_ret, 4),
-                "total_pnl": round(total_pnl, 2),
-                "order_count": order_count,
-                "error": round(error, 4) if error is not None else None,
-                "status": status,
-                "context": pred.features_snapshot,
-            }
-        )
+        if abs(total_pnl) > 10:
+            review_data.append(
+                {
+                    "symbol": pred.symbol,
+                
+                    "signal_time": pred.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    "pred_change": round(pred.expected_return, 4),
+                    "actual_change": round(avg_actual_ret, 4),
+                    "total_pnl": round(total_pnl, 2),
+                    "order_count": order_count,
+                    "error": round(error, 4) if error is not None else None,
+                    "status": status,
+                    "context": pred.features_snapshot,
+                }
+            )
 
     return review_data

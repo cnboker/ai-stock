@@ -18,3 +18,17 @@ desciption:这个模板是你每天实际让Hermes生成审计报告时使用的
 ### 今日原始信号数据：
 ```json
 [在这里粘贴今日完整的原始信号JSON数据]
+```
+
+--- RECENT_LESSONS_UPDATE_START ---
+# Hermes Recent Lessons - 近期教训摘要
+更新日期: {YYYY-MM-DD}
+
+## 当前核心教训
+
+- 教训1
+- 教训2
+- ...
+
+**更新规则**：保持总条数不超过8条，优先保留最严重和最新的系统性问题。
+--- RECENT_LESSONS_UPDATE_END ---

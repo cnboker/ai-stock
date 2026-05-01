@@ -48,7 +48,7 @@ sudo docker exec -t backend-db-1 pg_dumpall -c -U postgres > alldb_backup.sql
 # 导出特定表数据
 pg_dump -U postgres -d aistock -t user_data_permissions --column-inserts --data-only > data.sql
 # 导入表数据
-cat alldb_backup.sql | sudo docker exec -i backend-db-1 psql -U postgres -d aistock
+cat alldb_backup.sql | sudo docker exec -i backend-db-1 psql -U postgres 
 ```
 
 ### hotload

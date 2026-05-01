@@ -1,8 +1,6 @@
 name: core-lessons
 description: 精炼后的系统性教训（长期记忆，高优先级）
 ---
-
-
 # Hermes Core Lessons - 长期核心记忆
 更新日期: 2026-04-29（首次建立）
 

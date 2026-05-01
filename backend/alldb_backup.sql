@@ -2,7 +2,7 @@
 -- PostgreSQL database cluster dump
 --
 
-\restrict m5OiCsEgxKc5cAW3xE6I2V5IbfY4wk4AXWHDPT0Y3sVcSSPOzClRxUywM0z16iP
+\restrict uTAhNNyV1VVDP3Uf2b9ogKx8rvdHz4dS1T4XdE3bzJlrtEAfaICgEErhzqziA5h
 
 SET default_transaction_read_only = off;
 
@@ -44,7 +44,7 @@ ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION
 
 
 
-\unrestrict m5OiCsEgxKc5cAW3xE6I2V5IbfY4wk4AXWHDPT0Y3sVcSSPOzClRxUywM0z16iP
+\unrestrict uTAhNNyV1VVDP3Uf2b9ogKx8rvdHz4dS1T4XdE3bzJlrtEAfaICgEErhzqziA5h
 
 --
 -- Databases
@@ -58,7 +58,7 @@ ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION
 -- PostgreSQL database dump
 --
 
-\restrict J5Y8XLtgUkyeE2Dr6meGjCna2SgSYKpMd0lib90LKleHG6s2nYtEg9lqFMcBvmR
+\restrict zBfg6A5imN7zdB58KUYPW99F4Evh9BbS30GlhkqPl8yVG3Luh9ssnGPbSvBJz4L
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
@@ -85,9 +85,9 @@ CREATE DATABASE template1 WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PRO
 
 ALTER DATABASE template1 OWNER TO postgres;
 
-\unrestrict J5Y8XLtgUkyeE2Dr6meGjCna2SgSYKpMd0lib90LKleHG6s2nYtEg9lqFMcBvmR
+\unrestrict zBfg6A5imN7zdB58KUYPW99F4Evh9BbS30GlhkqPl8yVG3Luh9ssnGPbSvBJz4L
 \connect template1
-\restrict J5Y8XLtgUkyeE2Dr6meGjCna2SgSYKpMd0lib90LKleHG6s2nYtEg9lqFMcBvmR
+\restrict zBfg6A5imN7zdB58KUYPW99F4Evh9BbS30GlhkqPl8yVG3Luh9ssnGPbSvBJz4L
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -114,9 +114,9 @@ COMMENT ON DATABASE template1 IS 'default template for new databases';
 ALTER DATABASE template1 IS_TEMPLATE = true;
 
 
-\unrestrict J5Y8XLtgUkyeE2Dr6meGjCna2SgSYKpMd0lib90LKleHG6s2nYtEg9lqFMcBvmR
+\unrestrict zBfg6A5imN7zdB58KUYPW99F4Evh9BbS30GlhkqPl8yVG3Luh9ssnGPbSvBJz4L
 \connect template1
-\restrict J5Y8XLtgUkyeE2Dr6meGjCna2SgSYKpMd0lib90LKleHG6s2nYtEg9lqFMcBvmR
+\restrict zBfg6A5imN7zdB58KUYPW99F4Evh9BbS30GlhkqPl8yVG3Luh9ssnGPbSvBJz4L
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -141,7 +141,7 @@ GRANT CONNECT ON DATABASE template1 TO PUBLIC;
 -- PostgreSQL database dump complete
 --
 
-\unrestrict J5Y8XLtgUkyeE2Dr6meGjCna2SgSYKpMd0lib90LKleHG6s2nYtEg9lqFMcBvmR
+\unrestrict zBfg6A5imN7zdB58KUYPW99F4Evh9BbS30GlhkqPl8yVG3Luh9ssnGPbSvBJz4L
 
 --
 -- Database "aistock" dump
@@ -151,7 +151,7 @@ GRANT CONNECT ON DATABASE template1 TO PUBLIC;
 -- PostgreSQL database dump
 --
 
-\restrict 5Zsm8XggF0syr9d1mBU5nsPtzSOPobVir3CqiZuCoBN1nvxzk4A9HR8SnsvbAcB
+\restrict QoTezYTxU0wGSlWyyzHUVvNwPwi4fuIysyV5jOHjtg5W4UvvR9NadR6WNPwI7DZ
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
@@ -176,9 +176,9 @@ CREATE DATABASE aistock WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVI
 
 ALTER DATABASE aistock OWNER TO postgres;
 
-\unrestrict 5Zsm8XggF0syr9d1mBU5nsPtzSOPobVir3CqiZuCoBN1nvxzk4A9HR8SnsvbAcB
+\unrestrict QoTezYTxU0wGSlWyyzHUVvNwPwi4fuIysyV5jOHjtg5W4UvvR9NadR6WNPwI7DZ
 \connect aistock
-\restrict 5Zsm8XggF0syr9d1mBU5nsPtzSOPobVir3CqiZuCoBN1nvxzk4A9HR8SnsvbAcB
+\restrict QoTezYTxU0wGSlWyyzHUVvNwPwi4fuIysyV5jOHjtg5W4UvvR9NadR6WNPwI7DZ
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -365,6 +365,51 @@ COPY public.alembic_version (version_num) FROM stdin;
 --
 
 COPY public.orders (id, symbol, side, entry_price, exit_price, entry_time, exit_time, actual_return, pnl_amount, prediction_id, status) FROM stdin;
+1	NVDA	buy	900.5	932	2026-04-15 10:41:26.312734	2026-04-15 17:41:26.312734	0.035	3150	1	closed
+2	AAPL	sell	170	175	2026-04-16 10:41:26.312734	2026-04-16 13:41:26.312734	-0.029	-500	2	closed
+3	TSLA	buy	180	182.5	2026-04-16 22:41:26.312734	2026-04-17 04:41:26.312734	0.013	250	3	closed
+4	BTCUSDT	buy	65000	\N	2026-04-17 08:41:26.312734	\N	0	0	4	open
+5	sh512760	buy	0.881	\N	2026-04-22 09:18:22.404878	\N	0	0	5	OPEN
+6	sh512760	sell	0.896	0.896	2026-04-22 09:18:41.872029	2026-04-22 09:48:22.381962	0.017026106696935314	213.00000000000017	6	REDUCE
+7	sh512760	sell	0.896	0.896	2026-04-22 09:18:41.872029	2026-04-22 10:18:22.378419	0.017026106696935314	106.50000000000009	7	REDUCE
+8	sh512760	sell	0.897	0.897	2026-04-22 10:37:24.522507	2026-04-22 10:37:25.912911	0.018161180476731004	57.60000000000005	8	REDUCE
+9	sh512760	sell	0.894	0.894	2026-04-22 10:37:24.522507	2026-04-22 11:07:25.919592	0.01475595913734394	23.40000000000002	9	REDUCE
+10	sh512760	sell	0.898	0.898	2026-04-22 10:37:24.522507	2026-04-22 11:37:25.901524	0.01929625425652669	15.300000000000013	10	REDUCE
+11	sh512760	sell	0.898	0.898	2026-04-22 11:49:10.32744	2026-04-22 13:00:00.292045	0.01929625425652669	8.500000000000007	11	REDUCE
+12	sh512760	sell	0.901	0.901	2026-04-22 11:49:10.32744	2026-04-22 13:30:00.36427	0.022701475595913755	6.000000000000005	12	REDUCE
+13	sh512760	sell	0.904	0.904	2026-04-22 11:49:10.32744	2026-04-22 14:00:00.351584	0.026106696935300818	4.600000000000004	13	REDUCE
+14	sh512760	sell	0.906	0.906	2026-04-22 11:49:10.32744	2026-04-22 14:30:00.309246	0.02837684449489219	2.500000000000002	14	REDUCE
+15	sh512760	sell	0.908	0.908	2026-04-22 20:28:30.923279	2026-04-22 20:28:32.547872	0.03064699205448357	0	15	REDUCE
+16	sh515150	buy	1.678	\N	2026-04-23 10:00:00.462177	\N	0	0	16	OPEN
+17	sz300499	buy	43.16	\N	2026-04-23 10:00:00.462177	\N	0	0	17	OPEN
+18	sh603002	buy	13.9	\N	2026-04-23 10:00:00.462177	\N	0	0	18	OPEN
+19	sh603002	sell	13.88	13.88	2026-04-23 10:00:50.751345	2026-04-23 10:30:00.419819	-0.0014388489208632786	-15.999999999999659	19	REDUCE
+20	sh515150	sell	1.69	1.69	2026-04-23 10:00:03.61391	2026-04-23 10:30:00.419819	0.007151370679380221	50.40000000000005	20	REDUCE
+21	sz300499	sell	43.01	43.01	2026-04-23 10:00:30.659251	2026-04-23 10:30:00.419819	-0.0034754402224281417	-29.999999999999716	21	REDUCE
+22	sh603002	sell	13.93	13.93	2026-04-23 10:00:50.751345	2026-04-23 11:00:00.451693	0.002158273381294918	11.999999999999744	22	REDUCE
+23	sh515150	sell	1.688	1.688	2026-04-23 10:00:03.61391	2026-04-23 11:00:00.451693	0.0059594755661501846	21.000000000000018	23	REDUCE
+24	sz300499	sell	42.79	42.79	2026-04-23 10:00:30.659251	2026-04-23 11:00:00.451693	-0.008572752548656104	-36.999999999999744	24	REDUCE
+25	sh603002	sell	13.7	13.7	2026-04-23 12:58:10.998345	2026-04-23 12:58:13.497902	-0.01438848920863317	-40.00000000000021	25	REDUCE
+26	sh588200	buy	2.704	\N	2026-04-23 12:58:13.497902	\N	0	0	26	OPEN
+27	sh515150	sell	1.679	1.679	2026-04-23 12:58:10.998345	2026-04-23 12:58:13.497902	0.0005959475566150846	1.100000000000123	27	REDUCE
+28	sz300499	sell	42.29	42.29	2026-04-23 12:58:10.998345	2026-04-23 12:58:13.497902	-0.02015755329008335	-0	28	REDUCE
+29	sh603002	sell	13.7	13.7	2026-04-23 12:58:10.998345	2026-04-23 13:00:00.422067	-0.01438848920863317	-20.000000000000107	29	REDUCE
+30	sh588200	sell	2.704	2.704	2026-04-23 12:58:55.816805	2026-04-23 13:00:00.422067	0	0	30	REDUCE
+31	sh515150	sell	1.679	1.679	2026-04-23 12:58:10.998345	2026-04-23 13:00:00.422067	0.0005959475566150846	0.6000000000000671	31	REDUCE
+32	sh512760	buy	0.89	\N	2026-04-23 13:00:00.422067	\N	0	0	32	OPEN
+33	sh603002	sell	13.81	13.81	2026-04-23 12:58:10.998345	2026-04-23 13:30:00.38352	-0.0064748201438848815	-0	33	REDUCE
+34	sh588200	sell	2.72	2.72	2026-04-23 12:58:55.816805	2026-04-23 13:30:00.38352	0.0059171597633136145	20.80000000000002	34	REDUCE
+35	sh515150	sell	1.684	1.684	2026-04-23 12:58:10.998345	2026-04-23 13:30:00.38352	0.0035756853396901106	1.8000000000000016	35	REDUCE
+36	sh512760	sell	0.893	0.893	2026-04-23 13:01:10.39879	2026-04-23 13:30:00.38352	0.0033707865168539357	20.700000000000017	36	REDUCE
+37	sh588200	sell	2.749	2.749	2026-04-23 12:58:55.816805	2026-04-23 14:00:00.378232	0.0166420118343195	31.49999999999995	37	REDUCE
+38	sh515150	sell	1.691	1.691	2026-04-23 12:58:10.998345	2026-04-23 14:00:00.378232	0.007747318235995305	0	38	REDUCE
+39	sh512760	sell	0.902	0.902	2026-04-23 13:01:10.39879	2026-04-23 14:00:00.378232	0.013483146067415743	42.000000000000036	39	REDUCE
+40	sh588200	sell	2.725	2.725	2026-04-23 12:58:55.816805	2026-04-23 14:30:00.395893	0.0077662721893490775	8.399999999999963	40	REDUCE
+41	sh512760	sell	0.894	0.894	2026-04-23 13:01:10.39879	2026-04-23 14:30:00.395893	0.004494382022471914	7.200000000000006	41	REDUCE
+42	sh512760	sell	0.897	0.897	2026-04-23 14:52:30.097299	2026-04-23 14:52:32.195297	0.00786516853932585	6.300000000000006	42	REDUCE
+43	sh588200	sell	2.736	2.736	2026-04-23 14:52:30.097299	2026-04-23 14:52:32.195297	0.011834319526627229	6.400000000000006	43	REDUCE
+44	sz300499	buy	42.38	\N	2026-04-23 14:52:32.195297	\N	0	0	44	OPEN
+45	sh512760	sell	0.897	0.897	2026-04-23 14:52:30.097299	2026-04-23 15:00:00.408155	0.00786516853932585	0	45	REDUCE
 46	sh588200	sell	2.746	2.746	2026-04-24 09:10:33.614748	2026-04-24 09:30:00.372288	0.015532544378698155	0	46	REDUCE
 47	sz300499	sell	41.61	41.61	2026-04-24 09:10:33.614748	2026-04-24 09:30:00.372288	-0.01816894761680045	-154.00000000000063	47	REDUCE
 48	sh512760	buy	0.897	\N	2026-04-24 09:30:00.372288	\N	0	0	48	OPEN
@@ -380,6 +425,44 @@ COPY public.orders (id, symbol, side, entry_price, exit_price, entry_time, exit_
 58	sh512760	sell	0.912	0.912	2026-04-24 09:30:58.925466	2026-04-24 13:00:00.283683	0.016722408026755866	21.000000000000018	58	REDUCE
 59	sh512760	sell	0.917	0.917	2026-04-24 09:30:58.925466	2026-04-24 13:30:00.383393	0.02229654403567449	14.000000000000012	59	REDUCE
 60	sh512760	sell	0.909	0.909	2026-04-24 09:30:58.925466	2026-04-24 14:00:00.434952	0.013377926421404694	0	60	REDUCE
+61	sh603002	buy	13.28	\N	2026-04-29 09:23:34.392684	\N	0	0	61	OPEN
+62	sh603002	sell	13.98	13.98	2026-04-29 09:24:43.796307	2026-04-29 09:30:00.386496	0.052710843373494055	1470.0000000000023	62	REDUCE
+63	sh603002	sell	14.45	14.45	2026-04-29 09:24:43.796307	2026-04-29 10:00:00.493449	0.08810240963855422	1287	63	REDUCE
+64	sh603002	sell	14.44	14.44	2026-04-29 09:24:43.796307	2026-04-29 10:30:00.305379	0.08734939759036146	696.0000000000001	64	REDUCE
+65	sh603002	sell	14.51	14.51	2026-04-29 09:24:43.796307	2026-04-29 11:00:00.385055	0.09262048192771088	369.0000000000001	65	REDUCE
+66	sh603871	buy	13.31	\N	2026-04-29 11:00:00.385055	\N	0	0	66	OPEN
+67	sh603871	sell	13.21	13.21	2026-04-29 11:52:08.487891	2026-04-29 13:00:00.616805	-0.007513148009015751	-69.99999999999974	67	REDUCE
+68	sh603002	sell	14.85	14.85	2026-04-29 11:52:08.487891	2026-04-29 13:00:00.616805	0.11822289156626509	314.00000000000006	68	REDUCE
+69	sh603871	sell	13.26	13.26	2026-04-29 11:52:08.487891	2026-04-29 13:38:51.677786	-0.003756574004507942	-20.000000000000284	69	REDUCE
+70	sh603002	sell	14.5	14.5	2026-04-29 11:52:08.487891	2026-04-29 13:38:51.677786	0.09186746987951812	122.00000000000006	70	REDUCE
+71	sh603871	sell	13.26	13.26	2026-04-29 11:52:08.487891	2026-04-29 14:00:00.290449	-0.003756574004507942	-10.000000000000142	71	REDUCE
+72	sh603002	sell	14.48	14.48	2026-04-29 11:52:08.487891	2026-04-29 14:00:00.290449	0.09036144578313261	0	72	REDUCE
+73	sh603871	sell	13.25	13.25	2026-04-30 09:09:55.513827	2026-04-30 09:30:00.58259	-0.004507888805409504	-6.00000000000005	73	REDUCE
+74	sz159908	buy	3.429	\N	2026-04-30 09:30:00.58259	\N	0	0	74	OPEN
+75	sh603871	sell	13.11	13.11	2026-04-30 09:09:55.513827	2026-04-30 10:00:00.626128	-0.015026296018031635	-0	75	REDUCE
+76	sz159908	sell	3.442	3.442	2026-04-30 09:31:21.697788	2026-04-30 10:00:00.626128	0.0037911927675708212	68.90000000000182	76	REDUCE
+77	sh515150	buy	1.672	\N	2026-04-30 10:00:00.626128	\N	0	0	77	OPEN
+78	sh515150	sell	1.666	1.666	2026-04-30 10:01:15.497755	2026-04-30 10:30:00.394901	-0.003588516746411487	-68.40000000000006	78	REDUCE
+79	sz159908	sell	3.42	3.42	2026-04-30 09:31:21.697788	2026-04-30 10:30:00.394901	-0.0026246719160104687	-24.29999999999972	79	REDUCE
+80	sh601899	buy	33.56	\N	2026-04-30 10:30:00.394901	\N	0	0	80	OPEN
+81	sh515150	sell	1.664	1.664	2026-04-30 10:01:15.497755	2026-04-30 11:00:00.684948	-0.004784688995215315	-45.60000000000004	81	REDUCE
+82	sz159908	sell	3.418	3.418	2026-04-30 09:31:21.697788	2026-04-30 11:00:00.684948	-0.0032079323417905153	-15.399999999999547	82	REDUCE
+83	sh601899	sell	33.41	33.41	2026-04-30 10:31:11.848181	2026-04-30 11:00:00.684948	-0.004469606674612803	-120.00000000000455	83	REDUCE
+84	sh515150	sell	1.665	1.665	2026-04-30 10:01:15.497755	2026-04-30 13:00:00.767222	-0.004186602870813335	-20.299999999999695	84	REDUCE
+85	sz159908	sell	3.43	3.43	2026-04-30 09:31:21.697788	2026-04-30 13:00:00.767222	0.0002916302128901528	0.7000000000002338	85	REDUCE
+86	sh601899	sell	33.4	33.4	2026-04-30 10:31:11.848181	2026-04-30 13:00:00.767222	-0.004767580452920253	-64.00000000000148	86	REDUCE
+87	sh515150	sell	1.665	1.665	2026-04-30 10:01:15.497755	2026-04-30 13:30:00.566663	-0.004186602870813335	-10.499999999999844	87	REDUCE
+88	sz159908	sell	3.43	3.43	2026-04-30 09:31:21.697788	2026-04-30 13:30:00.566663	0.0002916302128901528	0.4000000000001336	88	REDUCE
+89	sh601899	sell	33.12	33.12	2026-04-30 10:31:11.848181	2026-04-30 13:30:00.566663	-0.013110846245530536	-88.00000000000097	89	REDUCE
+90	sz002463	buy	102.87	\N	2026-04-30 13:30:00.566663	\N	0	0	90	OPEN
+91	sh515150	sell	1.668	1.668	2026-04-30 10:01:15.497755	2026-04-30 14:00:00.375832	-0.0023923444976076576	-3.200000000000003	91	REDUCE
+92	sz159908	sell	3.426	3.426	2026-04-30 09:31:21.697788	2026-04-30 14:00:00.375832	-0.0008748906386700699	-0.5999999999999339	92	REDUCE
+93	sz002463	sell	102.69	102.69	2026-04-30 13:31:14.340161	2026-04-30 14:00:00.375832	-0.0017497812773403986	-36.000000000001364	93	REDUCE
+94	sh601899	sell	33.17	33.17	2026-04-30 10:31:11.848181	2026-04-30 14:00:00.375832	-0.011620977353992866	-39.00000000000006	94	REDUCE
+95	sh515150	sell	1.667	1.667	2026-04-30 10:01:15.497755	2026-04-30 14:30:00.503633	-0.0029904306220095056	-1.9999999999999574	95	REDUCE
+96	sz159908	sell	3.434	3.434	2026-04-30 09:31:21.697788	2026-04-30 14:30:00.503633	0.0014581510644503756	0	96	REDUCE
+97	sz002463	sell	102.64	102.64	2026-04-30 13:31:14.340161	2026-04-30 14:30:00.503633	-0.0022358316321571302	-23.000000000000398	97	REDUCE
+98	sh601899	sell	33.18	33.18	2026-04-30 10:31:11.848181	2026-04-30 14:30:00.503633	-0.011323003575685416	-0	98	REDUCE
 \.
 
 
@@ -388,6 +471,51 @@ COPY public.orders (id, symbol, side, entry_price, exit_price, entry_time, exit_
 --
 
 COPY public.predictions (id, symbol, "timestamp", expected_return, confidence_interval_low, confidence_interval_high, features_snapshot, model_version) FROM stdin;
+1	NVDA	2026-04-15 09:41:26.299227	0.035	0.028	0.042	{"rsi": 65.4, "vol_ratio": 1.2, "ma_cross": "golden"}	chronos-bolt
+2	AAPL	2026-04-16 09:41:26.299227	-0.015	-0.02	-0.01	{"rsi": 42.1, "vol_ratio": 0.8, "ma_cross": "death"}	chronos-v1
+3	TSLA	2026-04-16 21:41:26.299227	0.052	0.04	0.065	{"rsi": 72.8, "vol_ratio": 2.5, "ma_cross": "golden"}	chronos-bolt
+4	BTCUSDT	2026-04-17 07:41:26.299227	0.012	0.005	0.018	{"rsi": 55.0, "vol_ratio": 1.5, "ma_cross": "none"}	chronos-v1
+5	sh512760	2026-04-22 09:18:22.404878	0.005868351552635431	\N	\N	{"regime": "good", "model_score": 0.7648322582244873, "atr": 0.006753823927222032, "reason": "raw=LONG, raw_score=0.464, final_score=0.464", "confidence": 0.7648322582244873, "gate_mult": 0.607261819144353}	chronos-v2
+6	sh512760	2026-04-22 09:48:22.381962	-0.00871272198855877	\N	\N	{"regime": "good", "model_score": 0.5269670486450195, "atr": 0.008062827364065961, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5630333574235767}	chronos-v2
+7	sh512760	2026-04-22 10:18:22.378419	-0.009153802879154682	\N	\N	{"regime": "good", "model_score": 0.5489326119422913, "atr": 0.0083972970093307, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5693806933154736}	chronos-v2
+8	sh512760	2026-04-22 10:37:25.912911	-0.0081444401293993	\N	\N	{"regime": "good", "model_score": 0.4730445146560669, "atr": 0.007620504035226804, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5576195254607332}	chronos-v2
+9	sh512760	2026-04-22 11:07:25.919592	-0.0093085253611207	\N	\N	{"regime": "good", "model_score": 0.46833324432373047, "atr": 0.007845208455485104, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5589992037339521}	chronos-v2
+10	sh512760	2026-04-22 11:37:25.901524	-0.008517523296177387	\N	\N	{"regime": "good", "model_score": 0.5250750184059143, "atr": 0.008378541788818437, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5637686522890027}	chronos-v2
+11	sh512760	2026-04-22 13:00:00.292045	-0.010820964351296425	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.008378541788818437, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5522536931760617}	chronos-v2
+12	sh512760	2026-04-22 13:30:00.36427	-0.012315040454268456	\N	\N	{"regime": "good", "model_score": 0.4055896997451782, "atr": 0.007527995940290697, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5470164216093365}	chronos-v2
+13	sh512760	2026-04-22 14:00:00.351584	-0.01464141346514225	\N	\N	{"regime": "good", "model_score": 0.3714424669742584, "atr": 0.006638496283952928, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5465716382827855}	chronos-v2
+14	sh512760	2026-04-22 14:30:00.309246	-0.012848451733589172	\N	\N	{"regime": "good", "model_score": 0.38875871896743774, "atr": 0.0064581568980052765, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5493735342805263}	chronos-v2
+15	sh512760	2026-04-22 20:28:32.547872	-0.004150728229433298	\N	\N	{"regime": "good", "model_score": 0.3813088834285736, "atr": 0.006131651454773859, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.3696661086875977}	chronos-v2
+16	sh515150	2026-04-23 10:00:00.462177	-0.0001819398021325469	\N	\N	{"regime": "good", "model_score": 0.5846855044364929, "atr": 0.006231776658460593, "reason": "raw=LONG, raw_score=0.257, final_score=0.257", "confidence": 0.5846855044364929, "gate_mult": 0.43922527058283906}	chronos-v2
+17	sz300499	2026-04-23 10:00:00.462177	0.0018651005811989307	\N	\N	{"regime": "good", "model_score": 0.642083466053009, "atr": 0.7415476158248601, "reason": "raw=LONG, raw_score=0.248, final_score=0.248", "confidence": 0.642083466053009, "gate_mult": 0.3858044363283854}	chronos-v2
+18	sh603002	2026-04-23 10:00:00.462177	0.017720846459269524	\N	\N	{"regime": "good", "model_score": 0.7485016584396362, "atr": 0.3364003030217504, "reason": "raw=LONG, raw_score=0.424, final_score=0.424", "confidence": 0.7485016584396362, "gate_mult": 0.5661030618976521}	chronos-v2
+19	sh603002	2026-04-23 10:30:00.419819	-0.00735191535204649	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.31501359561937936, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.3905053026163411}	chronos-v2
+20	sh515150	2026-04-23 10:30:00.419819	-0.006854110863059759	\N	\N	{"regime": "good", "model_score": 0.0, "atr": 0.006999113438562237, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.35580385377933516}	chronos-v2
+21	sz300499	2026-04-23 10:30:00.419819	-0.013430245220661163	\N	\N	{"regime": "good", "model_score": 0.2954317331314087, "atr": 0.7124523740547347, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.35484784076452525}	chronos-v2
+22	sh603002	2026-04-23 11:00:00.451693	0.007226427551358938	\N	\N	{"regime": "good", "model_score": 0.788138747215271, "atr": 0.3026117827591937, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.38271650746754615}	chronos-v2
+23	sh515150	2026-04-23 11:00:00.451693	-0.0037136024329811335	\N	\N	{"regime": "good", "model_score": 0.3284704387187958, "atr": 0.006605006958957245, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.43362631856738726}	chronos-v2
+24	sz300499	2026-04-23 11:00:00.451693	0.007682973053306341	\N	\N	{"regime": "good", "model_score": 0.7094013690948486, "atr": 0.6751476121821806, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4495817861360824}	chronos-v2
+25	sh603002	2026-04-23 12:58:13.497902	0.0018014699453487992	\N	\N	{"regime": "good", "model_score": 0.6593537330627441, "atr": 0.35327844942586045, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.3594673231483681}	chronos-v2
+26	sh588200	2026-04-23 12:58:13.497902	0.0003268996952101588	\N	\N	{"regime": "good", "model_score": 0.6169482469558716, "atr": 0.029468922953758008, "reason": "raw=LONG, raw_score=0.260, final_score=0.260", "confidence": 0.6169482469558716, "gate_mult": 0.4211114581245193}	chronos-v2
+27	sh515150	2026-04-23 12:58:13.497902	0.0014971806667745113	\N	\N	{"regime": "good", "model_score": 0.9260225296020508, "atr": 0.006924339364429599, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4186391067288029}	chronos-v2
+28	sz300499	2026-04-23 12:58:13.497902	0.009147335775196552	\N	\N	{"regime": "good", "model_score": 0.7604832649230957, "atr": 0.7538142788488467, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4263326315608076}	chronos-v2
+29	sh603002	2026-04-23 13:00:00.422067	-0.0003553654532879591	\N	\N	{"regime": "good", "model_score": 0.6024399399757385, "atr": 0.30884132294668076, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4165682695918804}	chronos-v2
+30	sh588200	2026-04-23 13:00:00.422067	-0.0064577581360936165	\N	\N	{"regime": "good", "model_score": 0.2330058515071869, "atr": 0.026176249118662093, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.3539245005550523}	chronos-v2
+31	sh515150	2026-04-23 13:00:00.422067	-0.0002508436155039817	\N	\N	{"regime": "good", "model_score": 0.5687959790229797, "atr": 0.0061314946734440925, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4136885137682221}	chronos-v2
+32	sh512760	2026-04-23 13:00:00.422067	0.0004890929558314383	\N	\N	{"regime": "good", "model_score": 0.6424587965011597, "atr": 0.008265215199790803, "reason": "raw=LONG, raw_score=0.226, final_score=0.226", "confidence": 0.6424587965011597, "gate_mult": 0.35249309304102566}	chronos-v2
+33	sh603002	2026-04-23 13:30:00.38352	-0.02209247648715973	\N	\N	{"regime": "neutral", "model_score": 0.36689886450767517, "atr": 0.30748470210934553, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.41641703683558223}	chronos-v2
+34	sh588200	2026-04-23 13:30:00.38352	-0.0012759777018800378	\N	\N	{"regime": "good", "model_score": 0.5660418272018433, "atr": 0.0265652254187648, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.44676824691500394}	chronos-v2
+35	sh515150	2026-04-23 13:30:00.38352	-0.0008248731028288603	\N	\N	{"regime": "good", "model_score": 0.449079304933548, "atr": 0.006931494673444094, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.36747817143504374}	chronos-v2
+36	sh512760	2026-04-23 13:30:00.38352	-0.004676962271332741	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.008297144244736673, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4502156725633648}	chronos-v2
+37	sh588200	2026-04-23 14:00:00.378232	-0.006768477149307728	\N	\N	{"regime": "good", "model_score": 0.41611966490745544, "atr": 0.027003338221386477, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.42889201816794936}	chronos-v2
+38	sh515150	2026-04-23 14:00:00.378232	-0.006368250586092472	\N	\N	{"regime": "good", "model_score": 0.1439143717288971, "atr": 0.006262653607583172, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.41712415565079114}	chronos-v2
+39	sh512760	2026-04-23 14:00:00.378232	-0.002368293236941099	\N	\N	{"regime": "good", "model_score": 0.4707872271537781, "atr": 0.008440371639245315, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.3621949845841384}	chronos-v2
+40	sh588200	2026-04-23 14:30:00.395893	-0.004794794600456953	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.02668024232760821, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.48808353483446926}	chronos-v2
+41	sh512760	2026-04-23 14:30:00.395893	-0.006956708617508411	\N	\N	{"regime": "good", "model_score": 0.22376564145088196, "atr": 0.008429919904650189, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.3637298419199443}	chronos-v2
+42	sh512760	2026-04-23 14:52:32.195297	-0.005200488492846489	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.00922991990465019, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4731843890363226}	chronos-v2
+43	sh588200	2026-04-23 14:52:32.195297	-0.00815228559076786	\N	\N	{"regime": "good", "model_score": 0.44959408044815063, "atr": 0.02921357566094156, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5140275011123612}	chronos-v2
+44	sz300499	2026-04-23 14:52:32.195297	0.00833328627049923	\N	\N	{"regime": "good", "model_score": 0.883402943611145, "atr": 0.6194727883823794, "reason": "raw=LONG, raw_score=0.336, final_score=0.336", "confidence": 0.883402943611145, "gate_mult": 0.3805474609306974}	chronos-v2
+45	sh512760	2026-04-23 15:00:00.408155	-0.004666538443416357	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.00922991990465019, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.49794078028037286}	chronos-v2
 46	sh588200	2026-04-24 09:30:00.372288	-0.01294098049402237	\N	\N	{"regime": "good", "model_score": 0.2369248867034912, "atr": 0.026770543359793217, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.41681912862396614}	chronos-v2
 47	sz300499	2026-04-24 09:30:00.372288	-0.025522762909531593	\N	\N	{"regime": "neutral", "model_score": 0.2821250557899475, "atr": 0.656867050556527, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.38936730749253257}	chronos-v2
 48	sh512760	2026-04-24 09:30:00.372288	0.003565447637811303	\N	\N	{"regime": "good", "model_score": 0.6795045733451843, "atr": 0.009351623838310561, "reason": "raw=LONG, raw_score=0.359, final_score=0.359", "confidence": 0.6795045733451843, "gate_mult": 0.5286386426420854}	chronos-v2
@@ -403,6 +531,44 @@ COPY public.predictions (id, symbol, "timestamp", expected_return, confidence_in
 58	sh512760	2026-04-24 13:00:00.283683	-0.011855507269501686	\N	\N	{"regime": "good", "model_score": 0.3991706371307373, "atr": 0.011789752567877627, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5354614176267445}	chronos-v2
 59	sh512760	2026-04-24 13:30:00.383393	-0.011683127842843533	\N	\N	{"regime": "good", "model_score": 0.40741780400276184, "atr": 0.011065976432779576, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5293092459249353}	chronos-v2
 60	sh512760	2026-04-24 14:00:00.434952	-0.004081344231963158	\N	\N	{"regime": "good", "model_score": 0.31755656003952026, "atr": 0.010589888503490992, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.35449690577929877}	chronos-v2
+61	sh603002	2026-04-29 09:23:34.392684	0.10386209934949875	\N	\N	{"regime": "good", "model_score": 1.0, "atr": 0.3234889271113377, "reason": "raw=LONG, raw_score=0.556, final_score=0.556", "confidence": 1.0, "gate_mult": 0.5557437667951736}	chronos-v2
+62	sh603002	2026-04-29 09:30:00.386496	0.03877861052751541	\N	\N	{"regime": "good", "model_score": 1.0, "atr": 0.38302373721822436, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4386637692774549}	chronos-v2
+63	sh603002	2026-04-29 10:00:00.493449	0.004839247092604637	\N	\N	{"regime": "good", "model_score": 0.6661190986633301, "atr": 0.3625316829431982, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.49392184537645994}	chronos-v2
+64	sh603002	2026-04-29 10:30:00.305379	0.003155551850795746	\N	\N	{"regime": "good", "model_score": 0.6585829854011536, "atr": 0.35223856941472037, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4119430822925546}	chronos-v2
+65	sh603002	2026-04-29 11:00:00.385055	0.01191568374633789	\N	\N	{"regime": "good", "model_score": 0.7948951721191406, "atr": 0.3254512045685596, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4585572084229154}	chronos-v2
+66	sh603871	2026-04-29 11:00:00.385055	-0.006552179343998432	\N	\N	{"regime": "good", "model_score": 0.4509648382663727, "atr": 0.16882586586171713, "reason": "raw=LONG, raw_score=0.174, final_score=0.174", "confidence": 0.4509648382663727, "gate_mult": 0.38513831483702166}	chronos-v2
+67	sh603871	2026-04-29 13:00:00.616805	-0.001142142340540886	\N	\N	{"regime": "good", "model_score": 0.5971940755844116, "atr": 0.1576110919386952, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4040209101390915}	chronos-v2
+68	sh603002	2026-04-29 13:00:00.616805	-0.011247730813920498	\N	\N	{"regime": "neutral", "model_score": 0.5, "atr": 0.35494659972682774, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.42257555114351325}	chronos-v2
+69	sh603871	2026-04-29 13:38:51.677786	-0.002717820694670081	\N	\N	{"regime": "good", "model_score": 0.5444723963737488, "atr": 0.15363546759601238, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.38522979991701806}	chronos-v2
+70	sh603002	2026-04-29 13:38:51.677786	0.00453566201031208	\N	\N	{"regime": "good", "model_score": 0.7030719518661499, "atr": 0.356509275283497, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.411553875824984}	chronos-v2
+71	sh603871	2026-04-29 14:00:00.290449	-0.0021807209122925997	\N	\N	{"regime": "good", "model_score": 0.5470011234283447, "atr": 0.15363546759601238, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.37427497486260286}	chronos-v2
+72	sh603002	2026-04-29 14:00:00.290449	0.00869583711028099	\N	\N	{"regime": "good", "model_score": 0.8719595670700073, "atr": 0.31413026051878157, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4071309086022957}	chronos-v2
+73	sh603871	2026-04-30 09:30:00.58259	-0.010427813977003098	\N	\N	{"regime": "neutral", "model_score": 0.4046163260936737, "atr": 0.14282211681975618, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.41443233576318633}	Kronos
+74	sz159908	2026-04-30 09:30:00.58259	0.00484090531244874	\N	\N	{"regime": "good", "model_score": 1.0, "atr": 0.0200039616738255, "reason": "raw=LONG, raw_score=0.349, final_score=0.349", "confidence": 1.0, "gate_mult": 0.34892369249179733}	Kronos
+75	sh603871	2026-04-30 10:00:00.626128	-0.0017639847937971354	\N	\N	{"regime": "good", "model_score": 0.6100518703460693, "atr": 0.16548878348642282, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5160850600011604}	Kronos
+76	sz159908	2026-04-30 10:00:00.626128	0.0013782767346128821	\N	\N	{"regime": "good", "model_score": 0.6694110631942749, "atr": 0.023070628340492186, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4885004751389239}	Kronos
+77	sh515150	2026-04-30 10:00:00.626128	0.0012718461221083999	\N	\N	{"regime": "good", "model_score": 0.9737561941146851, "atr": 0.006010680889615809, "reason": "raw=LONG, raw_score=0.369, final_score=0.369", "confidence": 0.9737561941146851, "gate_mult": 0.37867703015579113}	Kronos
+78	sh515150	2026-04-30 10:30:00.394901	0.0034246554132550955	\N	\N	{"regime": "good", "model_score": 0.8421919941902161, "atr": 0.006142589298071155, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5805913069252807}	Kronos
+79	sz159908	2026-04-30 10:30:00.394901	-0.0007441029883921146	\N	\N	{"regime": "good", "model_score": 0.5877646803855896, "atr": 0.023857052500896217, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4184795462116829}	Kronos
+80	sh601899	2026-04-30 10:30:00.394901	0.011642669327557087	\N	\N	{"regime": "good", "model_score": 0.8595787286758423, "atr": 0.34943204171382913, "reason": "raw=LONG, raw_score=0.533, final_score=0.533", "confidence": 0.8595787286758423, "gate_mult": 0.619969077116489}	Kronos
+81	sh515150	2026-04-30 11:00:00.684948	0.0035897328052669764	\N	\N	{"regime": "good", "model_score": 0.8136036396026611, "atr": 0.005590245222929771, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6321396234271404}	Kronos
+82	sz159908	2026-04-30 11:00:00.684948	-0.010384754277765751	\N	\N	{"regime": "good", "model_score": 0.29495590925216675, "atr": 0.021162182915819294, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4414466743648654}	Kronos
+83	sh601899	2026-04-30 11:00:00.684948	0.019493913277983665	\N	\N	{"regime": "good", "model_score": 0.9963985681533813, "atr": 0.29108453924011285, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6446603736991222}	Kronos
+84	sh515150	2026-04-30 13:00:00.767222	0.002960328245535493	\N	\N	{"regime": "good", "model_score": 0.7738535404205322, "atr": 0.005244881656785778, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6278057435309986}	Kronos
+85	sz159908	2026-04-30 13:00:00.767222	-0.006839422509074211	\N	\N	{"regime": "good", "model_score": 0.37106090784072876, "atr": 0.021592487116213678, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.43206811628162495}	Kronos
+86	sh601899	2026-04-30 13:00:00.767222	0.015704354271292686	\N	\N	{"regime": "good", "model_score": 0.9083587527275085, "atr": 0.2744954741188342, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6438534874040317}	Kronos
+87	sh515150	2026-04-30 13:30:00.566663	0.0023015339393168688	\N	\N	{"regime": "good", "model_score": 0.7507975101470947, "atr": 0.004812228245911229, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6207985385814249}	Kronos
+88	sz159908	2026-04-30 13:30:00.566663	-0.003439816879108548	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 0.021992487116213634, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.41899410426337536}	Kronos
+89	sh601899	2026-04-30 13:30:00.566663	0.025871573016047478	\N	\N	{"regime": "good", "model_score": 1.0, "atr": 0.2686516207693564, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6477810122850332}	Kronos
+90	sz002463	2026-04-30 13:30:00.566663	0.003039950504899025	\N	\N	{"regime": "good", "model_score": 0.6843234300613403, "atr": 1.4120982592877531, "reason": "raw=LONG, raw_score=0.324, final_score=0.324", "confidence": 0.6843234300613403, "gate_mult": 0.4738872250839702}	Kronos
+91	sh515150	2026-04-30 14:00:00.375832	0.0001287788909394294	\N	\N	{"regime": "good", "model_score": 0.6482241153717041, "atr": 0.004703930758255921, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5614343292260886}	Kronos
+92	sz159908	2026-04-30 14:00:00.375832	-0.0011312842834740877	\N	\N	{"regime": "good", "model_score": 0.5395715832710266, "atr": 0.0202643142282488, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.37427294175060066}	Kronos
+93	sz002463	2026-04-30 14:00:00.375832	-0.0149415023624897	\N	\N	{"regime": "good", "model_score": 0.4166043698787689, "atr": 1.3098604677445675, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5078229563588864}	Kronos
+94	sh601899	2026-04-30 14:00:00.375832	0.018227607011795044	\N	\N	{"regime": "good", "model_score": 1.0, "atr": 0.24589807071565023, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6446372442536923}	Kronos
+95	sh515150	2026-04-30 14:30:00.503633	0.0017759393667802215	\N	\N	{"regime": "good", "model_score": 0.7438764572143555, "atr": 0.00447673979638821, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.5634788693053342}	Kronos
+96	sz159908	2026-04-30 14:30:00.503633	-0.0029695748817175627	\N	\N	{"regime": "good", "model_score": 0.38809680938720703, "atr": 0.016440731969683174, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.35502877546504236}	Kronos
+97	sz002463	2026-04-30 14:30:00.503633	-0.007567060180008411	\N	\N	{"regime": "good", "model_score": 0.5, "atr": 1.1892572712030265, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.4868210665265575}	Kronos
+98	sh601899	2026-04-30 14:30:00.503633	0.021807145327329636	\N	\N	{"regime": "good", "model_score": 1.0, "atr": 0.22706722363817283, "reason": "equity_slope_break-slope \\u5d29\\u574f\\u4fdd\\u62a4", "confidence": 1.0, "gate_mult": 0.6468253265615429}	Kronos
 \.
 
 
@@ -418,14 +584,14 @@ COPY public."user" (id, full_name, phone, role, password, is_disabled, login_ret
 -- Name: orders_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.orders_id_seq', 60, true);
+SELECT pg_catalog.setval('public.orders_id_seq', 98, true);
 
 
 --
 -- Name: predictions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.predictions_id_seq', 60, true);
+SELECT pg_catalog.setval('public.predictions_id_seq', 98, true);
 
 
 --
@@ -521,7 +687,7 @@ ALTER TABLE ONLY public.orders
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 5Zsm8XggF0syr9d1mBU5nsPtzSOPobVir3CqiZuCoBN1nvxzk4A9HR8SnsvbAcB
+\unrestrict QoTezYTxU0wGSlWyyzHUVvNwPwi4fuIysyV5jOHjtg5W4UvvR9NadR6WNPwI7DZ
 
 --
 -- Database "mysport" dump
@@ -531,7 +697,7 @@ ALTER TABLE ONLY public.orders
 -- PostgreSQL database dump
 --
 
-\restrict jQlQQnPYfIWgKJ3eIm3ziAXjTNT1rXqi8Zi7jPXjyhS03mVoGtYozzNqTic9Rcv
+\restrict LKO09nzkYpC3n8yYhYCbY0Ub2aR8ZJj4eQ3BAIp6W5HpHC1iE7mK6EKFcQbQtdX
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
@@ -556,9 +722,9 @@ CREATE DATABASE mysport WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVI
 
 ALTER DATABASE mysport OWNER TO postgres;
 
-\unrestrict jQlQQnPYfIWgKJ3eIm3ziAXjTNT1rXqi8Zi7jPXjyhS03mVoGtYozzNqTic9Rcv
+\unrestrict LKO09nzkYpC3n8yYhYCbY0Ub2aR8ZJj4eQ3BAIp6W5HpHC1iE7mK6EKFcQbQtdX
 \connect mysport
-\restrict jQlQQnPYfIWgKJ3eIm3ziAXjTNT1rXqi8Zi7jPXjyhS03mVoGtYozzNqTic9Rcv
+\restrict LKO09nzkYpC3n8yYhYCbY0Ub2aR8ZJj4eQ3BAIp6W5HpHC1iE7mK6EKFcQbQtdX
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2194,7 +2360,7 @@ ALTER TABLE ONLY public.venue
 -- PostgreSQL database dump complete
 --
 
-\unrestrict jQlQQnPYfIWgKJ3eIm3ziAXjTNT1rXqi8Zi7jPXjyhS03mVoGtYozzNqTic9Rcv
+\unrestrict LKO09nzkYpC3n8yYhYCbY0Ub2aR8ZJj4eQ3BAIp6W5HpHC1iE7mK6EKFcQbQtdX
 
 --
 -- Database "postgres" dump
@@ -2204,7 +2370,7 @@ ALTER TABLE ONLY public.venue
 -- PostgreSQL database dump
 --
 
-\restrict SxaNyb0gPadcsogakmorWo4UtT9ABxX6qFjpDARm6jdKSQCcPkkcCDj4BtoJ88K
+\restrict zd7cUWUitqbsvMaa5BXT7gB5SxTQ8HjUx8u0h2xv4dHGIrn4ieeUxZWzDHT0Vqg
 
 -- Dumped from database version 15.17 (Debian 15.17-1.pgdg13+1)
 -- Dumped by pg_dump version 15.17 (Debian 15.17-1.pgdg13+1)
@@ -2230,9 +2396,9 @@ CREATE DATABASE postgres WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROV
 
 ALTER DATABASE postgres OWNER TO postgres;
 
-\unrestrict SxaNyb0gPadcsogakmorWo4UtT9ABxX6qFjpDARm6jdKSQCcPkkcCDj4BtoJ88K
+\unrestrict zd7cUWUitqbsvMaa5BXT7gB5SxTQ8HjUx8u0h2xv4dHGIrn4ieeUxZWzDHT0Vqg
 \connect postgres
-\restrict SxaNyb0gPadcsogakmorWo4UtT9ABxX6qFjpDARm6jdKSQCcPkkcCDj4BtoJ88K
+\restrict zd7cUWUitqbsvMaa5BXT7gB5SxTQ8HjUx8u0h2xv4dHGIrn4ieeUxZWzDHT0Vqg
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2256,7 +2422,7 @@ COMMENT ON DATABASE postgres IS 'default administrative connection database';
 -- PostgreSQL database dump complete
 --
 
-\unrestrict SxaNyb0gPadcsogakmorWo4UtT9ABxX6qFjpDARm6jdKSQCcPkkcCDj4BtoJ88K
+\unrestrict zd7cUWUitqbsvMaa5BXT7gB5SxTQ8HjUx8u0h2xv4dHGIrn4ieeUxZWzDHT0Vqg
 
 --
 -- PostgreSQL database cluster dump complete
