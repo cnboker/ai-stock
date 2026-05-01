@@ -1,11 +1,11 @@
 account: ''
-cash: 944350.0
+cash: 980031.8
 positions:
-  sz301099:
+  sh515150:
     direction: LONG
-    entry_price: 46.375
-    highest_price: 47.09
-    open_time: '2026-04-27T13:56:53.915242'
-    size: 12
-    stop_loss: 43.32
+    entry_price: 1.678
+    highest_price: 1.692
+    open_time: '2026-05-01T04:38:46.798176'
+    size: 119
+    stop_loss: 1.64
     tp1_hit: false

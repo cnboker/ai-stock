@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz301380",
+        "best_value": 75.2721,
+        "date": "2026-05-01 04:16"
+    },
+    "MODEL_TH": 0.5207,
+    "SLOPE": 0.0012,
+    "PREDICT_UP": -0.0138,
+    "INIT_PT": 0.015,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.8866,
+    "TP1": 1.0268,
+    "TP2": 1.1348,
+    "KELLY": 0.297,
+    "RISK": 0.009,
+    "ATR_STOP": 3.8254,
+    "MAX_STOP": 0.1334,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 64,
+    "CONFIRM_N": 1,
+    "WINDOW": 128
+}

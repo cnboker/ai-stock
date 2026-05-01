@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz000700",
+        "best_value": 65.2307,
+        "date": "2026-05-01 02:46"
+    },
+    "MODEL_TH": 0.4927,
+    "SLOPE": 0.1248,
+    "PREDICT_UP": -0.0447,
+    "INIT_PT": 0.0412,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 2.5288,
+    "TP1": 1.0557,
+    "TP2": 1.158,
+    "KELLY": 0.2215,
+    "RISK": 0.0052,
+    "ATR_STOP": 4.014,
+    "MAX_STOP": 0.1494,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 10,
+    "CONFIRM_N": 1,
+    "WINDOW": 24
+}

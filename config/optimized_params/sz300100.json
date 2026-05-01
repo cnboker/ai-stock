@@ -1,24 +1,24 @@
 {
     "_META": {
         "ticker": "sz300100",
-        "best_value": 14.3792,
-        "date": "2026-04-27 10:56"
+        "best_value": 126.5472,
+        "date": "2026-05-01 00:31"
     },
-    "MODEL_TH": 0.4187,
-    "SLOPE": 0.0247,
-    "PREDICT_UP": -0.001,
-    "INIT_PT": 0.0274,
+    "MODEL_TH": 0.4938,
+    "SLOPE": 0.0443,
+    "PREDICT_UP": -0.021,
+    "INIT_PT": 0.0482,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.206,
-    "TP1": 1.0364,
-    "TP2": 1.221,
-    "KELLY": 0.1642,
-    "RISK": 0.0077,
-    "ATR_STOP": 4.1206,
-    "MAX_STOP": 0.1434,
+    "ATR_MULT": 3.344,
+    "TP1": 1.0546,
+    "TP2": 1.1693,
+    "KELLY": 0.1667,
+    "RISK": 0.0081,
+    "ATR_STOP": 4.0571,
+    "MAX_STOP": 0.1013,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 33,
+    "STRENGTH_ALPHA": 42,
     "CONFIRM_N": 1,
-    "WINDOW": 120,
-    "SLOPE_MIN": 0.0007
+    "WINDOW": 52,
+    "SLOPE_MIN": 0.0046
 }

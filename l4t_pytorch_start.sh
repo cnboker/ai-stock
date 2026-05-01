@@ -4,7 +4,7 @@ APP_DIR="/stock_v3"
 CONTAINER_NAME="kronos"
 
 echo "=== 启动 Jetson Kronos 容器 ==="
-
+systemctl start containerd
 sudo ctr run --rm --privileged --tty \
   --net-host \
   --device /dev/nvmap \

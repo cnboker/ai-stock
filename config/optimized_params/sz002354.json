@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sz002354",
+        "best_value": -96.2745,
+        "date": "2026-05-01 03:09"
+    },
+    "MODEL_TH": 0.5187,
+    "SLOPE": 0.0032,
+    "PREDICT_UP": -0.0254,
+    "INIT_PT": 0.0335,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 3.9584,
+    "TP1": 1.0489,
+    "TP2": 1.1303,
+    "KELLY": 0.1788,
+    "RISK": 0.0081,
+    "ATR_STOP": 3.9964,
+    "MAX_STOP": 0.1034,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 21,
+    "CONFIRM_N": 1,
+    "WINDOW": 104
+}
