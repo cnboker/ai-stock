@@ -1,4 +1,3 @@
-import shutil
 import numpy as np
 import yaml
 import hashlib
@@ -36,7 +35,7 @@ def _calc_position_hash(position_mgr):
     return hashlib.md5(text.encode()).hexdigest()
 
 
-def persist_live_positions(position_mgr):
+def persist_live_positions(position_mgr,mode:RunMode):
     """
     1. 检查数据是否改变
     2. 备份旧文件
@@ -51,7 +50,7 @@ def persist_live_positions(position_mgr):
 
     _last_hash = new_hash
 
-    file = LIVE_FILE if GlobalState.mode == RunMode.LIVE else SIM_FILE
+    file = LIVE_FILE if mode == RunMode.LIVE else SIM_FILE
 
     tmp_file = file.with_suffix(".tmp")
 

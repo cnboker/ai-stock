@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Dict, List, Optional
-
-from infra.core.runtime import GlobalState
+from global_state import state_lock
+from infra.core.runtime import GlobalState, RunMode
 from infra.notify.order import OrderEvent, notify_order
+from infra.persistence.live_positions import persist_live_positions
 from position.position import Position
 from log import order_log, risk_log
 from infra.core.dynamic_settings import settings
@@ -50,6 +51,13 @@ class PositionManager:
     @property
     def available_cash(self) -> float:
         return self.cash
+
+    def get_tickers_from_positions_and_watchlist(self):
+        with state_lock:
+            active_positions = list(self.positions.keys()) # [ticker, ...]
+            watch_tickers = list(self.watchlist.keys())
+            tickers = list(set(active_positions + watch_tickers))
+        return tickers
 
     def get(self, ticker: str) -> Optional[Position]:
         return self.positions.get(ticker)
@@ -619,3 +627,6 @@ class PositionManager:
     def clear(self):
         self.positions.clear()
         self.trade_log.clear()
+
+    def save(self,mode:RunMode):
+       persist_live_positions(self,mode)

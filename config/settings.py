@@ -11,24 +11,11 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 PREDICTION_LENGTH = 10
 TICKER_PERIOD = 30  # 30分钟周期
 UPDATE_INTERVAL_SEC = 60 * TICKER_PERIOD
-ALL_TICKERS = [
-    {"code": "sh600446", "name": "金证股份"},
-    {"code": "sz300142", "name": "沃生生物"},
-    {"code": "sh600771", "name": "广誉远"},
-    {"code": "sz002137", "name": "实益达"},
-    {"code": "sz000617", "name": "中油资本"},
-    {"code": "sz159908", "name": "创业板etf"}
-]
-ticker_name_map = {t["code"]:t["name"] for t in ALL_TICKERS}
 COLORS = ["#00ff00", "#ff8800", "#00cccc", "#ff66cc","#fa66ec","#f866c0","#a866a0","#b866b0","#c816c0","#f566c0"]
 HISTORY_FILE = "data/prediction_history.pkl"
-MODEL_NAME = "chronos-2"
-#MODEL_NAME = "chronos-t5-large"
 MODEL_NAME = "kronos-base"
 
 
-
-# ================= CUDA 优化 =================
 if is_torch_available():
     import torch
     torch.backends.cuda.matmul.allow_tf32 = True

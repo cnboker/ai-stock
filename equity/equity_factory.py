@@ -3,9 +3,9 @@ from infra.core.runtime import GlobalState, RunMode
 import os
 
 def create_equity_recorder(
-    
+    mode: RunMode = RunMode.LIVE
 ):
-    if GlobalState.mode == RunMode.LIVE:
+    if mode == RunMode.LIVE:
         path = "data/live/equity.csv"
     else:
         path = f"data/sim/equity.csv"

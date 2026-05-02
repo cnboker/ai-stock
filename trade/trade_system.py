@@ -1,5 +1,4 @@
 from infra.core.runtime import GlobalState
-from infra.persistence.live_positions import persist_live_positions
 from log import signal_log
 from strategy.decision_context import DecisionContext
 from trade.signal_stablizer import SignalStablizer
@@ -24,7 +23,7 @@ class TradingSystem:
 
         # 3. 拦截未确认信号 (快捷路径)
         if not intent.confirmed and not intent.force_reduce:
-            persist_live_positions(self.position_mgr)
+            self.position_mgr.save(GlobalState.mode)  # 确保每次决策后都持久化仓位状态              
             return {"ticker": ticker, "action": "HOLD", "reason": "Unconfirmed"}
 
         # 4. 针对买入信号(LONG)进行资金规划
@@ -100,5 +99,5 @@ class TradingSystem:
             plan=plan,
         )
         # print(f"交易后:{result}")
-        persist_live_positions(self.position_mgr)
+        self.position_mgr.save(GlobalState.mode)
         return result

@@ -5,7 +5,7 @@ from datetime import datetime
 
 
 class EquityRecorder:
-    def __init__(self, path: str = "", max_len: int = 200):
+    def __init__(self, path: str = "", max_len: int = 500):
         self.path = path
         self.max_len = max_len
         self.df = pd.DataFrame(
@@ -27,10 +27,11 @@ class EquityRecorder:
     def add(self, equity: float, timestamp: datetime = None):
         if timestamp is None:
             timestamp = datetime.now()
-        # 1. 检查是否与最后一条记录重复,重复更新时间
+        # 四舍五入处理，保证比较的准确性
+        equity = round(equity, 2)
+        # 如果净值没变，直接返回，不更新时间，不存盘
         if not self.df.empty and self.df.iloc[-1]['equity'] == equity:
-            self.df.iat[-1, self.df.columns.get_loc('timestamp')] =  timestamp
-            return  
+            return
     
         self.df = pd.concat(
             [self.df, pd.DataFrame([{"timestamp": timestamp, "equity": round(equity,2)}])],

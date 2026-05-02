@@ -42,14 +42,19 @@ class BacktestRunner:
         self.split_rel_idx = int(self.net_backtest_size * 0.8)
       
 
-    def _reset_engine(self):
+    def reset_engine(self,equity_recorder=None, position_mgr=None):
         """重置引擎，确保训练集和测试集资金互不干扰"""
-        self.eq_recorder = create_equity_recorder()
-        self.position_mgr = create_position_manager(1000000)
+        if equity_recorder is not None:
+            self.eq_recorder = equity_recorder
+        else:
+            self.eq_recorder = create_equity_recorder(RunMode.SIM)
+        if position_mgr is not None:
+            self.position_mgr = position_mgr
+        else:           
+            self.position_mgr = create_position_manager(1000000)
         
         # 初始化 Session
-        eq_feat = equity_features(self.eq_recorder.to_series())
-        self.eq_recorder.add(self.position_mgr.equity)
+        eq_feat = equity_features(self.eq_recorder.to_series())        
         eq_decision = equity_engine.decide(eq_feat, self.position_mgr.has_any_position())
         
         self.session = TradingSession(
@@ -87,12 +92,12 @@ class BacktestRunner:
 
     @timer_decorator
     def _execute_loop(self, target_dates):
-        self._reset_engine()
+        self.reset_engine()
         start_price = None
         end_price = None
 
         for trade_day in target_dates:
-            self._simulate_day(trade_day)
+            self.simulate_day(trade_day)
             
             day_data = self.df_all[self.df_all.index.date == trade_day]
             if day_data.empty: continue
@@ -106,13 +111,13 @@ class BacktestRunner:
 
     # 模拟一天的交易，完全复用实盘逻辑
     #@timer_decorator 0.34s 左右，主要耗在模型推理上
-    def _simulate_day(self, trade_day):
+    def simulate_day(self, trade_day):
         # 这里的 get_history 会自动利用 df_all 中的历史数据，即使是测试集第一天也能向上回溯
         df_today = self.full_pool_df[self.full_pool_df.index.date == trade_day]
         df_hs300_today = self.full_pool_hs300[self.full_pool_hs300.index.date == trade_day]
         df_history = self.get_history(trade_day, self.full_pool_df)
         hs300_history = self.get_history(trade_day, self.full_pool_hs300)
-        #print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history_fixed)}, 今日数据点数: {len(df_today)}")
+        # print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
             current_k = df_today.iloc[i]
             # 1. 先更新价格
@@ -139,7 +144,7 @@ class BacktestRunner:
             # --- 2. 截面优选 ---   
             if candidates:
                 execute_final_order(candidates[0],self.position_mgr)
-            self.eq_recorder.add(self.position_mgr.equity)
+            self.eq_recorder.add(self.position_mgr.equity, timestamp=current_k.name)  # 每根K线都记录一次权益，保持数据的完整性
 
     #它就返回过去LOOKBACK_WINDOW个单位（天或分钟）的数据
     def get_history(self, trade_day, df_pool):

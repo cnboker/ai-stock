@@ -22,7 +22,6 @@ from data.loader import GlobalState, load_index_df, load_stock_df
 from predict.time_utils import is_market_break
 from trade.signal_arbiter import SignalArbiter
 from trade.trade_engine import execute_final_order, execute_final_order, execute_stock_decision
-from typing import List, Tuple
 from infra.core.config_manager import dynamic_config_manager
 from data.tencent_api import StockProvider
 
@@ -41,12 +40,6 @@ position_mgr = create_position_manager(0)
 eq_recorder = create_equity_recorder()
 stock_provider = StockProvider()
 
-def __get_tickers_from_positions_and_watchlist():
-    with state_lock:
-        active_positions = list(position_mgr.positions.keys()) # [ticker, ...]
-        watch_tickers = list(position_mgr.watchlist.keys())
-        tickers = list(set(active_positions + watch_tickers))
-    return tickers
 
 async def run_trade_cycle():
     if is_market_break():
@@ -64,7 +57,7 @@ async def run_trade_cycle():
         # 2. ⚡ 内存快照提取 (一次性锁定，减少竞争)
         has_pos = position_mgr.has_any_position()
 
-        tickers = __get_tickers_from_positions_and_watchlist()
+        tickers = position_mgr.get_tickers_from_positions_and_watchlist()
         print(f"🔍 [Tickers] 活跃标的: {tickers } (持仓: {position_mgr.positions.keys()}, 关注: {position_mgr.watchlist.keys()})")  
         symbols_price = await stock_provider.get_price_map(tickers)
         GlobalState.tickers_price = symbols_price
@@ -113,7 +106,7 @@ async def run_trade_cycle():
                     # 如果是买入候选人，加入漏斗
                     if res["type"] == "candidate":
                         arbiter.add_candidate(res)  
-
+                    eq_recorder.add(position_mgr.equity)  # 每处理一个标的就记录一次权益，保持数据的完整性
             except Exception as e:
                 print(f"❌ [Error] {ticker} 分析失败: {e}")
                 traceback.print_exc() # 实盘时建议只记日志，不刷屏
