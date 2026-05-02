@@ -627,6 +627,7 @@ class PositionManager:
     def clear(self):
         self.positions.clear()
         self.trade_log.clear()
-
+        self.save(GlobalState.mode)  # 每次清仓后保存状态，确保实盘数据正确持久化
+        
     def save(self,mode:RunMode):
        persist_live_positions(self,mode)

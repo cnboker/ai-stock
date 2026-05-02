@@ -15,8 +15,7 @@ cache_dir = os.path.join(os.getcwd(), ".cache_data")
 cache = Cache(cache_dir)
 
 
-
-def load_stock_df(ticker: str, period: str, expire_seconds: int = 3600) -> pd.DataFrame:
+def load_stock_df(ticker: str, period: str, expire_seconds: int = 36000) -> pd.DataFrame:
     """
     加载个股 K 线（带磁盘缓存功能）
     :param ticker: 股票代码
@@ -51,6 +50,48 @@ def load_stock_df(ticker: str, period: str, expire_seconds: int = 3600) -> pd.Da
     
     return df
 
+# 获取3分钟特定时刻价格作为实时价格，回测使用
+async def get_price_timestamp(
+    ticker: str, timestamp: str = None, expire_seconds: int = 36000
+) -> float:
+    cache_key = f"stock_data_{ticker}_3m"
+    
+    # 1. 缓存处理
+    cached_df = cache.get(cache_key)
+    if cached_df is None:
+        # 确保 download 返回的是按时间升序排序的 DataFrame
+        cached_df = download(ticker, period="3") 
+        cache.set(cache_key, cached_df, expire=expire_seconds)
+
+    # 2. 获取最新价格逻辑
+    if not timestamp:
+        return float(cached_df["close"].iloc[-1])
+
+    # 3. 获取指定时间价格逻辑
+    try:
+        # 将传入字符串转为 Timestamp 对象，确保类型与索引一致
+        ts = pd.to_datetime(timestamp)
+        
+        # 检查时间是否超出数据范围
+        if ts < cached_df.index[0]:
+            raise ValueError(f"Timestamp {timestamp} is earlier than cached data.")
+
+        # 核心优化：使用 asof 查找。
+        # 如果时间戳精确匹配，返回对应值；
+        # 如果不匹配，返回该时间点之前的最后一个有效值（非常适合处理非交易时段的查询）
+        price = cached_df["close"].asof(ts)
+        
+        if pd.isna(price):
+            # 如果 asof 返回 nan，尝试直接匹配或报错
+            raise KeyError(f"Price not found for {timestamp}")
+            
+        return float(price)
+
+    except Exception as e:
+        # 打印日志或根据业务需求返回默认值
+        print(f"Error fetching price for {ticker} at {timestamp}: {e}")
+        return float(cached_df["close"].iloc[-1]) # 降级处理：返回最新价
+    
 def load_index_df(period: str) -> pd.DataFrame:
     """
     加载沪深300指数数据，用于条件化预测

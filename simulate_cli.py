@@ -4,6 +4,7 @@ import asyncio
 from datetime import datetime
 import warnings
 from backtest.backtest_runner import BacktestRunner
+from data.loader import get_price_timestamp
 from equity.equity_factory import create_equity_recorder
 from infra.core.runtime import GlobalState, RunMode
 from position.position_factory import create_position_manager
@@ -32,12 +33,14 @@ async def main():
     tickers = position_mgr.get_tickers_from_positions_and_watchlist()
 
     dates = ["2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30"]
-    dates = ['2026-04-30']
-    for date in dates:
-        # print(f"准备模拟 {tickers} 在 {date} 的交易情况...")
-        target_dt = datetime.strptime(date, "%Y-%m-%d")
-        #tickers = ["sz000700"]  # 只模拟这两只，实盘盈亏都很大，验证回测的准确性
-        for ticker in tickers:
+    # dates = ['2026-04-30']
+    report = {}
+    for ticker in tickers:
+        position_mgr.clear()
+        eq_recorder.reset()
+        position_mgr.cash = 100000  # 每次模拟前重置初始资金
+        for date in dates:
+            target_dt = datetime.strptime(date, "%Y-%m-%d")
             runner = BacktestRunner(ticker=ticker, period="30")
             runner.reset_engine(
                 equity_recorder=eq_recorder, position_mgr=position_mgr
@@ -46,14 +49,13 @@ async def main():
                 trade_day=target_dt.date(),
                 callback=get_price_callback
             )
+        report[ticker] = position_mgr.equity
 
-    print(f"模拟完成！, equity: {position_mgr.equity:.2f} ")
+    print(f"模拟完成！, equity: {report} ")
 
-from data.ths_api import get_last_day_price
+
 async def get_price_callback(ticker, timestamp):
-    formatted_time = timestamp.strftime("%H%M")
-    #print(f"回调函数：正在获取 {ticker} 在 {formatted_time} 的价格...")
-    price = await get_last_day_price(ticker, formatted_time)
+    price = await get_price_timestamp(ticker, timestamp)
     #print(f"回调函数：更新 {ticker} 的价格为 {price} at {timestamp}")
     return price
 
