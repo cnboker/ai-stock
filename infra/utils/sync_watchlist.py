@@ -4,6 +4,7 @@ import os
 
 from data.ticker_registry import TickerRegistry
 
+# 这个模块负责在程序启动时同步账户文件和观察池文件，确保它们的一致性
 def sync_account_and_watchlist(yaml_path: str = "./state/live_positions.yaml", watchlist_path: str = "./state/watchlist.csv"):
     """
     1. 读取 account.yaml

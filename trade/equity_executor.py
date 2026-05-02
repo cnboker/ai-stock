@@ -43,11 +43,11 @@ def execute_equity_action(
             "expected_return": decision.predicted_up,
             "features_snapshot": json.dumps({
                 "regime": decision.regime,
-                "model_score": decision.model_score,
-                "atr": decision.atr,
+                "model_score": f"{decision.model_score:.3f}",
+                "atr": f"{decision.atr:.3f}",
                 "reason": decision.reason,
-                "confidence": decision.confidence,
-                "gate_mult": decision.gate_mult,
+                "confidence": f"{decision.confidence:.3f}",
+                "gate_mult": f"{decision.gate_mult:.3f}",
             }),
             "model_version": "Kronos"
         })
@@ -105,16 +105,7 @@ def execute_equity_action(
                     reason=decision.reason,
                     prediction_id = prediction_id
                 )
-            else:
-                # fallback：原先用 strength 控制仓位
-                position_mgr.open_or_add(
-                    ticker=ticker,
-                    strength=decision.confidence * decision.gate_mult,
-                    price=last_price,
-                    reason=decision.reason,
-                    stop_loss=plan.stop_loss,
-                    prediction_id = prediction_id
-                )
+
             final_action = "LONG"
 
         elif decision.action == "REDUCE":

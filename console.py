@@ -12,8 +12,7 @@ from infra.core.trade_session import TradingSession
 from infra.core.runtime import RunMode
 from infra.utils.sync_watchlist import sync_account_and_watchlist
 from log import signal_log
-from position import watchlist_loader
-from position.position_loader import LivePositionLoader
+
 from position.position_factory import create_position_manager
 from equity.equity_factory import create_equity_recorder
 from equity.equity_features import equity_features
@@ -127,9 +126,7 @@ async def main_loop(interval):
     print("🚀 Chronos 后台引擎启动中...")
     from infra.core.runtime import GlobalState
     GlobalState.mode = RunMode.LIVE
-    pos_loader = LivePositionLoader("state/live_positions.yaml", position_mgr)
-    pos_loader.sync()
-    watchlist_loader.live_watchlist_hot_load(position_mgr)
+
     
     print(f"定时器已启动，每 {interval} 秒执行一次。")
     first_run = True

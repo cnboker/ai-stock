@@ -1,67 +1,75 @@
-account: main_account
-cash: 1766.25
+account: ''
+cash: 22631.0
 positions:
-  sh515150:
-    direction: LONG
-    entry_price: 1.672
-    highest_price: 1.687
-    open_time: '2026-05-02T10:12:08.550613'
-    size: 4
-    stop_loss: 1.64
-    tp1_hit: false
   sh600584:
     direction: LONG
     entry_price: 45.22
     highest_price: 45.57
-    open_time: '2026-05-02T10:12:45.091110'
-    size: 8
+    open_time: '2026-05-02T17:40:14.376556'
+    size: 3
     stop_loss: 41.6
     tp1_hit: false
-  sh603178:
+  sh600879:
     direction: LONG
-    entry_price: 19.46
-    highest_price: 19.46
-    open_time: '2026-05-02T10:13:45.108789'
-    size: 1
-    stop_loss: 17.9
+    entry_price: 23.99
+    highest_price: 24.0
+    open_time: '2026-05-02T17:41:24.063831'
+    size: 2
+    stop_loss: 22.07
     tp1_hit: false
   sh603871:
     direction: LONG
     entry_price: 13.33
     highest_price: 13.63
-    open_time: '2026-05-02T10:12:30.939039'
-    size: 3
+    open_time: '2026-05-02T17:39:59.389597'
+    size: 11
     stop_loss: 12.26
     tp1_hit: false
   sz000700:
     direction: LONG
-    entry_price: 11.1
-    highest_price: 12.23
-    open_time: '2026-05-02T10:12:42.540787'
-    size: 2
-    stop_loss: 11.66
-    tp1_hit: false
-  sz002463:
-    direction: LONG
-    entry_price: 102.87
-    highest_price: 106.44
-    open_time: '2026-05-02T10:12:08.550613'
-    size: 1
-    stop_loss: 94.64
+    entry_price: 11.04
+    highest_price: 11.52
+    open_time: '2026-05-02T17:40:33.444367'
+    size: 4
+    stop_loss: 10.16
     tp1_hit: false
   sz300083:
     direction: LONG
-    entry_price: 8.5
+    entry_price: 8.48
     highest_price: 10.19
-    open_time: '2026-05-02T10:12:16.282907'
-    size: 1
-    stop_loss: 7.82
+    open_time: '2026-05-02T17:39:58.212596'
+    size: 7
+    stop_loss: 7.8
     tp1_hit: true
-  sz301099:
+  sz300100:
     direction: LONG
-    entry_price: 56.72
-    highest_price: 59.59
-    open_time: '2026-05-02T10:12:20.529641'
-    size: 8
-    stop_loss: 52.18
+    entry_price: 29.92
+    highest_price: 29.92
+    open_time: '2026-05-02T17:39:52.090070'
+    size: 5
+    stop_loss: 27.53
+    tp1_hit: false
+  sz300161:
+    direction: LONG
+    entry_price: 29.06
+    highest_price: 33.39
+    open_time: '2026-05-02T17:40:20.149063'
+    size: 5
+    stop_loss: 31.23
+    tp1_hit: false
+  sz300790:
+    direction: LONG
+    entry_price: 29.15
+    highest_price: 29.21
+    open_time: '2026-05-02T17:41:10.960022'
+    size: 1
+    stop_loss: 26.82
+    tp1_hit: false
+  sz301380:
+    direction: LONG
+    entry_price: 32.95
+    highest_price: 34.35
+    open_time: '2026-05-02T17:40:35.254560'
+    size: 1
+    stop_loss: 30.31
     tp1_hit: false

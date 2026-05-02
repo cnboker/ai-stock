@@ -15,7 +15,16 @@ class EquityRecorder:
             }
         )
         self._load_disk()
-
+    
+    def reset(self):
+        self.df = pd.DataFrame(
+            {
+                "timestamp": pd.Series(dtype="datetime64[ns]"),
+                "equity": pd.Series(dtype="float64"),
+            }
+        )
+        self._save_disk()
+        
     def _load_disk(self):
         if os.path.exists(self.path):
             try:

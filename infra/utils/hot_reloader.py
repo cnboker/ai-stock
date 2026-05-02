@@ -26,7 +26,7 @@ class HotReloader:
         self._stop_event.clear()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
-        # print(f"🔥 热加载已启动: {self.path}")
+        print(f"🔥 热加载已启动: {self.path}")
 
     def stop(self):
         self._stop_event.set()
@@ -43,6 +43,7 @@ class HotReloader:
                         # 🔐 触发业务层定义的加载逻辑
                         # 注意：锁的粒度由业务逻辑控制，或者在这里统一加锁
                         with state_lock:
+                            print(f"🔄 文件变动 detected: {self.path}, reloading...")
                             self.reload_func(self.path)
                         self._last_mtime = mtime
             except Exception as e:
