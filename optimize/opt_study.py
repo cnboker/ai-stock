@@ -115,7 +115,7 @@ def objective(trial, ticker: str, ticker_period="30"):
             test_val = get_advanced_score(test_stats, is_test=True)   # 约 -5
             
             # 加权：侧重测试集 (泛化性)
-            ticker_score = (train_val * 0.3) + (test_val * 0.7)
+            ticker_score = (train_val * 0.5) + (test_val * 0.5)
 
             # 额外奖励逻辑 (极其克制)
             test_alpha = test_stats.get("Alpha", 0)  # 转换为百分数
@@ -123,7 +123,7 @@ def objective(trial, ticker: str, ticker_period="30"):
                 ticker_score += (test_alpha * 10.0) # 1% Alpha 给 10 分奖励
             elif test_alpha < -2.0:
                 ticker_score -= 20.0 # Alpha 亏损超过 2% 才额外扣分
-            print(f"火箭 Trial {trial.number}: {ticker} 得分 = {ticker_score:.2f} (Train: {train_val:.2f}, Test: {test_val:.2f}, Alpha: {test_alpha:.2f}%)"  )
+            print(f"🚀 Trial {trial.number}: {ticker} 得分 = {ticker_score:.2f} (Train: {train_val:.2f}, Test: {test_val:.2f}, Alpha: {test_alpha:.2f}%)"  )
             scores.append(ticker_score)
 
         except Exception as e:

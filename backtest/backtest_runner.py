@@ -67,7 +67,7 @@ class BacktestRunner:
         )
         self.equity_curve = []
 
-    def run_split_backtest(self):
+    async def run_split_backtest(self):
         """执行 2/8 验证逻辑：9天训练 + 4天验证"""
         # 提取当前 df_all 中的所有日期
         all_dates = pd.Series(self.df_all.index.date).unique().tolist()
@@ -83,21 +83,21 @@ class BacktestRunner:
         # 打印调试信息，确认数据对齐
         print(f"--- 策略窗口(Window): {settings.WINDOW} ---")
         print(f"--- 训练集 ({len(train_dates)} 天): {train_dates[0]} ~ {train_dates[-1]} ---")
-        train_res = self._execute_loop(train_dates)
+        train_res = await self._execute_loop(train_dates)
         
         print(f"--- 验证集 ({len(test_dates)} 天): {test_dates[0]} ~ {test_dates[-1]} ---")
-        test_res = self._execute_loop(test_dates)
+        test_res = await self._execute_loop(test_dates)
         
         return train_res, test_res
 
     @timer_decorator
-    def _execute_loop(self, target_dates):
+    async def _execute_loop(self, target_dates):
         self.reset_engine()
         start_price = None
         end_price = None
 
         for trade_day in target_dates:
-            self.simulate_day(trade_day)
+            await self.simulate_day(trade_day)
             
             day_data = self.df_all[self.df_all.index.date == trade_day]
             if day_data.empty: continue
@@ -111,7 +111,7 @@ class BacktestRunner:
 
     # 模拟一天的交易，完全复用实盘逻辑
     #@timer_decorator 0.34s 左右，主要耗在模型推理上
-    def simulate_day(self, trade_day):
+    async def simulate_day(self, trade_day, callback=None):
         # 这里的 get_history 会自动利用 df_all 中的历史数据，即使是测试集第一天也能向上回溯
         df_today = self.full_pool_df[self.full_pool_df.index.date == trade_day]
         df_hs300_today = self.full_pool_hs300[self.full_pool_hs300.index.date == trade_day]
@@ -121,7 +121,15 @@ class BacktestRunner:
         for i in range(len(df_today)):
             current_k = df_today.iloc[i]
             # 1. 先更新价格
-            GlobalState.tickers_price[self.ticker] = current_k['close']
+            current_price = current_k['close']
+    
+            # 判断是否有回调函数
+            if callback:
+                # 执行回调函数进行赋值
+                GlobalState.tickers_price[self.ticker] = await callback(self.ticker, current_k.name)
+            else:
+                # 默认的赋值方式
+                GlobalState.tickers_price[self.ticker] = current_price
             #提取行情时间撮
             self.position_mgr.current_market_time = current_k.name
 

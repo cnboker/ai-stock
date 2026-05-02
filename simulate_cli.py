@@ -1,5 +1,6 @@
 # simulate_cli.py
 import argparse
+import asyncio
 from datetime import datetime
 import warnings
 from backtest.backtest_runner import BacktestRunner
@@ -12,9 +13,11 @@ warnings.filterwarnings(
 )
 
 GlobalState.mode == RunMode.SIM
+
+
 # python3 simulate_cli.py --date=2026-4-30
 # 实时模拟跑成绩，对比实盘盈亏，验证回测的准确性
-def main():
+async def main():
     parser = argparse.ArgumentParser(
         description="Simulate a trading day and compare with real trades"
     )
@@ -22,23 +25,38 @@ def main():
     eq_recorder.reset()  # 每次模拟前重置权益记录器，确保数据干净
     parser.add_argument("--date", required=True, help="Date to simulate YYYY-MM-DD")
     args = parser.parse_args()
-    position_mgr = create_position_manager(100000, RunMode.SIM)  # 每次模拟前创建独立的 PositionManager 实例，确保状态隔离
+    position_mgr = create_position_manager(
+        100000, RunMode.SIM
+    )  # 每次模拟前创建独立的 PositionManager 实例，确保状态隔离
 
     tickers = position_mgr.get_tickers_from_positions_and_watchlist()
 
-    dates = ['2026-04-27', '2026-04-28', '2026-04-29', '2026-04-30']
-    #dates = ['2026-04-27']
+    dates = ["2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30"]
+    dates = ['2026-04-30']
     for date in dates:
-         # print(f"准备模拟 {tickers} 在 {date} 的交易情况...")
-         target_dt = datetime.strptime(date, "%Y-%m-%d")
-         # tickers = ["sz000700"]  # 只模拟这两只，实盘盈亏都很大，验证回测的准确性
-         for ticker in tickers:
-             runner = BacktestRunner(ticker=ticker, period="30")
-             runner.reset_engine(equity_recorder=eq_recorder,position_mgr=position_mgr)  # 确保每次模拟前都重置引擎状态
-             runner.simulate_day(trade_day=target_dt.date())
-
+        # print(f"准备模拟 {tickers} 在 {date} 的交易情况...")
+        target_dt = datetime.strptime(date, "%Y-%m-%d")
+        #tickers = ["sz000700"]  # 只模拟这两只，实盘盈亏都很大，验证回测的准确性
+        for ticker in tickers:
+            runner = BacktestRunner(ticker=ticker, period="30")
+            runner.reset_engine(
+                equity_recorder=eq_recorder, position_mgr=position_mgr
+            )  # 确保每次模拟前都重置引擎状态
+            await runner.simulate_day(
+                trade_day=target_dt.date(),
+                callback=get_price_callback
+            )
 
     print(f"模拟完成！, equity: {position_mgr.equity:.2f} ")
+
+from data.ths_api import get_last_day_price
+async def get_price_callback(ticker, timestamp):
+    formatted_time = timestamp.strftime("%H%M")
+    #print(f"回调函数：正在获取 {ticker} 在 {formatted_time} 的价格...")
+    price = await get_last_day_price(ticker, formatted_time)
+    #print(f"回调函数：更新 {ticker} 的价格为 {price} at {timestamp}")
+    return price
+
 
 def load_config():
     """加载配置文件，支持动态更新"""
@@ -49,5 +67,6 @@ def load_config():
     }
     return config
 
+
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
