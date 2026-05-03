@@ -16,7 +16,7 @@ if __name__ == "__main__":
     live_tickers = LivePositionLoader.load_tickers("state/live_positions.yaml")
 
     task_queue = list(dict.fromkeys(watchlist + live_tickers))  # 保持顺序去重
-
+    task_queue = ["sh600879"]
     print(f"当前观察池: {task_queue}")
     for ticker in task_queue:
         try:
