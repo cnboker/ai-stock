@@ -8,6 +8,7 @@ from position.position import Position
 from log import order_log, risk_log
 from infra.core.dynamic_settings import settings
 
+
 class PositionManager:
     """
     PositionManager 只负责三件事：
@@ -30,17 +31,19 @@ class PositionManager:
 
         # ===== 记录 =====
         self.trade_log: List[dict] = []
-        self.last_action_ts: Dict[str, float] = {}        
+        self.last_action_ts: Dict[str, float] = {}
         self.cooldown = {}  # ticker -> 剩余bar数
         self.total_trade_count = 0  # 新增：用于回测统计总成交次数
-        self.watchlist = {}  # 观察池 
-        self.current_market_time = None  # 当前处理的 K 线时间戳
-
+        self.watchlist = {}  # 观察池
+        self.current_market_time = None  # 当前处理的 K 线时间戳,timestamp of current processing K-line, 用于冷却机制和日志记录
+        self._last_reduce_date = {}  # 记录每个 ticker 上一次执行减仓的日期，格式：{ "AAPL": datetime.date(2023, 10, 1) }
+   
     def update_cooldown(self):
         for k in list(self.cooldown.keys()):
             self.cooldown[k] -= 1
             if self.cooldown[k] <= 0:
-                del self.cooldown[k]        
+                del self.cooldown[k]
+
     # ==================================================
     # 基础状态
     # ==================================================
@@ -54,7 +57,7 @@ class PositionManager:
 
     def get_tickers_from_positions_and_watchlist(self):
         with state_lock:
-            active_positions = list(self.positions.keys()) # [ticker, ...]
+            active_positions = list(self.positions.keys())  # [ticker, ...]
             watch_tickers = list(self.watchlist.keys())
             tickers = list(set(active_positions + watch_tickers))
         return tickers
@@ -70,7 +73,7 @@ class PositionManager:
             "position_size": getattr(pos, "size", 0),
             "direction": getattr(pos, "direction", ""),
             "entry_price": getattr(pos, "entry_price", 0),
-            "stop_loss": getattr(pos, "stop_loss", 0),            
+            "stop_loss": getattr(pos, "stop_loss", 0),
         }
 
     def has_position(self, ticker: str) -> bool:
@@ -85,27 +88,27 @@ class PositionManager:
 
     def all_positions(self) -> Dict[str, Position]:
         return self.positions
-    
+
     def get_ticker_value(self, ticker, price):
         pos = self.positions.get(ticker)
         if not pos or pos.size <= 0:
             return 0.0
         return pos.size * price * pos.contract_size
-    
+
     def position_value(self) -> float:
         total = 0.0
         for sym, pos in self.positions.items():
             price = self.price_cache.get(sym, pos.entry_price)
             total += pos.size * price * pos.contract_size
-            #print(f"DEBUG: {sym} 持仓 {pos.size} 手, 现价 {price}, 乘数 {pos.contract_size}, 计算市值: {pos.size * price * pos.contract_size}")
+            # print(f"DEBUG: {sym} 持仓 {pos.size} 手, 现价 {price}, 乘数 {pos.contract_size}, 计算市值: {pos.size * price * pos.contract_size}")
         return total
-    
+
     def to_dict(self) -> Dict:
         data = {
             "account": self.account_name,
-            "cash": round(self.cash,2),
+            "cash": round(self.cash, 2),
             "positions": {},
-            }
+        }
 
         for symbol, pos in self.positions.items():
             data["positions"][symbol] = {
@@ -113,37 +116,39 @@ class PositionManager:
                 "size": pos.size,
                 "entry_price": pos.entry_price,
                 "stop_loss": pos.stop_loss,
-                "highest_price": pos.highest_price,            
+                "highest_price": pos.highest_price,
                 "tp1_hit": pos.tp1_hit,
                 "open_time": pos.open_time.isoformat(),
             }
         return data
-    
-    #移动止损核心函数
+
+    # 移动止损核心函数
     def update_trailing_stop(self, ticker, price, atr):
         position = self.positions.get(ticker)
-        #print(f"position={position}")
+        # print(f"position={position}")
         # 增加对 price 的有效性检查
         if not position or atr is None or price is None:
             return
-        if position.highest_price is None :
+        if position.highest_price is None:
             print(f"\n[DEBUG] 捕获到 NoneType 污染!")
             print(f"Ticker: {ticker}")
-            print(f"Position Object: {position.__dict__}") # 打印对象所有属性
+            print(f"Position Object: {position.__dict__}")  # 打印对象所有属性
             print(f"Input Price: {price}, ATR: {atr}")
             # 主动抛出异常，带上更多信息
             raise ValueError(f"CRITICAL: {ticker} has None in its fields!")
         entry = position.entry_price
-        
+
         # 1. 稳健初始化最高价 (修复报错点)
-        current_highest = position.highest_price if position.highest_price is not None else 0.0
+        current_highest = (
+            position.highest_price if position.highest_price is not None else 0.0
+        )
         if price > current_highest:
             position.highest_price = float(price)
 
         # 2. 计算止损基础
         # 确保 stop 有初始值，防止后面 max(stop, ...) 报错
         stop = position.stop_loss if position.stop_loss is not None else (entry * 0.95)
-        
+
         # ATR 逻辑保持不变
         atr_price = atr * price
         profit = (price - entry) / entry if entry > 0 else 0
@@ -165,28 +170,30 @@ class PositionManager:
         if position.stage == "profit_lock":
             # 既然已经赚了 3% 了，与其回落到 0% 止损，
             # 不如锁住一半利润，比如保住 1.5% 的利润
-            lock_profit_price = entry + (price - entry) * 0.5 
+            lock_profit_price = entry + (price - entry) * 0.5
             stop = max(stop, lock_profit_price)
 
         # 🟡 阶段2：大肉趋势 → 移动 ATR 跟踪止损
         elif position.stage == "trend":
             # 1. 确保最高价有效，如果为 None 则降级使用现价
-            h_price = position.highest_price if position.highest_price is not None else price
-            
+            h_price = (
+                position.highest_price if position.highest_price is not None else price
+            )
+
             # 2. 计算基于 ATR 的跟踪止损线
             trail_stop = h_price - (settings.ATR_MULT * atr_price)
-            
+
             # 3. 确保 stop 有数值（如果之前 stop_loss 是 None，则取一个保底值）
             current_stop = stop if (stop is not None and stop > 0) else (entry * 0.95)
-            
+
             # 4. 只允许止损线上移，绝不下移
             stop = max(current_stop, trail_stop)
 
         # 3. 最终赋值 (A股价格建议保留 3 位精度给 ETF，或者 2 位给股票)
         # 注意：sz159908 是 ETF，建议用 round(stop, 3)
-        precision = 3 if ticker.startswith(('sz15', 'sh51')) else 2
+        precision = 3 if ticker.startswith(("sz15", "sh51")) else 2
         position.stop_loss = round(float(stop), precision)
-        
+
     # 移动止盈（分批止盈）
     def check_take_profit(self, ticker, price):
         position = self.positions.get(ticker)
@@ -239,9 +246,9 @@ class PositionManager:
         reason: str,
         contract_size: int = 100,
         size: int = None,
-        stop_loss: float = None,  
-        prediction_id: Optional[int] = None,      
-        ):
+        stop_loss: float = None,
+        prediction_id: Optional[int] = None,
+    ):
         """
         打开新仓或加仓
         支持两种方式：
@@ -252,16 +259,25 @@ class PositionManager:
 
         pos = self.positions.get(ticker)
         if pos and pos.size > 0:
-          
+
             # ==== 加仓 ====
             if pos.tp1_hit:
-                print(f"⚠️ {ticker} 已触及 TP1，当前价格 {price}，加仓操作将被拒绝以保护利润。")
+                print(
+                    f"⚠️ {ticker} 已触及 TP1，当前价格 {price}，加仓操作将被拒绝以保护利润。"
+                )
                 return
             # 🚨 价格步长检查：当前价必须比上次成交价高出 1.5%
-            if price < pos.entry_price * 1.015 :
+            if price < pos.entry_price * 1.015:
                 # print(f"跳过加仓：当前价 {price} 未达到持仓成本高出 1.5% {pos.entry_price * 1.015} 的要求")
-                return 
-        
+                return
+            if (
+                pos.open_time
+                and (datetime.now() - pos.open_time).total_seconds() < 7200
+            ):  # 开仓未满 2 小时
+                print(
+                    f"跳过加仓：{ticker} 刚开仓不满 2 小时，当前时间 {datetime.now()}, 开仓时间 {pos.open_time}"
+                )
+                return
             add_size = 0
             if size is not None:
                 add_size = size
@@ -277,7 +293,9 @@ class PositionManager:
                 return
 
             # 加权平均成本
-            pos.entry_price = (pos.entry_price * pos.size + price * add_size) / (pos.size + add_size)
+            pos.entry_price = (pos.entry_price * pos.size + price * add_size) / (
+                pos.size + add_size
+            )
             pos.size += add_size
             self.cash -= cost
 
@@ -292,7 +310,7 @@ class PositionManager:
                 price=price,
                 value=cost,
                 reason=reason,
-                prediction_id=prediction_id
+                prediction_id=prediction_id,
             )
 
         else:
@@ -318,8 +336,8 @@ class PositionManager:
                 entry_price=price,
                 open_time=datetime.now(),
                 contract_size=contract_size,
-                stop_loss=stop_loss,     
-                highest_price=price,          
+                stop_loss=stop_loss,
+                highest_price=price,
             )
             self.positions[ticker] = pos
             self.cash -= cost
@@ -331,7 +349,7 @@ class PositionManager:
                 price=price,
                 value=cost,
                 reason=reason,
-                prediction_id=prediction_id
+                prediction_id=prediction_id,
             )
 
     def open_short(
@@ -352,7 +370,7 @@ class PositionManager:
         strength: float,
         price: float,
         reason: str,
-        prediction_id: Optional[int]=None,
+        prediction_id: Optional[int] = None,
     ):
         self._reduce(ticker, strength, price, reason, prediction_id=prediction_id)
 
@@ -374,7 +392,7 @@ class PositionManager:
         strength: float,
         price: float,
         reason: str,
-        contract_size: int=100,
+        contract_size: int = 100,
     ):
         size = self._calc_open_size(strength, price, contract_size)
         if size <= 0:
@@ -443,7 +461,7 @@ class PositionManager:
         )
 
     def _reduce(
-        self,        
+        self,
         ticker: str,
         strength: float = None,
         price: float = None,
@@ -459,20 +477,28 @@ class PositionManager:
         pos = self.positions.get(ticker)
         if not pos:
             return
-
-        # ===== 1️⃣ 优先使用精确 size =====
-        if size is not None and size > 0:
-            reduce_size = min(size, pos.size)
-        elif strength is not None:
-            # strength ∈ [0, 1] 表示减仓比例
-            ratio = min(max(strength, 0.0), 1.0)
-            reduce_size = int(pos.size * ratio)
-            #q 确保最后一手减掉
-            if reduce_size == 0:
-                reduce_size = 1
+        current_date = self.current_market_time.date()
+        # 检查该标的最后一次减仓日期
+        # self._last_reduce_date 格式：{ "AAPL": datetime.date(2023, 10, 1) }
+        last_date = self._last_reduce_date.get(ticker)
+        if last_date == current_date:
+            # 同一天已经减过仓，执行清仓
+            reduce_size = pos.size
+            reason = f"{reason} | [回测触发] 当日二次减仓强制清仓"
         else:
-            # 默认减 30%
-            reduce_size = int(pos.size * 0.3)
+            # ===== 1️⃣ 优先使用精确 size =====
+            if size is not None and size > 0:
+                reduce_size = min(size, pos.size)
+            elif strength is not None:
+                # strength ∈ [0, 1] 表示减仓比例
+                ratio = min(max(strength, 0.0), 1.0)
+                reduce_size = int(pos.size * ratio)
+                # q 确保最后一手减掉
+                if reduce_size == 0:
+                    reduce_size = 1
+            else:
+                # 默认减 30%
+                reduce_size = int(pos.size * 0.3)
 
         if reduce_size <= 0:
             return
@@ -482,9 +508,9 @@ class PositionManager:
         # ===== 2️⃣ 执行减仓 =====
         pos.size -= reduce_size
         cash_back = reduce_size * price * pos.contract_size
-        
         self.cash += cash_back
-
+        # 更新减仓日期记录
+        self._last_reduce_date[ticker] = current_date
         self._record(
             symbol=ticker,
             action="REDUCE",
@@ -492,37 +518,39 @@ class PositionManager:
             price=price,
             value=cash_back,
             reason=reason,
-            prediction_id=prediction_id
+            prediction_id=prediction_id,
         )
 
         # ===== 3️⃣ 仓位清空时移除 =====
         if pos.size <= 0:
-            del self.positions[ticker]
+            self.positions.pop(ticker, None)
+            # 既然已经清仓了，可以考虑把日期记录也删掉，减少内存占用（可选）
+            self._last_reduce_date.pop(ticker, None)
 
     def _close(
-            self,
-            ticker: str,
-            price: float,
-            reason: str,
-        ):
-            pos = self.positions.get(ticker)
-            if not pos:
-                return
-            if pos.size == 0:
-                return
-            value = pos.size * price * pos.contract_size
-            self.cash += value
-            print(f'cash:{self.cash}')
-            size = pos.size
-            pos.size = 0
-            self._record(
-                symbol=ticker,
-                action="CLOSE",
-                size=size,
-                price=price,
-                value=value,
-                reason=reason,
-            )
+        self,
+        ticker: str,
+        price: float,
+        reason: str,
+    ):
+        pos = self.positions.get(ticker)
+        if not pos:
+            return
+        if pos.size == 0:
+            return
+        value = pos.size * price * pos.contract_size
+        self.cash += value
+        print(f"cash:{self.cash}")
+        size = pos.size
+        pos.size = 0
+        self._record(
+            symbol=ticker,
+            action="CLOSE",
+            size=size,
+            price=price,
+            value=value,
+            reason=reason,
+        )
 
     # ==================================================
     # Size(手) 计算（模拟 / 实盘统一入口）
@@ -531,7 +559,7 @@ class PositionManager:
         self,
         strength: float,
         price: float,
-        contract_size: int=100,
+        contract_size: int = 100,
     ) -> int:
         """
         strength ∈ (0, 1] 表示占用 equity 比例
@@ -564,10 +592,10 @@ class PositionManager:
         reason: str,
         prediction_id: Optional[int] = None,
     ):
-        self.max_occupied = max(self.max_occupied, self.get_ticker_value(symbol, price) )
+        self.max_occupied = max(self.max_occupied, self.get_ticker_value(symbol, price))
         ts = self.current_market_time if self.current_market_time else datetime.now()
 
-            # 动态增加计数
+        # 动态增加计数
         self.total_trade_count += 1
         self.trade_log.append(
             {
@@ -592,7 +620,7 @@ class PositionManager:
                 price=price,
                 value=value,
                 reason=reason,
-                prediction_id=prediction_id
+                prediction_id=prediction_id,
             ),
             self,
         )
@@ -609,25 +637,22 @@ class PositionManager:
                 direction=p["direction"],
                 size=p["size"],
                 entry_price=p["entry_price"],
-                stop_loss=p["stop_loss"],   
-                highest_price=p.get("highest_price", p["entry_price"]),             
+                stop_loss=p["stop_loss"],
+                highest_price=p.get("highest_price", p["entry_price"]),
             )
 
     def load_watchlist_from_csv(self, ticker_list: list):
         """新增方法：专门更新观察池，不碰真实持仓"""
-        self.watchlist.clear() 
+        self.watchlist.clear()
         for ticker in ticker_list:
             # 只有当该标的不在真实持仓中时，才加入观察池
             if ticker not in self.positions:
-                self.watchlist[ticker] = {
-                    "ticker": ticker,
-                    "status": "WATCHING"
-                }
+                self.watchlist[ticker] = {"ticker": ticker, "status": "WATCHING"}
 
     def clear(self):
         self.positions.clear()
         self.trade_log.clear()
         self.save(GlobalState.mode)  # 每次清仓后保存状态，确保实盘数据正确持久化
-        
-    def save(self,mode:RunMode):
-       persist_live_positions(self,mode)
+
+    def save(self, mode: RunMode):
+        persist_live_positions(self, mode)
