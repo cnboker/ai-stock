@@ -130,9 +130,9 @@ class BacktestRunner:
 
         df_hs300_today = full_hs300[full_hs300.index.date == trade_day]
         df_history = self.get_history(trade_day, full_df)
-        print(
-            f"模拟交易日 {trade_day}，历史数据点数: {(df_history.tail(5))}, 今日数(据点数: {len(df_today)}"
-        )
+        # print(
+        #     f"模拟交易日 {trade_day}，历史数据点数: {(df_history.tail(5))}, 今日数(据点数: {len(df_today)}"
+        # )
         hs300_history = self.get_history(trade_day, full_hs300)
         # print(f"模拟交易日 {trade_day}，历史数据点数: {len(df_history)}, 今日数据点数: {len(df_today)}")
         for i in range(len(df_today)):
@@ -205,45 +205,59 @@ class BacktestRunner:
 
     def _report(self, start_price, end_price):
         equity = np.array(self.equity_curve)
-
-        # 💡 核心：定义你的作战基数
-        # 既然 4000 是最大投资额度，我们用它作为分母
-        ACTIVE_BUDGET = (
-            self.position_mgr.max_occupied if self.position_mgr.max_occupied > 0 else 1
-        )
-        print(f"作战基数 (ACTIVE_BUDGET): {ACTIVE_BUDGET:.2f}")
-
-        # 计算绝对盈亏额（比如赚了 80 元）
+        
+        # 1. 核心改进：识别“有效统计”状态
+        # 假设你的最小交易金额通常大于某个阈值（比如 100），或者直接看成交次数
+        is_valid_trade = self.position_mgr.total_trade_count > 0 and self.position_mgr.max_occupied > 1
+        
+        # 获取作战基数
+        ACTIVE_BUDGET = self.position_mgr.max_occupied if is_valid_trade else 0
+        
+        # 计算绝对盈亏额
         absolute_profit = equity[-1] - equity[0]
 
-        # 2. 计算策略收益 (基于作战额度)
-        # 这样赚 80 元就是 2%，而不是 0.08%
-        strat_ret = absolute_profit / ACTIVE_BUDGET
+        # 2. 优雅处理：无效状态下指标强制归零
+        if is_valid_trade:
+            strat_ret = absolute_profit / ACTIVE_BUDGET
+            peak = np.maximum.accumulate(equity)
+            drawdowns = (equity - peak) / ACTIVE_BUDGET
+            max_dd = drawdowns.min()
+        else:
+            # 如果没有成交或基数无效，所有比率指标设为 0
+            strat_ret = 0.0
+            max_dd = 0.0
 
-        # 3. 计算最大回撤 (同样基于作战额度)
-        # 这样如果 4000 元亏了 400，回撤显示为 -10%，而不是 -0.4%
-        peak = np.maximum.accumulate(equity)
-        drawdowns = (equity - peak) / ACTIVE_BUDGET
-        max_dd = drawdowns.min()
-
-        # 4. Alpha 计算
+        # 3. 计算 Alpha（基准不受策略是否成交影响）
         buy_hold_ret = (end_price - start_price) / start_price
-        alpha = strat_ret - buy_hold_ret
+        alpha = strat_ret - buy_hold_ret if is_valid_trade else -buy_hold_ret
 
         # --- 打印报告 ---
         print("\n" + "=" * 40)
         print(f"Ticker: {self.ticker}")
-        print(f"Strategy Return : {round(strat_ret * 100, 2)} %")
+        
+        # 💡 亮点：增加状态行，一眼看出为什么没数据
+        status_msg = "ACTIVE" if is_valid_trade else "INVALID (No trades/No Budget)"
+        print(f"Status          : {status_msg}")
+        print(f"Active Budget   : {ACTIVE_BUDGET:.2f}")
+        
+        if is_valid_trade:
+            print(f"Strategy Return : {round(strat_ret * 100, 2)} %")
+            print(f"Max Drawdown    : {round(max_dd * 100, 2)} %")
+        else:
+            print(f"Strategy Return : -- (No effective trades)")
+            print(f"Max Drawdown    : --")
+            
         print(f"BuyHold Return  : {round(buy_hold_ret * 100, 2)} %")
         print(f"Alpha           : {round(alpha * 100, 2)} %")
-        print(f"Max Drawdown    : {round(max_dd * 100, 2)} %")
         print(f"Trade Count     : {self.position_mgr.total_trade_count}")
         print("=" * 40 + "\n")
 
-        # ... 返回给 Optuna 的数据保持百分比形式 ...
+        # 返回给 Optuna
+        # 对于 Optuna，无效的参数组合应该给予“惩罚值”或 0，防止它在无效区域浪费时间
         return {
-            "Strategy_Return": round(strat_ret * 100, 4),  # 比如返回 2.0
+            "Strategy_Return": round(strat_ret * 100, 4),
             "Max_Drawdown": round(max_dd * 100, 4),
             "Trade_Count": self.position_mgr.total_trade_count,
             "Alpha": round(alpha * 100, 4),
+            "is_valid": int(is_valid_trade) # 额外传一个标识位
         }

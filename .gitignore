@@ -8,4 +8,5 @@ outputs
 .cache_data
 .env    
 /models
-!logs/audit_records.md
+!logs/audit_records.mdsqllite/stock.sqlite3
+state/sim_positions.yaml
