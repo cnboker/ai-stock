@@ -146,12 +146,16 @@ def execute_final_order(candidate: dict, position_mgr) -> None:
     """
     接收优选后的候选字典，执行 TradingSystem 逻辑
     """
+    rank_score = candidate.get("rank_score", 0)
+    if rank_score <= 0:
+        return  # 预测涨幅为负，直接不进入漏斗
     ticker = candidate["ticker"]
     ctx = candidate["ctx"]
     # ticker_df = candidate["ticker_df"]
     low = candidate["low"]
     # median = candidate["median"]
     high = candidate["high"]
+    
     # 保持原有组件初始化
     signal_mgr = SignalManager(
         debouncer=debouncer_manager,

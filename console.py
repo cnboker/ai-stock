@@ -86,7 +86,7 @@ async def run_trade_cycle():
                 best_value = final_config.get("_META", {}).get("best_value", 0) 
                 print(f"🔍 [Config] {ticker} best_value={best_value}")
                 if best_value < 0:
-                    print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
+                    #print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
                     continue
                
                 df = load_stock_df(ticker, session.period)

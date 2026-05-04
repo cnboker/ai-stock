@@ -112,8 +112,15 @@ def run_simulation():
         for i in range(len(df_today)):
             arbiter = SignalArbiter(max_slots=1)
             for ticker, instance in ticker_instances.items():
+              
                 final_config = dynamic_config_manager.load_params(ticker)
                 with use_config(final_config):
+                    best_value = final_config.get("_META", {}).get("best_value", 0) 
+                    #print(f"🔍 [Config] {ticker} best_value={best_value}")
+                    if best_value < 0:
+                        # print(f"⚠️ [Skipped] {ticker} best_value={best_value} < 0")
+                        continue
+                
                     instance.process_ticker_bar(
                         ticker,
                         i,
