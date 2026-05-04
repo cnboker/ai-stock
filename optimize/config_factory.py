@@ -140,10 +140,10 @@ class ConfigFactory:
             last_time = datetime.strptime(last_time_str, "%Y-%m-%d %H:%M:%S")
             
             # 判断条件
-            is_recent = datetime.now() - last_time < timedelta(days=2)
+            is_recent = datetime.now() - last_time < timedelta(days=3)
             is_good_enough = best_value > 0
             
-            if is_recent and is_good_enough:
+            if is_recent:
                 print(f"⏭️  [跳过] {ticker} 最近已优化 ({last_time_str}) 且表现良好 (Value: {best_value})")
                 return True
                 

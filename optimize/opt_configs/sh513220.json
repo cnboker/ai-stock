@@ -2,52 +2,52 @@
     "ticker": "sh513220",
     "category": "ETF",
     "best_params": {
-        "window": 140,
-        "slope": 0.1001560565252182,
-        "model_th": 0.4355824707767326,
-        "predict_up": -0.001083195590887002,
-        "init_pt": 0.019489134467972128,
-        "trend_pt": 0.04705436778011843,
-        "tp1": 1.0264181894847522,
-        "tp2": 1.1354525666612925,
-        "kelly": 0.4665692401304497,
-        "risk": 0.005148036914777081,
-        "atr_stop": 1.6329146813990298,
-        "max_stop": 0.037302492120313155,
-        "min_stop": 0.00867791845244133,
-        "strength_alpha": 1.3677090073984564,
+        "window": 152,
+        "slope": 0.15385765633779525,
+        "model_th": 0.3834210265797176,
+        "predict_up": 0.001382160505809784,
+        "init_pt": 0.005791854858885502,
+        "trend_pt": 0.06943525509799257,
+        "tp1": 1.0297750893539728,
+        "tp2": 1.1132608859816164,
+        "kelly": 0.35403085884060076,
+        "risk": 0.007189499444098065,
+        "atr_stop": 1.545248115770057,
+        "max_stop": 0.020414613872099318,
+        "min_stop": 0.0050626947375916305,
+        "strength_alpha": 1.2020306761126671,
         "confirm_n": 1,
-        "atr_mult": 2.568240434974843
+        "atr_mult": 2.518031449776759
     },
     "intercept_stats": {
         "ticker": "sh513220",
-        "status": "HEALTHY",
-        "success_count": 5,
+        "status": "ANEMIC",
+        "success_count": 0,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 42,
-            "slope_filter": 50,
-            "predict_up_filter": 5,
-            "zero_strength_ghost": 2,
+            "model_confidence": 36,
+            "slope_filter": 68,
+            "predict_up_filter": 0,
+            "zero_strength_ghost": 0,
             "other_error": 0
         },
         "current_config": {
-            "window": 140,
-            "slope": 0.1001560565252182,
-            "model_th": 0.4355824707767326,
-            "predict_up": -0.001083195590887002,
-            "init_pt": 0.019489134467972128,
-            "trend_pt": 0.04705436778011843,
-            "tp1": 1.0264181894847522,
-            "tp2": 1.1354525666612925,
-            "kelly": 0.4665692401304497,
-            "risk": 0.005148036914777081,
-            "atr_stop": 1.6329146813990298,
-            "max_stop": 0.037302492120313155,
-            "min_stop": 0.00867791845244133,
-            "strength_alpha": 1.3677090073984564,
+            "window": 152,
+            "slope": 0.15385765633779525,
+            "model_th": 0.3834210265797176,
+            "predict_up": 0.001382160505809784,
+            "init_pt": 0.005791854858885502,
+            "trend_pt": 0.06943525509799257,
+            "tp1": 1.0297750893539728,
+            "tp2": 1.1132608859816164,
+            "kelly": 0.35403085884060076,
+            "risk": 0.007189499444098065,
+            "atr_stop": 1.545248115770057,
+            "max_stop": 0.020414613872099318,
+            "min_stop": 0.0050626947375916305,
+            "strength_alpha": 1.2020306761126671,
             "confirm_n": 1,
-            "atr_mult": 2.568240434974843
+            "atr_mult": 2.518031449776759
         },
         "slope_stats": {
             "max_ref": 0.1558789705484606,
@@ -95,7 +95,7 @@
                 0.06295037846273534
             ]
         },
-        "success_rate": "38.5%"
+        "success_rate": "0.0%"
     },
     "search_space": {
         "model_th": {
@@ -177,8 +177,8 @@
         "atr_mult": 2.5
     },
     "_META": {
-        "last_optimized": "2026-04-30 23:46:43",
-        "best_value": 57.67869,
-        "status": "ACTIVE"
+        "last_optimized": "2026-05-03 11:50:44",
+        "best_value": 53.78719,
+        "status": "SIGNAL_BLOCKED"
     }
 }

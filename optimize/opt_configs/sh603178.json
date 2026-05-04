@@ -2,48 +2,48 @@
     "ticker": "sh603178",
     "category": "STOCK",
     "best_params": {
-        "window": 100,
-        "slope": 0.10982239860144984,
-        "strength_alpha": 17,
+        "window": 84,
+        "slope": 0.09636750455502222,
+        "strength_alpha": 16,
         "confirm_n": 1,
-        "atr_mult": 2.7843968990257784,
-        "model_th": 0.45693029171488564,
-        "atr_stop": 4.495104966139727,
-        "risk": 0.007818315123796516,
-        "kelly": 0.2436109843755886,
-        "max_stop": 0.08212555160643863,
-        "predict_up": -0.029080203816718962,
-        "tp1": 1.0416078467620586,
-        "tp2": 1.1750046291460652,
-        "init_pt": 0.019757579870932372
+        "atr_mult": 3.200920390942514,
+        "model_th": 0.4898810733173751,
+        "atr_stop": 3.88341016910811,
+        "risk": 0.008223811372829685,
+        "kelly": 0.1831876892236528,
+        "max_stop": 0.10522711184777987,
+        "predict_up": -0.04940871171759561,
+        "tp1": 1.0314858474347455,
+        "tp2": 1.1264927853966784,
+        "init_pt": 0.033700159767813195
     },
     "intercept_stats": {
         "ticker": "sh603178",
         "status": "HEALTHY",
-        "success_count": 3,
+        "success_count": 7,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 70,
+            "model_confidence": 66,
             "slope_filter": 31,
             "predict_up_filter": 0,
             "zero_strength_ghost": 0,
             "other_error": 0
         },
         "current_config": {
-            "window": 100,
-            "slope": 0.10982239860144984,
-            "strength_alpha": 17,
+            "window": 84,
+            "slope": 0.09636750455502222,
+            "strength_alpha": 16,
             "confirm_n": 1,
-            "atr_mult": 2.7843968990257784,
-            "model_th": 0.45693029171488564,
-            "atr_stop": 4.495104966139727,
-            "risk": 0.007818315123796516,
-            "kelly": 0.2436109843755886,
-            "max_stop": 0.08212555160643863,
-            "predict_up": -0.029080203816718962,
-            "tp1": 1.0416078467620586,
-            "tp2": 1.1750046291460652,
-            "init_pt": 0.019757579870932372
+            "atr_mult": 3.200920390942514,
+            "model_th": 0.4898810733173751,
+            "atr_stop": 3.88341016910811,
+            "risk": 0.008223811372829685,
+            "kelly": 0.1831876892236528,
+            "max_stop": 0.10522711184777987,
+            "predict_up": -0.04940871171759561,
+            "tp1": 1.0314858474347455,
+            "tp2": 1.1264927853966784,
+            "init_pt": 0.033700159767813195
         },
         "slope_stats": {
             "max_ref": 0.16309387821469806,
@@ -124,7 +124,7 @@
                 0.11723909434246509
             ]
         },
-        "success_rate": "23.1%"
+        "success_rate": "53.8%"
     },
     "search_space": {
         "strength_alpha": {
@@ -198,8 +198,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-05-01 02:24:16",
-        "best_value": 285.75975,
+        "last_optimized": "2026-05-03 14:34:43",
+        "best_value": 269.3795,
         "status": "ACTIVE"
     }
 }

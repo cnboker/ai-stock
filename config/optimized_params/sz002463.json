@@ -1,23 +1,23 @@
 {
     "_META": {
         "ticker": "sz002463",
-        "best_value": 39.2177,
-        "date": "2026-04-30 23:24"
+        "best_value": -134.2516,
+        "date": "2026-05-03 11:27"
     },
-    "MODEL_TH": 0.4414,
-    "SLOPE": 0.1364,
-    "PREDICT_UP": -0.0288,
-    "INIT_PT": 0.022,
+    "MODEL_TH": 0.4,
+    "SLOPE": 0.012,
+    "PREDICT_UP": -0.05,
+    "INIT_PT": 0.01,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.8453,
-    "TP1": 1.0529,
-    "TP2": 1.119,
-    "KELLY": 0.2979,
-    "RISK": 0.0059,
-    "ATR_STOP": 3.8124,
-    "MAX_STOP": 0.1175,
+    "ATR_MULT": 3.5,
+    "TP1": 1.05,
+    "TP2": 1.2,
+    "KELLY": 0.2,
+    "RISK": 0.008,
+    "ATR_STOP": 4.0,
+    "MAX_STOP": 0.12,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 10,
+    "STRENGTH_ALPHA": 80,
     "CONFIRM_N": 1,
-    "WINDOW": 72
+    "WINDOW": 132
 }

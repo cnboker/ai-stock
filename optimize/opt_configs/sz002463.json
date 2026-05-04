@@ -2,48 +2,48 @@
     "ticker": "sz002463",
     "category": "STOCK",
     "best_params": {
-        "window": 72,
-        "slope": 0.13644962996183238,
-        "strength_alpha": 10,
+        "window": 132,
+        "slope": 0.012,
+        "strength_alpha": 80,
         "confirm_n": 1,
-        "atr_mult": 3.8452548606105768,
-        "model_th": 0.4413880210041673,
-        "atr_stop": 3.8124328780360277,
-        "risk": 0.00590495186622643,
-        "kelly": 0.2979025921711453,
-        "max_stop": 0.11745604026268594,
-        "predict_up": -0.028843579186997457,
-        "tp1": 1.0528744589308814,
-        "tp2": 1.1190297165113503,
-        "init_pt": 0.02198465928154533
+        "atr_mult": 3.5,
+        "model_th": 0.4,
+        "atr_stop": 4.0,
+        "risk": 0.008,
+        "kelly": 0.2,
+        "max_stop": 0.12,
+        "predict_up": -0.05,
+        "tp1": 1.05,
+        "tp2": 1.2,
+        "init_pt": 0.01
     },
     "intercept_stats": {
         "ticker": "sz002463",
         "status": "HEALTHY",
-        "success_count": 11,
+        "success_count": 48,
         "total_scans": 13,
         "intercept_report": {
-            "model_confidence": 47,
-            "slope_filter": 46,
+            "model_confidence": 34,
+            "slope_filter": 22,
             "predict_up_filter": 0,
             "zero_strength_ghost": 0,
             "other_error": 0
         },
         "current_config": {
-            "window": 72,
-            "slope": 0.13644962996183238,
-            "strength_alpha": 10,
+            "window": 132,
+            "slope": 0.012,
+            "strength_alpha": 80,
             "confirm_n": 1,
-            "atr_mult": 3.8452548606105768,
-            "model_th": 0.4413880210041673,
-            "atr_stop": 3.8124328780360277,
-            "risk": 0.00590495186622643,
-            "kelly": 0.2979025921711453,
-            "max_stop": 0.11745604026268594,
-            "predict_up": -0.028843579186997457,
-            "tp1": 1.0528744589308814,
-            "tp2": 1.1190297165113503,
-            "init_pt": 0.02198465928154533
+            "atr_mult": 3.5,
+            "model_th": 0.4,
+            "atr_stop": 4.0,
+            "risk": 0.008,
+            "kelly": 0.2,
+            "max_stop": 0.12,
+            "predict_up": -0.05,
+            "tp1": 1.05,
+            "tp2": 1.2,
+            "init_pt": 0.01
         },
         "slope_stats": {
             "max_ref": 0.1634413042127401,
@@ -123,7 +123,7 @@
                 0.0863796147986175
             ]
         },
-        "success_rate": "84.6%"
+        "success_rate": "369.2%"
     },
     "search_space": {
         "strength_alpha": {
@@ -197,8 +197,8 @@
         "atr_mult": 3.5
     },
     "_META": {
-        "last_optimized": "2026-04-30 23:24:15",
-        "best_value": 39.21766,
+        "last_optimized": "2026-05-03 11:27:31",
+        "best_value": -134.2516,
         "status": "ACTIVE"
     }
 }
