@@ -72,19 +72,73 @@ hermes --version
 
 ### 3.2 启动 Qwen-Coder 推理服务
 ```bash
-python -m vllm.entrypoints.openai.api_server \\
-    --model /home/scott/models/Qwen2.5-Coder-14B-Instruct-GPTQ-Int4 \\
-    --max-model-len 4096 \\
-    --gpu-memory-utilization 0.7 \\
-    --trust-remote-code \\
-    --quantization gptq \\
-    --dtype float16
+/home/scott/py_envs/vllm_prod/bin/python3 -m vllm.entrypoints.openai.api_server \
+    --model /home/scott/models/Qwen2.5-Coder-14B-Instruct-GPTQ-Int4 \
+    --max-model-len 4096 \
+    --gpu-memory-utilization 0.8 \
+    --trust-remote-code \
+    --quantization gptq \
+    --dtype float16 \
+    --enforce-eager \
+    --disable-custom-all-reduce
+# download gguf model
+/home/scott/py_envs/vllm_prod/bin/python -c "from modelscope.hub.file_download import model_file_download; model_file_download(model_id='unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF', file_path='DeepSeek-R1-Distill-Qwen-7B-Q5_K_M.gguf', local_dir='/home/scott/models/DeepSeek-R1-Distill-Qwen/')"
+
+/home/scott/py_envs/vllm_prod/bin/python -m vllm.entrypoints.openai.api_server \
+    --model /home/scott/models/DeepSeek-R1-Distill-Qwen/DeepSeek-R1-Distill-Qwen-7B-Q5_K_M.gguf \
+    --tokenizer /home/scott/models/DeepSeek-R1-Distill-Qwen/ \
+    --load-format gguf \
+    --trust-remote-code \
+    --gpu-memory-utilization 0.7 \
+    --max-model-len 16384 \
+    --served-model-name deepseek-r1
+```
+### 3.3 容器环境配置 (L4T PyTorch):docker
+针对 Jetson 平台，使用 `docker` 运行 `l4t-pytorch` 容器并挂载项目目录。
+** docker 优化配置
+```bash
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "data-root": "/opt/hdm/docker",
+  "storage-driver": "overlay2",
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me",
+    "https://docker.m.daocloud.io",
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com"
+  ]
+}
+EOF
+sudo systemctl restart containerd
+sudo systemctl restart docker
+
+# 查看镜像加速器是否生效
+docker info | grep -A 10 "Registry Mirrors"
+
 ```
 
-### 3.3 容器环境配置 (L4T PyTorch)
-针对 Jetson 平台，使用 `ctr` 运行 `l4t-pytorch` 容器并挂载项目目录。
+** install image, 直接安装更节省空间
+```bash
+sudo docker pull docker.mirrors.ustc.edu.cn/dustynv/l4t-pytorch:2.2-r35.4.1
+```
 
-**一键启动与初始化脚本 (`start_kronos.sh`):**
+** 安装并配置 NVIDIA Container Toolkit
+```bash
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# 配置 Docker
+sudo nvidia-ctk runtime configure --runtime=docker
+
+# 重启 Docker
+sudo systemctl restart docker
+
+# 验证是否成功
+docker info | grep -i runtime
+
+```
+
+** 一键启动与初始化脚本 (`start_kronos.sh`):**
 ```bash
 #!/bin/bash
 
@@ -93,19 +147,10 @@ CONTAINER_NAME="kronos"
 
 echo "=== 启动 Jetson Kronos 容器 ==="
 
-sudo ctr run --rm --privileged --tty \\
-  --net-host \\
-  --device /dev/nvmap \\
-  --device /dev/nvgpu/igpu0 \\
-  --device /dev/nvhost-ctrl \\
-  --device /dev/nvhost-vic \\
-  --device /dev/nvhost-power-gpu \\
-  --mount type=bind,src=/usr/lib,dst=/usr/lib/host,options=rbind:ro \\
-  --mount type=bind,src=/usr/lib/aarch64-linux-gnu/tegra,dst=/usr/lib/aarch64-linux-gnu/tegra,options=rbind:ro \\
-  --mount type=bind,src=$APP_DIR,dst=/app,options=rbind:rw \\
-  --env LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra:/usr/lib/host \\
-  nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3 "$CONTAINER_NAME" \\
-  /bin/bash -c '
+docker run --rm -it --runtime nvidia --network host \
+  -v $APP_DIR:/app \
+  dustynv/l4t-pytorch:2.2-r35.4.1 bash
+  -c '
     cd /app
     echo "=== 设置 PyPI 腾讯源 ==="
     pip config set global.index-url [https://mirrors.cloud.tencent.com/pypi/simple](https://mirrors.cloud.tencent.com/pypi/simple)
@@ -121,8 +166,6 @@ sudo ctr run --rm --privileged --tty \\
     echo "=== 环境准备完成 ==="
     exec /bin/bash
   '
-```
-
 ---
 
 ## ⚙️ 4. 常用运维命令
@@ -133,21 +176,40 @@ sudo ctr run --rm --privileged --tty \\
 rsync -av --exclude='models' ./stock-model/ root@192.168.10.22:/opt/hdm/stock-model/
 ```
 
-### 4.2 容器与任务清理 (Force Clean)
-当容器死锁或无法启动时，清理残留任务和进程：
-```bash
-# 强杀任务和容器
-sudo ctr task kill -f kronos 2>/dev/null
-sudo ctr container rm kronos 2>/dev/null
-
-# 清理残留的 shim 进程 (解决存储或 FD 占用关键)
-sudo ps -ef | grep containerd-shim | awk "{print \\$2}" | xargs -r sudo kill -9
-```
-
 ### 4.3 GPU 环境检查
 ```bash
 python3 -c "import torch; print('CUDA Available:', torch.cuda.is_available()); print('Device:', torch.cuda.get_device_name(0))"
 ```
 
+### connitue config
 
+```json
+name: My Local Config
+version: 0.0.1
+schema: v1
 
+models:
+  - name: Qwen2.5 Coder 14B (vLLM)
+    provider: openai
+    model: /home/scott/models/Qwen2.5-Coder-14B-Instruct-GPTQ-Int4   # ← 改成上面 curl 查到的 id（去掉路径）
+    apiKey: EMPTY
+    apiBase: http://localhost:8000/v1
+    roles:
+      - chat
+      - edit
+      - apply
+    defaultCompletionOptions:          # ← 新增这一段
+      contextLength: 4096              # 告诉 Continue 真实上限
+      maxTokens: 2000                  # 强烈建议先设 1024（安全），后面可调高
+
+  - name: Qwen2.5 Coder 14B Autocomplete (vLLM)
+    provider: openai
+    model: /home/scott/models/Qwen2.5-Coder-14B-Instruct-GPTQ-Int4   # ← 同上
+    apiKey: EMPTY
+    apiBase: http://localhost:8000/v1
+    roles:
+      - autocomplete
+    defaultCompletionOptions:          # ← 补全模型也要加
+      contextLength: 4096
+      maxTokens: 2000
+  ```

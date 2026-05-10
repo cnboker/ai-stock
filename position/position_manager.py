@@ -481,10 +481,17 @@ class PositionManager:
         # 检查该标的最后一次减仓日期
         # self._last_reduce_date 格式：{ "AAPL": datetime.date(2023, 10, 1) }
         last_date = self._last_reduce_date.get(ticker)
+        if pos.open_time.date() == datetime.now().date() :
+            print(
+                f"跳过减仓：{ticker} 刚开仓，当前时间 {datetime.now()}, 开仓时间 {pos.open_time}，当天开仓不允许减仓"
+            )
+            return
         if last_date == current_date:
             # 同一天已经减过仓，执行清仓
             reduce_size = pos.size
             reason = f"{reason} | [回测触发] 当日二次减仓强制清仓"
+            # 更新最后一次减仓日期为None，以避免T+1的减仓
+            self._last_reduce_date[ticker] = None
         else:
             # ===== 1️⃣ 优先使用精确 size =====
             if size is not None and size > 0:

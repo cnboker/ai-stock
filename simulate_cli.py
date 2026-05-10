@@ -86,7 +86,7 @@ def run_simulation():
     tickers = position_mgr.get_tickers_from_positions_and_watchlist()
 
     dates = ["2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30"]
-    #dates = ["2026-04-30"]
+    dates = ["2026-05-06","2026-05-07"]
     hs300_df = load_index_df("30").sort_index()
     eq_feat = equity_features(eq_recorder.to_series())
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
@@ -110,6 +110,11 @@ def run_simulation():
         # print(f"开始模拟 {trade_day}，共 {len(df_today)} 根K线")
         
         for i in range(len(df_today)):
+            eq_feat = equity_features(eq_recorder.to_series())
+            eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
+            session.tradeIntent = eq_decision  # 更新交易意图到会话上下文中
+            session.eq_feat = eq_feat  # 更新权益特征到会话上下文中         
+
             arbiter = SignalArbiter(max_slots=1)
             for ticker, instance in ticker_instances.items():
               

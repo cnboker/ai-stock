@@ -189,8 +189,7 @@ def generate_review_data(predictions, orders):
             order_count = 0
 
         # 6. 构造输出数据
-        if abs(total_pnl) > 10:
-            review_data.append(
+        review_data.append(
                 {
                     "symbol": pred.symbol,
                 

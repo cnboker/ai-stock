@@ -29,7 +29,7 @@ def load_stock_df(ticker: str, period: str, expire_seconds: int = 36000) -> pd.D
     cached_df = cache.get(cache_key)
     
     if cached_df is not None and GlobalState.mode != RunMode.LIVE:
-        # print(f"--- [Cache Hit] {ticker} ---")
+        print(f"--- [Cache Hit] {ticker} ---")
         return cached_df
 
     # --- [Cache Miss] 执行原有的下载逻辑 ---

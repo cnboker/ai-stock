@@ -31,3 +31,61 @@ def calc(low, median, high, latest_price):
     risk_adj_score = up - 0.5 * (downside_dist / latest_price) - 0.1 * uncertainty
 
     return float(risk_adj_score)
+
+def calc_live_signal(low, median, high, latest_price, 
+                     pos_weight=0.40, 
+                     unc_weight=0.25, 
+                     risk_weight=0.35):
+    """
+    计算实时交易信号得分（越高越倾向买入）
+    
+    返回值范围建议控制在 [-1, 1] 左右，便于后续决策
+    """
+    if latest_price <= 0:
+        return 0.0
+    
+    # 统一转为 numpy array 并检查是否为空
+    low = np.asarray(low)
+    median = np.asarray(median)
+    high = np.asarray(high)
+    
+    if len(low) == 0 or len(median) == 0 or len(high) == 0:
+        return 0.0
+    
+    p_low = low[-1]
+    p_med = median[-1]
+    p_high = high[-1]
+    
+    # 防止除零
+    if p_high <= p_low or latest_price <= 0:
+        return 0.0
+    
+    # 1. 相对位置 (0=最便宜, 1=最贵)
+    position = (latest_price - p_low) / (p_high - p_low)
+    position = max(0.0, min(1.0, position))          # 截断到 [0,1]
+    
+    # 2. 预期收益
+    expected_return = (p_med - latest_price) / latest_price
+    
+    # 3. 不确定性（区间宽度相对价格）
+    uncertainty = (p_high - p_low) / latest_price
+    
+    # 4. 风险惩罚（重点加强破位惩罚）
+    if latest_price < p_low:
+        # 破支撑：非线性强惩罚
+        downside = (p_low - latest_price) / latest_price
+        risk_penalty = downside * 1.5 + (downside ** 1.5) * 2.0
+    else:
+        # 在区间内时，离支撑越远风险越低（可选）
+        risk_penalty = max(0.0, (latest_price - p_low) / latest_price) * 0.3
+    
+    # 综合得分
+    score = (expected_return 
+             - pos_weight * position 
+             - unc_weight * uncertainty 
+             - risk_weight * risk_penalty)
+    
+    # 建议做平滑/归一化（可选，但强烈推荐）
+    # score = max(-1.0, min(1.0, score * 0.8))   # 根据实际回测调整缩放
+    
+    return round(float(score), 6)    

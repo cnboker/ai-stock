@@ -60,6 +60,7 @@ class EquityRecorder:
             print(f"Warning: failed to save equity file: {e}")
 
     def to_series(self) -> pd.Series:
+       
         if self.df.empty:
             return pd.Series(dtype=float, index=pd.DatetimeIndex([]), name="equity")
 

@@ -1,6 +1,6 @@
 import numpy as np
 from infra.core.runtime import GlobalState
-from strategy.calc_predicted_up import calc
+from strategy.calc_predicted_up import calc, calc_live_signal
 from strategy.decision_context import DecisionContext
 from strategy.slope import compute_hybrid_slope
 from log import signal_log
@@ -82,7 +82,7 @@ class DecisionContextBuilder:
                 )
 
         # 2. 基础计算
-        predicted_up = calc(low, median, high, latest_price)
+        predicted_up = calc_live_signal(low, median, high, latest_price)
         slope = compute_hybrid_slope(median, close_df.values)     
         # 3. 初始信号判定
         raw_signal = (
