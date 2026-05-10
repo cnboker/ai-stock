@@ -53,7 +53,8 @@ class BacktestRunner:
         if position_mgr is not None:
             self.position_mgr = position_mgr
         else:
-            self.position_mgr = create_position_manager(1000000)
+            self.position_mgr = create_position_manager(1000000,RunMode.SIM)
+            self.position_mgr.save(RunMode.SIM)  # 确保初始状态被持久化
 
         # 初始化 Session
         eq_feat = equity_features(self.eq_recorder.to_series())

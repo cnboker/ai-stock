@@ -6,7 +6,7 @@ from optimize.config_factory import ConfigFactory
 from optimize.diagnostic_scanner import DiagnosticScanner
 from optimize.persist_manager import PersistManager
 from backtest.run_backtest import run_backtest
-
+import traceback
 
 def run_optuna_study(
     ticker: str,
@@ -149,8 +149,8 @@ def objective(trial, ticker: str, ticker_period="30"):
             scores.append(ticker_score)
 
         except Exception as e:
-            print(f"Error on {ticker}: {e}")
-            scores.append(-2000.0)  # 报错分值要比普通亏损更低
+	        traceback.print_exc()
+	        scores.append(-2000.0)  # 报错分值要比普通亏损更低
 
     # --- 3. 汇总与效率惩罚 ---
 
