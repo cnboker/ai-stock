@@ -64,6 +64,7 @@ class DecisionContextBuilder:
     ) -> DecisionContext:
         latest_price = GlobalState.tickers_price[ticker]
         # 1. 结构筛选 (Gater)
+        
         gate_result = self.gater.evaluate(
             lower=low, mid=median, upper=high, close_df=close_df.values
         )
@@ -75,23 +76,25 @@ class DecisionContextBuilder:
 
             # 如果预测波动率超过 ATR 的一定比例，或者超过自定义阈值 (如 3%)
             # 说明此时是“乱战”，强制调低 gate_result.score 或关闭 allow
-            if relative_vol > 0.03:  # 3% 的波动预期通常意味着高风险
-                gate_result.allow = False
-                signal_log(
-                    f"⚠️ {ticker} 预测不确定性过高 ({relative_vol:.2%})，跳过开仓"
-                )
+            # if relative_vol > 0.03:  # 3% 的波动预期通常意味着高风险
+            #     gate_result.allow = False
+            #     signal_log(
+            #         f"⚠️ {ticker} 预测不确定性过高 ({relative_vol:.2%})，跳过开仓"
+            #     )
 
         # 2. 基础计算
-        predicted_up = calc_live_signal(low, median, high, latest_price)
+        
         slope = compute_hybrid_slope(median, close_df.values)     
+        predicted_up = calc_live_signal(low, median, high, latest_price,slope)
         # 3. 初始信号判定
         raw_signal = (
             self._make_raw_signal(predicted_up, slope, model_score)
             if gate_result.allow
             else "HOLD"
         )
+        print(f"raw_signal: {raw_signal}")
         # print(
-        #     f"predicted_up: {predicted_up}, slope: {slope}, model_score: {model_score}, gate_result.allow: {gate_result.allow}"
+        #     f"low={low}, median={median}, high={high}, last_price={latest_price}, predicted_up: {predicted_up}, slope: {slope}, model_score: {model_score}, gate_result.allow: {gate_result.allow}"
         # )
         # 4. 账户状态同步 (Regime 合成)
         # 策略：只要账户风险层说是 bad，整体就是 bad；否则看信号动量
@@ -198,13 +201,13 @@ class DecisionContextBuilder:
             slope=slope,
         )
 
-        # if raw_signal == "LONG":
-        #     print(f"settings.STRENGTH_ALPHA: {settings.STRENGTH_ALPHA}")
-        #     signal_log(ctx)
+        if raw_signal == "LONG":
+            print(f"settings.STRENGTH_ALPHA: {settings.STRENGTH_ALPHA}")
+            signal_log(ctx)
         if raw_signal == "LONG":
             signal_log(
                 f"🔥 {ticker} slope={slope}|eq_decision.action={eq_decision.action} Lost_price={pos_dict.get('stop_loss', 0)}  raw_signal={raw_signal} | final_regime:{final_regime} | Price: {latest_price:.2f} | "
                 f"predicted_up: {predicted_up:.3f} | Score: {model_score:.3f} | Gate_Mult: {final_gate_mult:.2f}"
             )
-        # signal_log(ctx)
+        signal_log(ctx)
         return ctx

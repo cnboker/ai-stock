@@ -35,8 +35,8 @@ warnings.filterwarnings(
 
 # ========================== 初始化全局状态 ==========================
 sync_account_and_watchlist()
-position_mgr = create_position_manager(0)
-eq_recorder = create_equity_recorder()
+position_mgr = create_position_manager(0,RunMode.LIVE)
+eq_recorder = create_equity_recorder(RunMode.LIVE)
 stock_provider = StockProvider()
 
 
@@ -55,7 +55,7 @@ async def run_trade_cycle():
         position_mgr.current_market_time = datetime.now()  # 初始化当前市场时间，后续会在循环中更新 
         # 2. ⚡ 内存快照提取 (一次性锁定，减少竞争)
         has_pos = position_mgr.has_any_position()
-
+        print(f"equity: {position_mgr.equity}")
         tickers = position_mgr.get_tickers_from_positions_and_watchlist()
         print(f"🔍 [Tickers] 活跃标的: {tickers } (持仓: {position_mgr.positions.keys()}, 关注: {position_mgr.watchlist.keys()})")  
         symbols_price = await stock_provider.get_price_map(tickers)

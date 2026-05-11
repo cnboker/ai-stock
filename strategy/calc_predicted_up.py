@@ -32,7 +32,7 @@ def calc(low, median, high, latest_price):
 
     return float(risk_adj_score)
 
-def calc_live_signal(low, median, high, latest_price, 
+def calc_live_signal(low, median, high, latest_price, slope,
                      pos_weight=0.40, 
                      unc_weight=0.25, 
                      risk_weight=0.35):
@@ -72,18 +72,23 @@ def calc_live_signal(low, median, high, latest_price,
     
     # 4. 风险惩罚（重点加强破位惩罚）
     if latest_price < p_low:
-        # 破支撑：非线性强惩罚
+    # 破支撑：强惩罚保持不变
         downside = (p_low - latest_price) / latest_price
         risk_penalty = downside * 1.5 + (downside ** 1.5) * 2.0
     else:
-        # 在区间内时，离支撑越远风险越低（可选）
-        risk_penalty = max(0.0, (latest_price - p_low) / latest_price) * 0.3
+    # 修正：离上轨越近，追高风险越大。离下轨近时，惩罚趋近于 0
+    # 使用 (p_high - latest_price) 来衡量距离
+        risk_penalty = max(0.0, (latest_price - p_low) / (p_high - p_low)) * 0.15
     
     # 综合得分
+    trend_score = slope * 0.3  # 权重可以根据回测调整
+
+    # 综合得分公式修正：
     score = (expected_return 
-             - pos_weight * position 
-             - unc_weight * uncertainty 
-             - risk_weight * risk_penalty)
+            + trend_score             # 加上趋势得分
+            - pos_weight * position 
+            - unc_weight * uncertainty 
+            - risk_weight * risk_penalty)
     
     # 建议做平滑/归一化（可选，但强烈推荐）
     # score = max(-1.0, min(1.0, score * 0.8))   # 根据实际回测调整缩放

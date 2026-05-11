@@ -15,7 +15,7 @@ def create_position_manager(
     - 不复用任何全局状态
     """
     position_mgr = PositionManager(init_cash=init_cash)    
-    position_mgr.clear()
+  
     if mode == RunMode.LIVE:
         print("🚀 创建 LIVE 模式的 PositionManager")
         pos_loader = LivePositionLoader("state/live_positions.yaml", position_mgr)
