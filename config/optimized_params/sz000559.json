@@ -1,23 +1,23 @@
 {
     "_META": {
         "ticker": "sz000559",
-        "best_value": 131.9152,
-        "date": "2026-05-01 03:54"
+        "best_value": 23.4074,
+        "date": "2026-05-11 16:57"
     },
-    "MODEL_TH": 0.4268,
-    "SLOPE": 0.0596,
-    "PREDICT_UP": -0.028,
-    "INIT_PT": 0.015,
+    "MODEL_TH": 0.4393,
+    "SLOPE": 0.1307,
+    "PREDICT_UP": -0.0294,
+    "INIT_PT": 0.0418,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 4.1018,
-    "TP1": 1.0516,
-    "TP2": 1.2367,
-    "KELLY": 0.1799,
-    "RISK": 0.0082,
-    "ATR_STOP": 3.5026,
-    "MAX_STOP": 0.1201,
+    "ATR_MULT": 3.7732,
+    "TP1": 1.0208,
+    "TP2": 1.1562,
+    "KELLY": 0.2997,
+    "RISK": 0.0088,
+    "ATR_STOP": 4.1411,
+    "MAX_STOP": 0.1236,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 44,
+    "STRENGTH_ALPHA": 78,
     "CONFIRM_N": 1,
-    "WINDOW": 104
+    "WINDOW": 44
 }

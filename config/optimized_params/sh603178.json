@@ -1,23 +1,23 @@
 {
     "_META": {
         "ticker": "sh603178",
-        "best_value": 269.3795,
-        "date": "2026-05-03 14:34"
+        "best_value": -12.2496,
+        "date": "2026-05-11 15:44"
     },
-    "MODEL_TH": 0.4899,
-    "SLOPE": 0.0964,
-    "PREDICT_UP": -0.0494,
-    "INIT_PT": 0.0337,
+    "MODEL_TH": 0.5189,
+    "SLOPE": 0.0683,
+    "PREDICT_UP": -0.0314,
+    "INIT_PT": 0.0211,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.2009,
-    "TP1": 1.0315,
-    "TP2": 1.1265,
-    "KELLY": 0.1832,
-    "RISK": 0.0082,
-    "ATR_STOP": 3.8834,
-    "MAX_STOP": 0.1052,
+    "ATR_MULT": 3.9839,
+    "TP1": 1.0224,
+    "TP2": 1.1678,
+    "KELLY": 0.2088,
+    "RISK": 0.0072,
+    "ATR_STOP": 3.671,
+    "MAX_STOP": 0.094,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 16,
+    "STRENGTH_ALPHA": 41,
     "CONFIRM_N": 1,
-    "WINDOW": 84
+    "WINDOW": 124
 }
