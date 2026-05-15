@@ -145,28 +145,31 @@ class DecisionContextBuilder:
         self.position_mgr.update_trailing_stop(ticker, latest_price, atr)
         stop_loss_cooldown = 10
         if has_position:
-            # A. 检查止损
+            # 优先级 1: 止损 (强制性，最优先)
             if latest_price <= pos_dict.get("stop_loss", 0):
-                latest_price = pos_dict["stop_loss"] * 0.998  # 模拟滑点成交
+                latest_price = pos_dict["stop_loss"] * 0.998  # 模拟滑点
                 raw_signal = "LIQUIDATE"
                 liquidate_reason = "STOP LOSS"
+                # 止损后冷却，防止立刻被新信号反复开仓
                 self.position_mgr.cooldown[ticker] = stop_loss_cooldown
 
-            # B. 检查账户风险指令 (REDUCE/LIQUIDATE)
+            # 优先级 2: 账户级风控 (来自 eq_decision 的外部干预)
             elif eq_decision.action in ("REDUCE", "LIQUIDATE"):
                 raw_signal = eq_decision.action
                 liquidate_reason = eq_decision.reason
+                # 注意：这里可能也需要根据 eq_decision 更新 reduce_strength
 
-            # C. 检查个股止盈
-            tp_action = self.position_mgr.check_take_profit(ticker, latest_price)
-            if isinstance(tp_action, float):
-                raw_signal = "REDUCE"
-                # 取账户减仓要求和个股止盈强度的最大值 (取严原则)
-                reduce_strength = max(
-                    float(reduce_strength or 0.0), float(tp_action or 0.0)
-                )
-                liquidate_reason = "TAKE_PROFIT"
-                self.position_mgr.cooldown[ticker] = stop_loss_cooldown
+            # 优先级 3: 个股止盈 (策略优化)
+            else:
+                tp_action = self.position_mgr.check_take_profit(ticker, latest_price)
+                if isinstance(tp_action, float) and tp_action > 0:
+                    raw_signal = "REDUCE"
+                    # 取账户减仓要求和个股止盈强度的最大值 (取严原则)
+                    reduce_strength = max(
+                        float(reduce_strength or 0.0), float(tp_action)
+                    )
+                    liquidate_reason = "TAKE_PROFIT"
+                    self.position_mgr.cooldown[ticker] = stop_loss_cooldown
 
         # 6. 计算最终缩放系数与分数
         final_gate_mult = gate_result.score * eq_decision.gate_mult

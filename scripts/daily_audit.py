@@ -214,7 +214,7 @@ def fetch_daily_data():
     """从 FastAPI 获取今日交易表现"""
     try:
         date = datetime.now().date()
-        date = '2026-04-30'
+        #date = '2026-04-30'
         response = requests.get(f"{API_BASE_URL}/analytics/daily_review/{date}")
         response.raise_for_status()
         return response.json()
@@ -328,8 +328,8 @@ def clean_hermes_output(text):
 
 
 if __name__ == "__main__":
-    #run_audit()
-   process_hermes_smart_save(
-                hermes_output=output, 
-                date_str='2026-4-30'
-            )
+    run_audit()
+#    process_hermes_smart_save(
+#                 hermes_output=output, 
+#                 date_str='2026-4-30'
+#             )
