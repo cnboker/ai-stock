@@ -92,7 +92,7 @@ class DecisionContextBuilder:
             if gate_result.allow
             else "HOLD"
         )
-        print(f"raw_signal: {raw_signal}")
+        
         # print(
         #     f"low={low}, median={median}, high={high}, last_price={latest_price}, predicted_up: {predicted_up}, slope: {slope}, model_score: {model_score}, gate_result.allow: {gate_result.allow}"
         # )
@@ -143,6 +143,24 @@ class DecisionContextBuilder:
 
         # 更新移动止损并检查
         self.position_mgr.update_trailing_stop(ticker, latest_price, atr)
+      
+
+        # 6. 计算最终缩放系数与分数
+        final_gate_mult = gate_result.score * eq_decision.gate_mult
+        raw_score = self._compute_debounce_score(
+            raw_signal, model_score, final_gate_mult
+        )
+
+        # 7. 善后处理
+        self.position_mgr.update_cooldown()
+        # strength = compute_strength(slope=slope, gate=final_gate_mult)
+        strength = compute_strength(
+            slope=slope,
+            gate=final_gate_mult,
+            alpha=settings.STRENGTH_ALPHA,  # 确保是从动态配置对象里取的
+            slope_threshold=settings.SLOPE,  # 同上
+        )
+
         stop_loss_cooldown = 10
         if has_position:
             # 优先级 1: 止损 (强制性，最优先)
@@ -171,21 +189,6 @@ class DecisionContextBuilder:
                     liquidate_reason = "TAKE_PROFIT"
                     self.position_mgr.cooldown[ticker] = stop_loss_cooldown
 
-        # 6. 计算最终缩放系数与分数
-        final_gate_mult = gate_result.score * eq_decision.gate_mult
-        raw_score = self._compute_debounce_score(
-            raw_signal, model_score, final_gate_mult
-        )
-
-        # 7. 善后处理
-        self.position_mgr.update_cooldown()
-        # strength = compute_strength(slope=slope, gate=final_gate_mult)
-        strength = compute_strength(
-            slope=slope,
-            gate=final_gate_mult,
-            alpha=settings.STRENGTH_ALPHA,  # 确保是从动态配置对象里取的
-            slope_threshold=settings.SLOPE,  # 同上
-        )
         ctx = DecisionContext(
             ticker=ticker,
             latest_price=latest_price,

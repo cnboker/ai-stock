@@ -120,6 +120,7 @@ def execute_stock_decision(
             "ticker_df": ticker_df,
             "low": pre_result.low,
             "high": pre_result.high,
+            "raw_signal": ctx.raw_signal
         }, session.position_mgr)
         
         return {"type": "exit", "ticker": ticker}
@@ -144,25 +145,30 @@ def execute_stock_decision(
 
 def execute_final_order(candidate: dict, position_mgr) -> None:
     """
-    接收优选后的候选字典，执行 TradingSystem 逻辑
+    接收优选后的候选字典，执行 TradingSystem 逻辑。
+    若信号为 REDUCE 或 LIQUIDATE，则忽略 rank_score 限制直接执行。
     """
-    rank_score = candidate.get("rank_score", 0)
-    if rank_score <= 0:
-        return  # 预测涨幅为负，直接不进入漏斗
     ticker = candidate["ticker"]
     ctx = candidate["ctx"]
-    # ticker_df = candidate["ticker_df"]
+    rank_score = candidate.get("rank_score", 0)
+    raw_signal = candidate.get("raw_signal") # 假设信号已在 candidate 中
+    print(f"准备执行订单: Ticker={ticker}, RawSignal={raw_signal}, RankScore={rank_score:.3f}")
+    # 1. 核心逻辑判断：若是减仓或清仓信号，直接执行，不看 rank_score
+    is_exit_signal = raw_signal in ("REDUCE", "LIQUIDATE")
+    
+    if not is_exit_signal and rank_score <= 0:
+        return  # 只有在非退出信号且预测涨幅为负时才拦截
+
+    # 2. 获取交易参数
     low = candidate["low"]
-    # median = candidate["median"]
     high = candidate["high"]
     
-    # 保持原有组件初始化
+    # 3. 初始化组件
     signal_mgr = SignalManager(
         debouncer=debouncer_manager,
         min_score=0.03,
     )
 
-    # 构建交易系统并执行 tick 动作
     trade_system = TradingSystem(
         signal_mgr=signal_mgr,
         budget_mgr=budget_mgr,
@@ -170,9 +176,10 @@ def execute_final_order(candidate: dict, position_mgr) -> None:
         position_mgr=position_mgr,
     )
 
+    # 4. 执行 tick 动作
     return trade_system.run_tick(
         ticker=ticker,
-        ctx=ctx,  # 注意：此时 run_tick 应该直接接收构建好的 ctx
+        ctx=ctx,
         low=low,
         high=high,
     )

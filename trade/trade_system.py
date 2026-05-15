@@ -20,7 +20,7 @@ class TradingSystem:
         # 2. 评估意图 (判断：进场/离场/强制减仓/观望)
         # 这一步会自动处理 Debounce 和 账户风险(REDUCE) 的合并
         intent = self.signal_mgr.evaluate(ctx)
-
+        print(f"Ticker={ticker} RawSignal={ctx.raw_signal} DebouncedIntent={intent.action} Confidence={intent.confidence:.3f} Reason={intent.reason}")  
         # 3. 拦截未确认信号 (快捷路径)
         if not intent.confirmed and not intent.force_reduce:
             self.position_mgr.save(GlobalState.mode)  # 确保每次决策后都持久化仓位状态              
