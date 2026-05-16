@@ -1,24 +1,47 @@
-from sqlmodel import SQLModel, Field, select
+from sqlmodel import SQLModel, Field
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from pydantic import field_validator
+import numpy as np
 
 class Order(SQLModel, table=True):
     __tablename__ = "orders"
     
     id: Optional[int] = Field(default=None, primary_key=True)
     symbol: str = Field(index=True)
-    side: str                                 # "buy" (建仓/增仓) 或 "sell" (减仓/清仓)
-    quantity: int                             # 成交数量
-    price: float                              # 成交价格
+    side: str                                 # "buy" 或 "sell"
+    quantity: int                             
+    price: float                              
     entry_time: datetime = Field(index=True)
     
-    # 核心字段：本次操作产生的已实现盈亏
-    # 如果是 buy，则为 0；如果是 sell，记录 (卖出价 - 之前均价) * 卖出数量
+    # 盈亏计算核心
     realized_pnl: float = Field(default=0.0)  
-    
-    prediction_id: Optional[int] = Field(foreign_key="predictions.id")
+    prediction_id: Optional[int] = Field(default=None, foreign_key="predictions.id")
 
+    @field_validator("entry_time", mode="before")
+    @classmethod
+    def parse_datetime(cls, v):
+        if isinstance(v, str):
+            # 移除 ISO 格式中可能存在的 Z 或空格
+            v = v.replace("Z", "").replace(" ", "T")
+            return datetime.fromisoformat(v)
+        return v
+
+    @field_validator("price", "realized_pnl", mode="before")
+    @classmethod
+    def handle_numpy_float(cls, v):
+        # 自动修复 numpy.float64 导致的 JSON/DB 写入错误
+        if isinstance(v, (np.float64, np.float32)):
+            return float(v)
+        return v
+
+    @field_validator("quantity", mode="before")
+    @classmethod
+    def handle_numpy_int(cls, v):
+        # 自动修复 numpy.int64 错误
+        if isinstance(v, (np.int64, np.int32)):
+            return int(v)
+        return v
 class Position(SQLModel, table=True):
     """用于实时维护每只股票的持仓成本"""
     __tablename__ = "positions"
@@ -34,4 +57,6 @@ class Prediction(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     symbol: str = Field(index=True)
     expected_return: float
+    features_snapshot: str
     timestamp: datetime = Field(default_factory=datetime.now)
+    model_version: str = "chronos-v1"

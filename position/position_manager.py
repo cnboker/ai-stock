@@ -380,8 +380,9 @@ class PositionManager:
         ticker: str,
         price: float,
         reason: str,
+        prediction_id: Optional[int] = None,
     ):
-        self._close(ticker, price, reason)
+        self._close(ticker, price, reason,prediction_id)
 
     # ==================================================
     # 内部执行逻辑
@@ -539,6 +540,7 @@ class PositionManager:
         ticker: str,
         price: float,
         reason: str,
+        prediction_id: Optional[int] = None,
     ):
         pos = self.positions.get(ticker)
         if not pos:
@@ -557,6 +559,7 @@ class PositionManager:
             price=price,
             value=value,
             reason=reason,
+            prediction_id=prediction_id,
         )
 
     # ==================================================

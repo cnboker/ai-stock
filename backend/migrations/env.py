@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from sqlmodel import SQLModel
 from models.user import User
-from models.prediction import Prediction
-from models.order import Order
+from models.models import Prediction
+from models.models import Order
 
 target_metadata = SQLModel.metadata
 # this is the Alembic Config object, which provides

@@ -35,10 +35,10 @@ def api_save_order(data: Dict[str, Any]) -> bool:
     url = f"{API_BASE_URL}/analytics/orders/"
     try:
         # 转换 datetime
-        for key in ["entry_time", "exit_time"]:
-            if isinstance(data.get(key), datetime):
-                data[key] = data[key].isoformat()
-
+        # for key in ["entry_time", "exit_time"]:
+        #     if isinstance(data.get(key), datetime):
+        #         data[key] = data[key].isoformat()
+        
         response = requests.post(url, json=data, timeout=5)
         print(f"📤 Order API Response: {response.status_code} - {response.text} ")
         if response.status_code in [200, 201]:

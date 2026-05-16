@@ -62,6 +62,7 @@ def execute_equity_action(
             ticker=ticker,
             price=last_price,
             reason=decision.reason,
+            prediction_id=prediction_id
         )
         final_action = "LIQUIDATE"
 

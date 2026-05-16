@@ -88,16 +88,10 @@ def notify_order(event: OrderEvent, position_mgr):
         order_payload = {
             "symbol": event.symbol,
             "side": event.side,
-            "entry_price": event.price,
-            "exit_price": event.price if event.side == "sell" else None,
-            "entry_time": (
-                pos.open_time if (event.side == "sell" and pos) else event.ts
-            ).isoformat(),
-            "exit_time": event.ts.isoformat() if event.side == "sell" else None,
-            "actual_return": actual_return,
-            "pnl_amount": pnl_amount,
+            "price": event.price,
+            "quantity": event.size * (pos.contract_size if pos else 100),
+            "entry_time": event.ts.isoformat(),
             "prediction_id": event.prediction_id,
-            "status": action,
         }
         print(f"📤 Prepared order payload for API: {order_payload}")
         # 调用之前写的 API 函数

@@ -40,7 +40,7 @@ def main():
     tickers = position_mgr.get_tickers_from_positions_and_watchlist()
 
     dates = ["2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30"]
-    dates = ["2026-05-15"]
+    dates = ["2026-05-14", "2026-05-15"]
     report = {}
     for ticker in tickers:
         position_mgr.clear()
