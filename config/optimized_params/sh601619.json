@@ -1,24 +1,24 @@
 {
     "_META": {
         "ticker": "sh601619",
-        "best_value": 43.3108,
-        "date": "2026-05-10 14:18"
+        "best_value": 18.7415,
+        "date": "2026-05-16 10:29"
     },
-    "MODEL_TH": 0.4385,
-    "SLOPE": 0.0624,
-    "PREDICT_UP": 0.0055,
-    "INIT_PT": 0.0197,
+    "MODEL_TH": 0.4363,
+    "SLOPE": 0.0547,
+    "PREDICT_UP": -0.0032,
+    "INIT_PT": 0.0259,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 4.0337,
-    "TP1": 1.0522,
-    "TP2": 1.2297,
-    "KELLY": 0.2154,
-    "RISK": 0.0075,
-    "ATR_STOP": 4.3474,
-    "MAX_STOP": 0.1342,
+    "ATR_MULT": 3.0551,
+    "TP1": 1.0379,
+    "TP2": 1.2097,
+    "KELLY": 0.2492,
+    "RISK": 0.0077,
+    "ATR_STOP": 3.9144,
+    "MAX_STOP": 0.0901,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 13,
+    "STRENGTH_ALPHA": 26,
     "CONFIRM_N": 1,
     "WINDOW": 116,
-    "SLOPE_MIN": 0.0012
+    "SLOPE_MIN": 0.0027
 }

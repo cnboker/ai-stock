@@ -1,23 +1,23 @@
 {
     "_META": {
         "ticker": "sz300790",
-        "best_value": 24.0024,
-        "date": "2026-05-11 16:33"
+        "best_value": 8.8979,
+        "date": "2026-05-16 12:54"
     },
-    "MODEL_TH": 0.4019,
-    "SLOPE": 0.061,
-    "PREDICT_UP": -0.0337,
-    "INIT_PT": 0.0218,
+    "MODEL_TH": 0.4557,
+    "SLOPE": 0.0537,
+    "PREDICT_UP": -0.0099,
+    "INIT_PT": 0.0217,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.5317,
-    "TP1": 1.0387,
-    "TP2": 1.174,
-    "KELLY": 0.2431,
-    "RISK": 0.0077,
-    "ATR_STOP": 4.171,
-    "MAX_STOP": 0.0897,
+    "ATR_MULT": 3.7809,
+    "TP1": 1.0454,
+    "TP2": 1.1513,
+    "KELLY": 0.1847,
+    "RISK": 0.01,
+    "ATR_STOP": 4.0607,
+    "MAX_STOP": 0.126,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 53,
+    "STRENGTH_ALPHA": 51,
     "CONFIRM_N": 1,
-    "WINDOW": 116
+    "WINDOW": 48
 }

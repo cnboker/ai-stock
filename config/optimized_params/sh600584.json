@@ -1,24 +1,24 @@
 {
     "_META": {
         "ticker": "sh600584",
-        "best_value": 75.2724,
-        "date": "2026-05-10 12:22"
+        "best_value": 62.7462,
+        "date": "2026-05-16 08:29"
     },
-    "MODEL_TH": 0.541,
-    "SLOPE": 0.0297,
-    "PREDICT_UP": -0.0172,
-    "INIT_PT": 0.0362,
+    "MODEL_TH": 0.4902,
+    "SLOPE": 0.0925,
+    "PREDICT_UP": -0.0282,
+    "INIT_PT": 0.0421,
     "TREND_STAGE": 0.18,
-    "ATR_MULT": 3.276,
-    "TP1": 1.0387,
-    "TP2": 1.1181,
-    "KELLY": 0.2177,
-    "RISK": 0.0066,
-    "ATR_STOP": 3.8358,
-    "MAX_STOP": 0.1382,
+    "ATR_MULT": 3.1861,
+    "TP1": 1.0341,
+    "TP2": 1.1911,
+    "KELLY": 0.2326,
+    "RISK": 0.0069,
+    "ATR_STOP": 3.8343,
+    "MAX_STOP": 0.1341,
     "MIN_STOP": 0.01,
-    "STRENGTH_ALPHA": 77,
+    "STRENGTH_ALPHA": 34,
     "CONFIRM_N": 1,
-    "WINDOW": 104,
-    "SLOPE_MIN": 0.0022
+    "WINDOW": 64,
+    "SLOPE_MIN": 0.0039
 }
