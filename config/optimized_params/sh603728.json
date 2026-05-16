@@ -1,0 +1,23 @@
+{
+    "_META": {
+        "ticker": "sh603728",
+        "best_value": -27.5966,
+        "date": "2026-05-16 15:22"
+    },
+    "MODEL_TH": 0.5102,
+    "SLOPE": 0.0801,
+    "PREDICT_UP": -0.0104,
+    "INIT_PT": 0.0497,
+    "TREND_STAGE": 0.18,
+    "ATR_MULT": 4.4176,
+    "TP1": 1.0291,
+    "TP2": 1.1384,
+    "KELLY": 0.1771,
+    "RISK": 0.0056,
+    "ATR_STOP": 3.614,
+    "MAX_STOP": 0.0918,
+    "MIN_STOP": 0.01,
+    "STRENGTH_ALPHA": 65,
+    "CONFIRM_N": 1,
+    "WINDOW": 76
+}
