@@ -14,7 +14,7 @@ HERMES_CLI_CMD = "hermes"
 
 def run_audit():
     # 1. 抓取数据
-    daily_json = fetch_daily_data('2026-05-15')
+    daily_json = fetch_daily_data()
     print(f"📥 从 API 获取的原始数据:\n{daily_json}")
     if not daily_json or not daily_json.get("details"):
         print("📭 今日无交易预测数据。")

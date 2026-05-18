@@ -86,7 +86,7 @@ def run_simulation():
     tickers = position_mgr.get_tickers_from_positions_and_watchlist()
 
     dates = ["2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30"]
-    dates = ["2026-05-15"]
+    dates = ["2026-05-18"]
     hs300_df = load_index_df("30").sort_index()
     eq_feat = equity_features(eq_recorder.to_series())
     eq_decision = equity_engine.decide(eq_feat, position_mgr.has_any_position())
